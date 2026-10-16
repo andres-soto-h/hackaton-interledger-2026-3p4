@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mkdir -p \"$CLAUDE_PROJECT_DIR/AI/prompts\" && jq -r '\"\\n### \" + (now|localtime|strftime(\"%Y-%m-%d %H:%M:%S\")) + \"\\n\\n\" + .prompt + \"\\n\"' >> \"$CLAUDE_PROJECT_DIR/AI/prompts/prompts.md\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
