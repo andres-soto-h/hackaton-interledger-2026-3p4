@@ -60,3 +60,9 @@ Thumbs.db
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Private keys (Open Payments wallets) — never commit
+backend/keys/*
+!backend/keys/.gitkeep
+*.key
+*.pem
