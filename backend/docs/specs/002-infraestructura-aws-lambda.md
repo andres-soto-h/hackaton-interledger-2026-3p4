@@ -1,4 +1,4 @@
-# 001 — Infraestructura: despliegue del backend en AWS Lambda (IaC)
+# 002 — Infraestructura: despliegue del backend en AWS Lambda (IaC)
 
 | Campo | Valor |
 |---|---|
@@ -10,10 +10,12 @@
 
 ## Estado
 
-9 / 15 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
-en verde, typecheck y `cdk synth` correctos. Pendiente: cargador de secretos y
-middleware de API key (dependen del bootstrap del backend), reemplazo de llaves,
-despliegue en `dev` y evaluación de JWT.
+9 / 13 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
+en verde, typecheck y `cdk synth` correctos. Pendiente: reemplazo de llaves,
+despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)) y evaluación de JWT.
+
+> Renumerado de 001 a 002 el 2026-10-16: el bootstrap de la API pasa a ser el 001.
+> El cargador de secretos y el middleware de API key se movieron al spec 001.
 
 ## Contexto
 
@@ -112,25 +114,20 @@ Wallet (redirect)    ──HTTPS──────────────▶   
 
 **Variables de entorno de la Lambda (sin secretos):** ARN de cada secreto,
 nombre de la tabla. La URL pública de la API y las URLs de wallets se definen en
-el spec de bootstrap.
+el spec [001](001-bootstrap-api.md).
 
 ### Autenticación por API key
 
 - Header: `x-api-key`.
-- Validación en un **middleware de Express** (no en API Gateway): la HTTP API de
+- Se valida en un **middleware de Express**, no en API Gateway: la HTTP API de
   API Gateway no tiene API keys nativas y las de la REST API están pensadas para
-  planes de uso, no para autenticación. El middleware además funciona igual en
-  local y se prueba con TDD.
-- Comparación en tiempo constante (`crypto.timingSafeEqual`) para no filtrar
-  información por tiempos de respuesta.
-- Rutas públicas (sin API key): `GET /health` y `GET /api/v1/auth/callback`.
-- Respuesta de error: `401` con cuerpo de error estándar, sin indicar si faltó
-  la key o si era incorrecta.
-- Origen de la key: Secrets Manager en Lambda; variable `API_KEY` en `.env` local.
+  planes de uso, no para autenticación.
+- Este spec define dónde vive la key (secreto `api-key` generado por AWS). El
+  middleware y su comportamiento están en el spec [001](001-bootstrap-api.md).
 
 ### Llaves privadas (dónde se guardan en el despliegue)
 
-- **Local:** archivos en `backend/keys/` (ignorados por git), referenciados desde `.env`.
+- **Local:** archivo `backend/keys/open-payments.json` (ignorado por git) con el mismo formato que el secreto.
 - **AWS:** un secreto `tranqui/dev/open-payments` en Secrets Manager con este formato:
 
   ```json
@@ -165,32 +162,25 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 | 6 | IaC | Ninguna variable de entorno de la Lambda contiene un secreto | No hay llaves PEM ni la API key en texto plano |
 | 7 | IaC | El log group tiene retención de 14 días | `RetentionInDays: 14` |
 | 8 | IaC | El secreto `open-payments` no tiene valor definido en el template | Sin `SecretString` |
-| 9 | Unit | El cargador de secretos lee de Secrets Manager en Lambda y de `.env` / `keys/` en local | Fuente correcta según el entorno |
-| 10 | Unit | Petición protegida sin `x-api-key` | `401` |
-| 11 | Unit | Petición protegida con `x-api-key` incorrecta | `401` |
-| 12 | Unit | Petición protegida con `x-api-key` correcta | Pasa al siguiente handler |
-| 13 | Unit | `GET /health` y `GET /api/v1/auth/callback` sin API key | Pasan al siguiente handler |
-| 14 | Manual | `GET /health` sobre la URL desplegada | `200` |
-| 15 | Manual | Endpoint protegido desplegado sin API key / con API key | `401` / respuesta normal |
-| 16 | IaC | Tabla, secretos y log group se eliminan al destruir el stack | `DeletionPolicy: Delete` |
+| 9 | IaC | Tabla, secretos y log group se eliminan al destruir el stack | `DeletionPolicy: Delete` |
+| 10 | Manual | `GET /health` sobre la URL desplegada | `200` |
+| 11 | Manual | Endpoint protegido desplegado sin API key / con API key | `401` / respuesta normal |
 
 ## Tareas
 
 1. [x] Decidir herramienta IaC → AWS CDK en TypeScript.
 2. [x] Decidir ubicación del código de infraestructura → `backend/infra/`.
 3. [x] Crear el proyecto IaC y su configuración base (pnpm, TypeScript, Vitest, CDK).
-4. [x] Escribir los tests de la plantilla (casos 1–8 y 16) en rojo.
+4. [x] Escribir los tests de la plantilla (casos 1–9) en rojo.
 5. [x] Definir Lambda + HTTP API hasta pasar los tests 1–2.
 6. [x] Definir tabla DynamoDB de grants pendientes hasta pasar los tests 3 y 5.
 7. [x] Definir los secretos e IAM de mínimo privilegio hasta pasar los tests 4, 6 y 8.
 8. [x] Definir log group con retención hasta pasar el test 7.
 9. [x] Documentar dónde y cómo se guardan las llaves privadas en el despliegue (formato del secreto, carga, rotación) en el README.
-10. [ ] Implementar el cargador de secretos local/AWS con su test (caso 9). *Depende del bootstrap del backend.*
-11. [ ] Implementar el middleware de API key con sus tests (casos 10–13). *Depende del bootstrap del backend.*
-12. [ ] **Reemplazar las llaves privadas de la wallet personal por las de comercios ficticios** (crear wallets de prueba, generar llaves, registrarlas y cargarlas en el secreto).
-13. [ ] Desplegar en `dev` y verificar los casos 14–15. *Depende del bootstrap del backend y de credenciales de AWS.*
-14. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 13).*
-15. [ ] **Evaluar un mecanismo de autenticación más seguro que la API key (p. ej. JWT)** y proponerlo como spec.
+10. [ ] **Reemplazar las llaves privadas de la wallet personal por las de comercios ficticios** (crear wallets de prueba, generar llaves, registrarlas y cargarlas en el secreto).
+11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de credenciales de AWS.*
+12. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 11).*
+13. [ ] **Evaluar un mecanismo de autenticación más seguro que la API key (p. ej. JWT)** y proponerlo como spec.
 
 ## Decisiones
 
@@ -203,14 +193,10 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 | 5 | Autenticación de la API | API key en header `x-api-key`, validada en middleware |
 | 6 | Región de AWS | `us-east-1` por defecto, configurable con `CDK_DEFAULT_REGION` |
 
-**Pendiente:** adaptador Express → Lambda (`@codegenie/serverless-express` o
-`serverless-http`); se decide en el spec de bootstrap del backend.
-
 ## Notas
 
-- Las tareas 10, 11 y 13 requieren `src/app.ts`, `src/lambda.ts` y el setup del
-  backend, que pertenecen al spec de bootstrap. Este spec no pasa a **Hecho**
-  hasta completarlas.
+- El despliegue (tarea 11) requiere el build del backend (`backend/dist/`) con
+  `lambda.handler`, que entrega el spec 001. Este spec no pasa a **Hecho** antes.
 - El `finish.uri` del grant interactivo debe apuntar a la URL pública de API
   Gateway, así que la URL base de la API es configuración, no un valor fijo.
 - El stack recibe el código de la Lambda como propiedad: en los tests se usa

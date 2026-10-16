@@ -154,7 +154,7 @@ describe('BackendStack', () => {
     })
   })
 
-  // Caso 16
+  // Caso 9
   it('elimina tabla, secretos y logs al destruir el stack', () => {
     for (const type of [
       'AWS::DynamoDB::Table',

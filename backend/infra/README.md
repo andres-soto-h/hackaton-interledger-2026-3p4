@@ -1,7 +1,7 @@
 # Infraestructura del backend (AWS CDK)
 
 Define en TypeScript los recursos del backend en AWS. Spec:
-[001 — Infraestructura AWS Lambda](../docs/specs/001-infraestructura-aws-lambda.md).
+[002 — Infraestructura AWS Lambda](../docs/specs/002-infraestructura-aws-lambda.md).
 
 | Recurso | Nombre / detalle |
 |---|---|
@@ -33,7 +33,7 @@ pnpm destroy       # elimina el stack y sus recursos
 - `STAGE` (por defecto `dev`) define el nombre del entorno.
 - `CDK_DEFAULT_REGION` (por defecto `us-east-1`) define la región.
 - `synth` y `deploy` empaquetan `backend/dist/`, así que primero hay que compilar
-  el backend (definido en el spec de bootstrap).
+  el backend (definido en el spec 001).
 - `destroy` borra también la tabla, los logs y los secretos. Secrets Manager
   los conserva en periodo de recuperación (7–30 días) antes de eliminarlos.
 
@@ -43,8 +43,8 @@ Al terminar, `deploy` imprime la URL pública en el output `ApiUrl`.
 
 ### Llaves privadas de Open Payments
 
-**Local:** las llaves van en `backend/keys/` (ignorado por git) y se referencian
-desde `backend/.env`.
+**Local:** archivo `backend/keys/open-payments.json` (ignorado por git) con el
+mismo formato que el secreto de AWS.
 
 **AWS:** el stack crea el secreto `tranqui/<stage>/open-payments` **sin valor**.
 La llave nunca pasa por el repo ni por el template de CloudFormation. Formato:
