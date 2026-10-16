@@ -1,0 +1,281 @@
+/**
+ * This script sets up an incoming payment on a receiving wallet address,
+ * and a quote on the sending wallet address (after getting grants for both of the resources).
+ *
+ * The final step is asking for an outgoing payment grant for the sending wallet address.
+ * Since this needs user interaction, you will need to navigate to the URL, and accept the interactive grant.
+ *
+ * To start, please add the variables for configuring the client & the wallet addresses for the payment.
+ */
+
+import {
+  createAuthenticatedClient,
+  OpenPaymentsClientError,
+  isFinalizedGrant
+} from '@interledger/open-payments'
+import readline from 'readline/promises'
+import express from 'express'
+;(async () => {
+  // Client configuration
+  const PRIVATE_KEY_PATH = './private-dollar.key'
+  const KEY_ID = 'TU_KEY_ID'
+
+  // Make sure the wallet addresses starts with https:// (not $)
+  const CLIENT_WALLET_ADDRESS_URL = 'https://ilp.interledger-test.dev/andy_dolares'
+  const SENDING_WALLET_ADDRESS_URL = 'https://ilp.interledger-test.dev/andy_dolares'
+  const RECEIVING_WALLET_ADDRESS_URL = 'https://ilp.interledger-test.dev/791b6832'
+
+  const client = await createAuthenticatedClient({
+    walletAddressUrl: CLIENT_WALLET_ADDRESS_URL,
+    keyId: KEY_ID,
+    privateKey: PRIVATE_KEY_PATH
+  })
+
+  // Step 1: Get the sending and receiving wallet addresses
+  const sendingWalletAddress = await client.walletAddress.get({
+    url: SENDING_WALLET_ADDRESS_URL
+  })
+  const receivingWalletAddress = await client.walletAddress.get({
+    url: RECEIVING_WALLET_ADDRESS_URL
+  })
+
+  console.log('\nStep 1: got wallet addresses', {
+    receivingWalletAddress,
+    sendingWalletAddress
+  })
+
+  // Step 2: Get a grant for the incoming payment, so we can create the incoming payment on the receiving wallet address
+  const incomingPaymentGrant = await client.grant.request(
+    {
+      url: receivingWalletAddress.authServer
+    },
+    {
+      access_token: {
+        access: [
+          {
+            type: 'incoming-payment',
+            actions: ['read', 'complete', 'create']
+          }
+        ]
+      }
+    }
+  )
+
+  console.log(
+    '\nStep 2: got incoming payment grant for receiving wallet address',
+    incomingPaymentGrant
+  )
+
+  if (!isFinalizedGrant(incomingPaymentGrant)) {
+    throw new Error('Expected finalized incoming payment grant')
+  }
+
+  // Step 3: Create the incoming payment. This will be where funds will be received.
+  const incomingPayment = await client.incomingPayment.create(
+    {
+      url: receivingWalletAddress.resourceServer,
+      accessToken: incomingPaymentGrant.access_token.value
+    },
+    {
+      walletAddress: receivingWalletAddress.id,
+      incomingAmount: {
+        assetCode: receivingWalletAddress.assetCode,
+        assetScale: receivingWalletAddress.assetScale,
+        value: '1000'
+      },
+      metadata: {
+        description: 'From peer-to-peer example script'
+      }
+    }
+  )
+
+  console.log(
+    '\nStep 3: created incoming payment on receiving wallet address',
+    incomingPayment
+  )
+
+  // Step 4: Get a quote grant, so we can create a quote on the sending wallet address
+  const quoteGrant = await client.grant.request(
+    {
+      url: sendingWalletAddress.authServer
+    },
+    {
+      access_token: {
+        access: [
+          {
+            type: 'quote',
+            actions: ['create', 'read']
+          }
+        ]
+      }
+    }
+  )
+
+  if (!isFinalizedGrant(quoteGrant)) {
+    throw new Error('Expected finalized quote grant')
+  }
+
+  console.log('\nStep 4: got quote grant on sending wallet address', quoteGrant)
+
+  // Step 5: Create a quote, this gives an indication of how much it will cost to pay into the incoming payment
+  const quote = await client.quote.create(
+    {
+      url: sendingWalletAddress.resourceServer,
+      accessToken: quoteGrant.access_token.value
+    },
+    {
+      walletAddress: sendingWalletAddress.id,
+      receiver: incomingPayment.id,
+      method: 'ilp'
+    }
+  )
+
+  console.log('\nStep 5: got quote on sending wallet address', quote)
+
+  const callbackServerPort = 3999
+
+  // Step 7: Start the grant process for the outgoing payments.
+  // This is an interactive grant: the user (in this case, you) will need to accept the grant by navigating to the outputted link.
+  const outgoingPaymentGrant = await client.grant.request(
+    {
+      url: sendingWalletAddress.authServer
+    },
+    {
+      access_token: {
+        access: [
+          {
+            type: 'outgoing-payment',
+            actions: ['read', 'create'],
+            limits: {
+              debitAmount: {
+                assetCode: quote.debitAmount.assetCode,
+                assetScale: quote.debitAmount.assetScale,
+                value: quote.debitAmount.value
+              }
+            },
+            identifier: sendingWalletAddress.id
+          }
+        ]
+      },
+      interact: {
+        start: ['redirect'],
+        finish: {
+          method: 'redirect',
+          // The uri is where the user is redirected to after going through interaction with their wallet/identity provider. For this example, we use a temporary HTTP server to handle the redirect.
+          uri: `http://localhost:${callbackServerPort}`,
+          // The nonce is used as part of hash verification when redirecting to the uri. Please visit https://openpayments.dev/identity/hash-verification/ for more details.
+          nonce: crypto.randomUUID()
+        }
+      }
+    }
+  )
+
+  console.log(
+    '\nStep 7: got pending outgoing payment grant',
+    outgoingPaymentGrant
+  )
+  console.log(
+    'Please navigate to the following URL, to accept the interaction from the sending wallet:'
+  )
+  console.log(outgoingPaymentGrant.interact.redirect)
+
+  const interactRef =
+    await getInteractRefFromTempCallbackServer(callbackServerPort)
+
+  await readline
+    .createInterface({ input: process.stdin, output: process.stdout })
+    .question('\nPlease accept grant and press enter...')
+
+  let finalizedOutgoingPaymentGrant
+
+  const grantContinuationErrorMessage =
+    '\nThere was an error continuing the grant. You probably have not accepted the grant at the url (or it has already been used up, in which case, rerun the script).'
+
+  try {
+    finalizedOutgoingPaymentGrant = await client.grant.continue(
+      {
+        url: outgoingPaymentGrant.continue.uri,
+        accessToken: outgoingPaymentGrant.continue.access_token.value
+      },
+      { interact_ref: interactRef }
+    )
+  } catch (err) {
+    if (err instanceof OpenPaymentsClientError) {
+      console.log(grantContinuationErrorMessage)
+      process.exit()
+    }
+
+    throw err
+  }
+
+  if (!isFinalizedGrant(finalizedOutgoingPaymentGrant)) {
+    console.log(
+      'There was an error continuing the grant. You probably have not accepted the grant at the url.'
+    )
+    process.exit()
+  }
+
+  console.log(
+    '\nStep 6: got finalized outgoing payment grant',
+    finalizedOutgoingPaymentGrant
+  )
+
+  // Step 7: Finally, create the outgoing payment on the sending wallet address.
+  // This will make a payment from the outgoing payment to the incoming one (over ILP)
+  const outgoingPayment = await client.outgoingPayment.create(
+    {
+      url: sendingWalletAddress.resourceServer,
+      accessToken: finalizedOutgoingPaymentGrant.access_token.value
+    },
+    {
+      walletAddress: sendingWalletAddress.id,
+      quoteId: quote.id,
+      metadata: {
+        description: 'Sent from peer-to-peer example script'
+      }
+    }
+  )
+
+  console.log(
+    '\nStep 7: Created outgoing payment. Funds will now move from the outgoing payment to the incoming payment.',
+    outgoingPayment
+  )
+
+  process.exit()
+})()
+
+/**
+ * Starts a temporary local HTTP server to handle Open Payments Auth Server callback redirects, and return the resulting interact ref.
+ */
+async function getInteractRefFromTempCallbackServer(port) {
+  return new Promise((resolve) => {
+    let server
+    const app = express()
+
+    app.get('/', async (req, res) => {
+      const interactRef = req.query['interact_ref']
+
+      res.send(`
+          <html>
+            <body style="font-family: monospace; padding: 2rem; text-align: center;">
+              <img src="https://raw.githubusercontent.com/interledger/open-payments/main/docs/public/img/logo.svg" width="300" alt="Open Payments" style="max-width: 100%; margin-bottom: 2rem;">  
+              <h1>Authentication successful</h1>
+              <p>You can close this window and return to your terminal.</p>
+            </body>
+          </html>
+        `)
+
+      server.close()
+      resolve(interactRef)
+    })
+
+    server = app.listen(port).on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(
+          `Port ${port} is already in use, please select a new port for the callback server.`
+        )
+        process.exit(1)
+      }
+    })
+  })
+}
