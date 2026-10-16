@@ -16,7 +16,7 @@ App de transferencias P2P (persona a persona) y P2M (persona a comercio) sobre
 | Tests | Vitest + supertest |
 | Gestor de paquetes | pnpm |
 | Despliegue | AWS Lambda (ver spec de infraestructura) |
-| Documentación | `docs/` en la raíz del repo |
+| Documentación | `backend/docs/` (cada carpeta del repo tiene su propia documentación) |
 | Metodología | SDD (Spec-Driven Development) + TDD |
 
 ## Estructura del backend
@@ -90,7 +90,7 @@ backend/
 ## Flujo de trabajo (SDD + TDD)
 
 ```
-docs/
+backend/docs/
 ├── PLAN.md          ← este documento
 ├── KANBAN.md        ← tablero de avance de specs
 └── specs/
