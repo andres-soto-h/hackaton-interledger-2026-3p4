@@ -2,15 +2,18 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
-| Desarrollo aprobado | — |
+| Spec aprobado | 2026-10-16 (con observación: autenticación por API key) |
+| Desarrollo aprobado | 2026-10-16 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 13 tareas completadas. Spec en borrador, pendiente de aprobación.
+9 / 15 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
+en verde, typecheck y `cdk synth` correctos. Pendiente: cargador de secretos y
+middleware de API key (dependen del bootstrap del backend), reemplazo de llaves,
+despliegue en `dev` y evaluación de JWT.
 
 ## Contexto
 
@@ -18,6 +21,10 @@ El backend (API de pagos P2P/P2M, ver [PLAN.md](../PLAN.md)) se despliega en AWS
 como una función Lambda. Los recursos se definen en una plantilla de
 Infraestructura como Código (IaC) versionada en el repo, para que cualquier
 miembro del equipo pueda desplegar el mismo entorno de forma reproducible.
+
+La API será consumida desde Google Cloud (carpeta `agent`), así que debe exigir
+autenticación. En esta fase se usa una **API key enviada en un header**; más
+adelante se evaluará un mecanismo más seguro (p. ej. JWT).
 
 Hoy las llaves privadas de Open Payments son las de la wallet personal del
 responsable del proyecto. Deben reemplazarse por llaves de comercios ficticios y
@@ -30,9 +37,11 @@ guardarse en un servicio de secretos, nunca en el código ni en la imagen de la 
 - Función Lambda que ejecuta la app Express a través de `src/lambda.ts`.
 - API Gateway (HTTP API) que expone los endpoints públicamente, incluido el
   callback de grants de Open Payments.
+- Autenticación de la API por API key en el header `x-api-key`.
 - Tabla persistente para el estado de grants pendientes (entre `POST /payments`
   y `GET /auth/callback`), porque Lambda no conserva memoria entre invocaciones.
-- Almacenamiento seguro de las llaves privadas y su lectura desde la Lambda.
+- Almacenamiento seguro de las llaves privadas y de la API key, y su lectura
+  desde la Lambda.
 - Permisos IAM de mínimo privilegio.
 - Logs en CloudWatch con retención definida.
 - Tests de la plantilla IaC.
@@ -43,6 +52,7 @@ guardarse en un servicio de secretos, nunca en el código ni en la imagen de la 
 - Dominio propio / certificados.
 - Infraestructura del frontend y de `agent`.
 - Múltiples entornos (se despliega un solo entorno `dev` para el hackatón).
+- Mecanismo de autenticación definitivo (JWT u otro): solo se evalúa (tarea 15).
 
 ## Criterios de aceptación
 
@@ -50,16 +60,24 @@ guardarse en un servicio de secretos, nunca en el código ni en la imagen de la 
   de despliegue documentado, **entonces** se crean todos los recursos y se
   obtiene la URL pública de la API.
 - **Dado** el entorno desplegado, **cuando** se llama `GET /health` en la URL
-  pública, **entonces** responde `200`.
+  pública, **entonces** responde `200` sin necesidad de API key.
+- **Dado** una petición a un endpoint protegido, **cuando** no trae el header
+  `x-api-key` o trae un valor incorrecto, **entonces** responde `401` y no
+  ejecuta la lógica del endpoint.
+- **Dado** una petición a un endpoint protegido con la API key correcta,
+  **cuando** llega a la API, **entonces** se procesa normalmente.
+- **Dado** el callback de Open Payments (`GET /api/v1/auth/callback`), **cuando**
+  la wallet redirige el navegador del usuario, **entonces** se acepta sin API key
+  (un redirect del navegador no puede enviar headers propios).
 - **Dado** el entorno desplegado, **cuando** la Lambda necesita firmar peticiones
-  a Open Payments, **entonces** obtiene la llave privada del servicio de secretos
-  y la llave no aparece en el código, en variables de entorno en texto plano ni
-  en el paquete desplegado.
+  a Open Payments o validar la API key, **entonces** obtiene los valores del
+  servicio de secretos y no aparecen en el código, en variables de entorno en
+  texto plano ni en el paquete desplegado.
 - **Dado** un grant interactivo iniciado en una invocación, **cuando** el
   callback llega en otra invocación, **entonces** el estado del grant se recupera
   de la tabla persistente.
 - **Dado** el rol IAM de la Lambda, **cuando** se revisa la plantilla,
-  **entonces** solo tiene permisos sobre sus propios recursos (su secreto, su
+  **entonces** solo tiene permisos sobre sus propios recursos (sus secretos, su
   tabla y sus logs).
 - **Dado** el comando de destrucción documentado, **cuando** se ejecuta,
   **entonces** se eliminan los recursos del entorno.
@@ -67,15 +85,16 @@ guardarse en un servicio de secretos, nunca en el código ni en la imagen de la 
 ## Diseño
 
 ```
-Cliente / Wallet ──HTTPS──▶ API Gateway (HTTP API)
-                                  │
-                                  ▼
-                           Lambda (Node.js, app Express)
+Google Cloud (agent) ──HTTPS + x-api-key──▶ API Gateway (HTTP API)
+Wallet (redirect)    ──HTTPS──────────────▶        │
+                                                   ▼
+                                  Lambda (Node.js, app Express)
+                                  [middleware de API key]
                              │            │             │
                              ▼            ▼             ▼
                      Secrets Manager   DynamoDB     CloudWatch Logs
-                     (llaves privadas) (grants      
-                                        pendientes, TTL)
+                     (llaves OP,       (grants
+                      API key)          pendientes, TTL)
                              │
                              ▼
                    Open Payments (Interledger test network)
@@ -83,68 +102,116 @@ Cliente / Wallet ──HTTPS──▶ API Gateway (HTTP API)
 
 | Recurso | Propósito | Notas |
 |---|---|---|
-| Lambda | Ejecuta la API | Handler `lambda.ts`; runtime Node.js LTS; timeout y memoria a definir |
-| API Gateway HTTP API | Expone la API | Su URL se usa como `finish.uri` del grant interactivo |
-| DynamoDB | Estado de grants pendientes | On-demand; TTL para expirar grants no completados |
-| Secrets Manager | Llaves privadas y key IDs de los comercios | Un secreto por comercio o uno con todos, a decidir |
-| IAM Role | Permisos de la Lambda | Solo `GetSecretValue` de su secreto, CRUD en su tabla, escribir sus logs |
-| CloudWatch Log Group | Logs de la Lambda | Retención corta (p. ej. 14 días) |
+| Lambda | Ejecuta la API | Runtime Node.js 22; el código se pasa como propiedad del stack |
+| API Gateway HTTP API | Expone la API | Ruta proxy `ANY /{proxy+}`; su URL es el `finish.uri` del grant |
+| DynamoDB | Estado de grants pendientes | On-demand; TTL en el atributo `expiresAt` |
+| Secret `open-payments` | Llaves privadas y key IDs de los comercios | JSON; el valor se carga a mano, nunca en la plantilla |
+| Secret `api-key` | API key de los clientes de la API | Generado por AWS al crear el stack |
+| IAM Role | Permisos de la Lambda | Solo `GetSecretValue` de sus dos secretos, CRUD en su tabla, escribir sus logs |
+| CloudWatch Log Group | Logs de la Lambda | Retención de 14 días |
 
-**Configuración de la Lambda (variables de entorno, sin secretos):** ARN o nombre
-del secreto, nombre de la tabla, URLs de wallets, URL base pública de la API.
+**Variables de entorno de la Lambda (sin secretos):** ARN de cada secreto,
+nombre de la tabla. La URL pública de la API y las URLs de wallets se definen en
+el spec de bootstrap.
 
-**Tests de la plantilla:** se valida el template sintetizado (recursos
-existentes, propiedades clave y políticas IAM) sin desplegar en AWS.
+### Autenticación por API key
+
+- Header: `x-api-key`.
+- Validación en un **middleware de Express** (no en API Gateway): la HTTP API de
+  API Gateway no tiene API keys nativas y las de la REST API están pensadas para
+  planes de uso, no para autenticación. El middleware además funciona igual en
+  local y se prueba con TDD.
+- Comparación en tiempo constante (`crypto.timingSafeEqual`) para no filtrar
+  información por tiempos de respuesta.
+- Rutas públicas (sin API key): `GET /health` y `GET /api/v1/auth/callback`.
+- Respuesta de error: `401` con cuerpo de error estándar, sin indicar si faltó
+  la key o si era incorrecta.
+- Origen de la key: Secrets Manager en Lambda; variable `API_KEY` en `.env` local.
+
+### Llaves privadas (dónde se guardan en el despliegue)
+
+- **Local:** archivos en `backend/keys/` (ignorados por git), referenciados desde `.env`.
+- **AWS:** un secreto `tranqui/dev/open-payments` en Secrets Manager con este formato:
+
+  ```json
+  {
+    "merchants": {
+      "<merchant-id>": {
+        "walletAddressUrl": "https://ilp.interledger-test.dev/<wallet>",
+        "keyId": "<key-id>",
+        "privateKey": "-----BEGIN PRIVATE KEY-----\n..."
+      }
+    }
+  }
+  ```
+- La plantilla solo crea el secreto vacío. El valor se carga con la CLI de AWS
+  (comando documentado en el README), así la llave nunca pasa por el repo ni
+  por el template de CloudFormation.
+- La Lambda lee el secreto al arrancar (cold start) y lo mantiene en memoria
+  durante la vida de la instancia.
+
+**Tests de la plantilla:** se valida el template sintetizado (recursos,
+propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 
 ## Casos de prueba
 
 | # | Tipo | Caso | Resultado esperado |
 |---|---|---|---|
-| 1 | IaC | El template contiene una Lambda con runtime Node.js y el handler esperado | Recurso presente con esas propiedades |
-| 2 | IaC | Existe una HTTP API con integración a la Lambda | Ruta proxy hacia la Lambda |
+| 1 | IaC | El template contiene una Lambda con runtime Node.js 22 y el handler esperado | Recurso presente con esas propiedades |
+| 2 | IaC | Existe una HTTP API con ruta proxy integrada a la Lambda | Ruta `ANY /{proxy+}` hacia la Lambda |
 | 3 | IaC | La tabla DynamoDB tiene TTL habilitado y billing on-demand | Propiedades presentes |
-| 4 | IaC | Existe el secreto de llaves y la Lambda solo puede leer ese secreto | Política con `secretsmanager:GetSecretValue` sobre ese ARN, sin `*` |
+| 4 | IaC | Existen los secretos `open-payments` y `api-key`, y la Lambda solo puede leer esos dos | `secretsmanager:GetSecretValue` sobre esos ARN, sin `*` |
 | 5 | IaC | La Lambda solo tiene acceso a su tabla | Política limitada al ARN de la tabla |
-| 6 | IaC | Ninguna variable de entorno de la Lambda contiene una llave privada | No hay valores con formato de llave PEM |
-| 7 | IaC | El log group tiene retención definida | `RetentionInDays` presente |
-| 8 | Unit | El cargador de llaves lee del servicio de secretos cuando corre en Lambda y de `keys/` en local | Fuente correcta según el entorno |
-| 9 | Manual | `GET /health` sobre la URL desplegada | `200` |
+| 6 | IaC | Ninguna variable de entorno de la Lambda contiene un secreto | No hay llaves PEM ni la API key en texto plano |
+| 7 | IaC | El log group tiene retención de 14 días | `RetentionInDays: 14` |
+| 8 | IaC | El secreto `open-payments` no tiene valor definido en el template | Sin `SecretString` |
+| 9 | Unit | El cargador de secretos lee de Secrets Manager en Lambda y de `.env` / `keys/` en local | Fuente correcta según el entorno |
+| 10 | Unit | Petición protegida sin `x-api-key` | `401` |
+| 11 | Unit | Petición protegida con `x-api-key` incorrecta | `401` |
+| 12 | Unit | Petición protegida con `x-api-key` correcta | Pasa al siguiente handler |
+| 13 | Unit | `GET /health` y `GET /api/v1/auth/callback` sin API key | Pasan al siguiente handler |
+| 14 | Manual | `GET /health` sobre la URL desplegada | `200` |
+| 15 | Manual | Endpoint protegido desplegado sin API key / con API key | `401` / respuesta normal |
+| 16 | IaC | Tabla, secretos y log group se eliminan al destruir el stack | `DeletionPolicy: Delete` |
 
 ## Tareas
 
-- [ ] Decidir herramienta IaC (ver *Decisiones pendientes*).
-- [ ] Decidir ubicación del código de infraestructura.
-- [ ] Crear el proyecto IaC y su configuración base.
-- [ ] Escribir los tests de la plantilla (casos 1–7) en rojo.
-- [ ] Definir Lambda + API Gateway hasta pasar los tests 1–2.
-- [ ] Definir tabla DynamoDB de grants pendientes hasta pasar el test 3 y 5.
-- [ ] Definir el secreto de llaves e IAM de mínimo privilegio hasta pasar los tests 4 y 6.
-- [ ] Definir log group con retención hasta pasar el test 7.
-- [ ] **Definir dónde y cómo se guardan las llaves privadas en el despliegue** (formato del secreto, cómo se cargan, quién las rota).
-- [ ] Implementar el cargador de llaves local/AWS con su test (caso 8).
-- [ ] **Reemplazar las llaves privadas de la wallet personal por las de comercios ficticios** (crear wallets de prueba, generar llaves, registrarlas y cargarlas en el secreto).
-- [ ] Desplegar en `dev` y verificar `GET /health` (caso 9).
-- [ ] Documentar despliegue, destrucción y carga de secretos en el README.
+1. [x] Decidir herramienta IaC → AWS CDK en TypeScript.
+2. [x] Decidir ubicación del código de infraestructura → `backend/infra/`.
+3. [x] Crear el proyecto IaC y su configuración base (pnpm, TypeScript, Vitest, CDK).
+4. [x] Escribir los tests de la plantilla (casos 1–8 y 16) en rojo.
+5. [x] Definir Lambda + HTTP API hasta pasar los tests 1–2.
+6. [x] Definir tabla DynamoDB de grants pendientes hasta pasar los tests 3 y 5.
+7. [x] Definir los secretos e IAM de mínimo privilegio hasta pasar los tests 4, 6 y 8.
+8. [x] Definir log group con retención hasta pasar el test 7.
+9. [x] Documentar dónde y cómo se guardan las llaves privadas en el despliegue (formato del secreto, carga, rotación) en el README.
+10. [ ] Implementar el cargador de secretos local/AWS con su test (caso 9). *Depende del bootstrap del backend.*
+11. [ ] Implementar el middleware de API key con sus tests (casos 10–13). *Depende del bootstrap del backend.*
+12. [ ] **Reemplazar las llaves privadas de la wallet personal por las de comercios ficticios** (crear wallets de prueba, generar llaves, registrarlas y cargarlas en el secreto).
+13. [ ] Desplegar en `dev` y verificar los casos 14–15. *Depende del bootstrap del backend y de credenciales de AWS.*
+14. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 13).*
+15. [ ] **Evaluar un mecanismo de autenticación más seguro que la API key (p. ej. JWT)** y proponerlo como spec.
 
-## Decisiones pendientes
+## Decisiones
 
-1. **Herramienta IaC.** Opciones: AWS CDK (TypeScript), AWS SAM, Terraform,
-   Serverless Framework. Recomendación: **AWS CDK en TypeScript**: mismo
-   lenguaje que el backend y tests de la plantilla con `aws-cdk-lib/assertions`
-   en Vitest, lo que encaja con TDD.
-2. **Ubicación del código IaC.** Recomendación: `infra/` en la raíz del repo
-   (podrá alojar también la infraestructura de frontend y agent). Alternativa:
-   `backend/infra/`.
-3. **Servicio de secretos.** Recomendación: **Secrets Manager** (rotación y
-   auditoría). Alternativa más barata: SSM Parameter Store `SecureString`.
-4. **Un secreto por comercio o uno compartido** con todas las llaves.
-5. **Adaptador Express → Lambda:** `@codegenie/serverless-express` o `serverless-http`.
-6. **Región de AWS.**
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Herramienta IaC | AWS CDK en TypeScript; tests con `aws-cdk-lib/assertions` en Vitest |
+| 2 | Ubicación | `backend/infra/` (cada carpeta del repo es dueña de su documentación e infraestructura) |
+| 3 | Servicio de secretos | AWS Secrets Manager |
+| 4 | Organización de secretos | Un secreto con todas las llaves de comercios (`tranqui/dev/open-payments`) y uno para la API key (`tranqui/dev/api-key`) |
+| 5 | Autenticación de la API | API key en header `x-api-key`, validada en middleware |
+| 6 | Región de AWS | `us-east-1` por defecto, configurable con `CDK_DEFAULT_REGION` |
+
+**Pendiente:** adaptador Express → Lambda (`@codegenie/serverless-express` o
+`serverless-http`); se decide en el spec de bootstrap del backend.
 
 ## Notas
 
-- Depende de que exista `src/lambda.ts` y el repositorio de grants (spec de
-  bootstrap del backend). Puede desarrollarse en paralelo en la parte de IaC,
-  pero el despliegue completo requiere ese spec.
+- Las tareas 10, 11 y 13 requieren `src/app.ts`, `src/lambda.ts` y el setup del
+  backend, que pertenecen al spec de bootstrap. Este spec no pasa a **Hecho**
+  hasta completarlas.
 - El `finish.uri` del grant interactivo debe apuntar a la URL pública de API
   Gateway, así que la URL base de la API es configuración, no un valor fijo.
+- El stack recibe el código de la Lambda como propiedad: en los tests se usa
+  código inline y en el despliegue el build del backend.

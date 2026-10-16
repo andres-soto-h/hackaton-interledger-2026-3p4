@@ -4,7 +4,7 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| [001 — Infraestructura AWS Lambda](specs/001-infraestructura-aws-lambda.md) | | | |
+| | | [001 — Infraestructura AWS Lambda](specs/001-infraestructura-aws-lambda.md) · 9/15 | |
 
 ## Backlog (specs por escribir)
 
@@ -22,3 +22,7 @@ aprueba antes de pasar al tablero.
 | Fecha | Spec | Cambio |
 |---|---|---|
 | 2026-10-16 | 001 | Creado como borrador |
+| 2026-10-16 | 001 | Agregada autenticación por API key y tarea de evaluar JWT |
+| 2026-10-16 | 001 | Spec aprobado → Aprobado |
+| 2026-10-16 | 001 | Desarrollo aprobado → En desarrollo |
+| 2026-10-16 | 001 | Plantilla IaC completa (tareas 3–9), 10/10 tests en verde |
