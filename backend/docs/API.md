@@ -251,6 +251,8 @@ Formato estándar (spec 001):
 | `IDEMPOTENCY_CONFLICT` | 409 | Misma `Idempotency-Key` con otro body | 005 |
 | `CALLBACK_ALREADY_USED` | 409 | La vinculación ya salió de `PENDING_AUTHORIZATION` | 023 |
 | `PAYMENT_NOT_CONFIRMABLE` | 409 | El pago no está esperando confirmación | 007 |
+| `PAYMENT_NOT_CANCELLABLE` | 409 | Cancelar un pago que no está en `AWAITING_CONFIRMATION` | 007 |
+| `GRANT_REVOKED` | 409 | El permiso de la vinculación fue revocado (al rotar el token) | 023 |
 | `WALLET_ALREADY_LINKED` | 409 | Ya hay una vinculación activa | 023 |
 | `WALLET_LINK_REVOKED` | 409 | El usuario retiró el permiso desde su wallet | 023 |
 | `WALLET_ALREADY_REGISTERED` | 409 | La wallet ya tiene una cuenta | 019 |
@@ -266,6 +268,7 @@ Formato estándar (spec 001):
 | `INCOMING_PAYMENT_NOT_PAYABLE` | 422 | Incoming payment completado, vencido o sin monto | 007 |
 | `DAILY_LIMIT_EXCEEDED` | 422 | El total (pago + comisión) supera el disponible del día | 023 |
 | `QUOTE_FAILED` | 422 | Open Payments no pudo cotizar (sin ruta, sin liquidez, monto muy pequeño) | 003 |
+| `OPEN_PAYMENTS_UNAUTHORIZED` | 502 | Open Payments rechazó el token de la vinculación | 023 |
 | `GRANT_NOT_FINALIZED` | 502 | El grant no quedó finalizado tras continuar | 023 |
 | `GRANT_LIMITS_MISMATCH` | 502 | Los límites concedidos no son los pedidos | 023 |
 | `OPEN_PAYMENTS_ERROR` | 502 | Error de Open Payments no clasificado | 003 |

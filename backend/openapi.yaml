@@ -63,6 +63,255 @@ paths:
           $ref: '#/components/responses/OpenPaymentsUnavailable'
         '504':
           $ref: '#/components/responses/OpenPaymentsTimeout'
+  /api/v1/payments:
+    post:
+      summary: Cotiza un pago (P2P o P2M) con el monto diario preaprobado
+      operationId: quotePayment
+      tags:
+        - Payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentBody'
+      responses:
+        '201':
+          description: Pago creado en AWAITING_CONFIRMATION con el desglose del quote.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentQuote'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '403':
+          description: La cuenta no tiene una vinculación de wallet activa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: WALLET_NOT_LINKED
+                  message: Wallet is not linked
+        '422':
+          description: El total supera el disponible del día; también ASSET_MISMATCH o INCOMING_PAYMENT_NOT_PAYABLE.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: DAILY_LIMIT_EXCEEDED
+                  message: Daily limit exceeded
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '502':
+          $ref: '#/components/responses/OpenPaymentsError'
+        '503':
+          description: Pagos desactivados desde el panel; también OPEN_PAYMENTS_UNAVAILABLE.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENTS_DISABLED
+                  message: Payments are disabled
+        '504':
+          $ref: '#/components/responses/OpenPaymentsTimeout'
+  /api/v1/payments/{id}/confirm/options:
+    post:
+      summary: Opciones WebAuthn para confirmar el pago con la passkey
+      operationId: confirmPaymentOptions
+      tags:
+        - Payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Desafío ligado a este pago y a este usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentConfirmOptions'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '404':
+          description: Pago inexistente o de otro usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENT_NOT_FOUND
+                  message: Payment not found
+        '409':
+          description: El pago no está esperando confirmación.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENT_NOT_CONFIRMABLE
+                  message: Payment is not awaiting confirmation
+        '410':
+          description: El quote venció.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: QUOTE_EXPIRED
+                  message: Quote expired
+        '503':
+          description: Pagos desactivados desde el panel.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENTS_DISABLED
+                  message: Payments are disabled
+  /api/v1/payments/{id}/confirm:
+    post:
+      summary: Confirma el pago firmando con la passkey
+      operationId: confirmPayment
+      tags:
+        - Payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmPaymentBody'
+      responses:
+        '202':
+          description: Pago en PROCESSING; consultar su estado hasta COMPLETED o FAILED.
+          headers:
+            Retry-After:
+              description: Segundos sugeridos antes de consultar de nuevo.
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentProcessing'
+        '400':
+          description: Firma inválida, desafío vencido o usado (CHALLENGE_EXPIRED) o cuerpo inválido (VALIDATION_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PASSKEY_VERIFICATION_FAILED
+                  message: Passkey verification failed
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '404':
+          description: Pago inexistente o de otro usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENT_NOT_FOUND
+                  message: Payment not found
+        '409':
+          description: El pago no está esperando confirmación.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENT_NOT_CONFIRMABLE
+                  message: Payment is not awaiting confirmation
+        '410':
+          description: El quote venció.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: QUOTE_EXPIRED
+                  message: Quote expired
+        '422':
+          description: El total ya no cabe en el disponible; el pago vuelve a AWAITING_CONFIRMATION.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: DAILY_LIMIT_EXCEEDED
+                  message: Daily limit exceeded
+        '503':
+          description: Pagos desactivados desde el panel.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENTS_DISABLED
+                  message: Payments are disabled
+  /api/v1/payments/{id}/cancel:
+    post:
+      summary: Cancela un pago que espera confirmación
+      operationId: cancelPayment
+      tags:
+        - Payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+      responses:
+        '204':
+          description: Pago cancelado (CANCELLED). Sigue permitido con los pagos desactivados.
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '404':
+          description: Pago inexistente o de otro usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENT_NOT_FOUND
+                  message: Payment not found
+        '409':
+          description: El pago no está en AWAITING_CONFIRMATION.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENT_NOT_CANCELLABLE
+                  message: Payment cannot be cancelled
   /api/v1/auth/register/options:
     post:
       summary: Opciones de registro con passkey
@@ -424,6 +673,14 @@ components:
         type: string
         minLength: 8
         maxLength: 64
+    PaymentId:
+      name: id
+      in: path
+      required: true
+      description: ID del pago (`pay_<ULID>`).
+      schema:
+        type: string
+        pattern: '^pay_[0-9A-Z]{26}$'
   schemas:
     Amount:
       type: object
@@ -675,6 +932,107 @@ components:
           properties:
             id:
               type: string
+    CreatePaymentBody:
+      description: P2P (wallet del receptor y monto) o P2M (incoming payment existente). El emisor sale de la sesión.
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [type, receiverWalletAddress, amount]
+          properties:
+            type:
+              type: string
+              enum: [p2p]
+            receiverWalletAddress:
+              type: string
+              maxLength: 2048
+            amount:
+              $ref: '#/components/schemas/Amount'
+            description:
+              type: string
+              maxLength: 140
+        - type: object
+          additionalProperties: false
+          required: [type, incomingPaymentUrl]
+          properties:
+            type:
+              type: string
+              enum: [p2m]
+            incomingPaymentUrl:
+              type: string
+              format: uri
+              maxLength: 2048
+            amount:
+              $ref: '#/components/schemas/Amount'
+            description:
+              type: string
+              maxLength: 140
+    PaymentQuote:
+      type: object
+      required: [paymentId, status, confirmBy, quote, allowance]
+      properties:
+        paymentId:
+          type: string
+        status:
+          type: string
+          enum: [AWAITING_CONFIRMATION]
+        confirmBy:
+          type: string
+          format: date-time
+        quote:
+          type: object
+          required: [debitAmount, receiveAmount, exchangeRate, fee, totalDebit]
+          properties:
+            debitAmount:
+              $ref: '#/components/schemas/Amount'
+            receiveAmount:
+              $ref: '#/components/schemas/Amount'
+            exchangeRate:
+              type: string
+            fee:
+              allOf:
+                - $ref: '#/components/schemas/Amount'
+                - type: object
+                  properties:
+                    percentage:
+                      type: string
+            totalDebit:
+              $ref: '#/components/schemas/Amount'
+        allowance:
+          type: object
+          required: [dailyLimit, availableAfter]
+          properties:
+            dailyLimit:
+              $ref: '#/components/schemas/Amount'
+            availableAfter:
+              $ref: '#/components/schemas/Amount'
+    PaymentConfirmOptions:
+      type: object
+      required: [challengeId, options]
+      properties:
+        challengeId:
+          type: string
+        options:
+          type: object
+          description: Opciones de autenticación WebAuthn (PublicKeyCredentialRequestOptionsJSON).
+    ConfirmPaymentBody:
+      type: object
+      additionalProperties: false
+      required: [challengeId, credential]
+      properties:
+        challengeId:
+          type: string
+        credential:
+          type: object
+          description: Credencial WebAuthn firmada por el dispositivo (se pasa intacta al verificador).
+    PaymentProcessing:
+      type: object
+      required: [paymentId, status]
+      properties:
+        paymentId:
+          type: string
+        status:
+          type: string
+          enum: [PROCESSING]
   responses:
     ValidationError:
       description: Cuerpo inválido.
