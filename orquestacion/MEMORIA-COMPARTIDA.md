@@ -25,7 +25,6 @@ Formato:
 | Spec | Rama | Worktree | Desde | Lote actual |
 |---|---|---|---|---|
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
-| 003 | `spec/003` | `../<repo>-worktrees/spec-003` | 2026-10-16 | Tareas 6–7 (fixtures y adapter del SDK, casos 9–13) |
 | 005 | `spec/005` | `../<repo>-worktrees/spec-005` | 2026-10-17 | Tareas 1–6 (requestId, logger, helmet, cors, jsonBody, validate, idempotency) |
 
 ## Decisiones

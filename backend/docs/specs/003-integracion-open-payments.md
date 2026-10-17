@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | 2026-10-16 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-5 / 8 tareas completadas (configuración, llave privada, montos, anti-SSRF, puerto + fake y `toApiError`; 150 tests en verde en la rama `spec/003`, pendiente de integrar). Siguen fixtures, adapter del SDK y suite completa. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 004 (worker de DeepSeek, rama `spec/003`). Ajustado el 2026-10-16 por el monto diario
+8 / 8 tareas completadas e integradas en `develop-andres` (184 tests, typecheck y lint en verde). Los fixtures HTTP se escribieron a mano según el OpenAPI del SDK (no se pudieron capturar respuestas reales de la red de prueba); conviene validarlos contra la red de prueba en el primer spec que use el adapter. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 004 (worker de DeepSeek, rama `spec/003`). Ajustado el 2026-10-16 por el monto diario
 preaprobado (spec 023); Cambios aprobados el 2026-10-16. Depende del spec 001.
 
 **Qué cambió respecto a la versión aprobada:** el grant de outgoing payment se
@@ -202,9 +202,9 @@ credenciales en la URL. Acepta `$host/path` (payment pointer) convirtiéndolo a
 3. [x] `SettingsProvider` (desde el entorno) y `assertSafeWalletUrl`: casos 5–6 y 15 → implementación.
 4. [x] Puerto `OpenPaymentsGateway`, tipos propios y fake (caso 14).
 5. [x] `toApiError`: caso 7 → implementación.
-6. [ ] Fixtures HTTP de Open Payments a partir de respuestas reales de la red de prueba.
-7. [ ] Adapter del SDK con cliente autenticado, timeouts y reintentos: casos 9–13.
-8. [ ] Suite completa en verde, lint y typecheck limpios.
+6. [x] Fixtures HTTP de Open Payments a partir de respuestas reales de la red de prueba.
+7. [x] Adapter del SDK con cliente autenticado, timeouts y reintentos: casos 9–13.
+8. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
