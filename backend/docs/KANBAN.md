@@ -97,3 +97,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 007 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 023 | Lote 2 integrado (DynamoDB con reservas atómicas, OpenAPI); 9/10, falta el spike manual |
 | 2026-10-17 | 021 | Integrado en `develop-andres`, 813 tests en verde → Hecho |
+| 2026-10-17 | — | Cableado de los módulos 006, 019, 020, 021 y 023 en `createApp` (`src/composition/`, ver [CABLEADO](CABLEADO.md)); almacén de idempotencia en DynamoDB; configuración y secretos nuevos. El router de pagos (007) se monta después vía `extraRouters` |
