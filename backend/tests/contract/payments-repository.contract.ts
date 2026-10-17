@@ -299,7 +299,7 @@ export function runPaymentsRepositoryContract(
     })
 
     // Spec 024: el resumen de comisiones del panel lee todos los pagos (no solicitudes).
-    describe('listAllPayments', () => {
+    describe('listEveryPayment', () => {
       it('devuelve todos los pagos y ninguna solicitud', async () => {
         const a = buildPayment({ id: 'pay_01JC000000000000000000001' })
         const b = buildPayment({
@@ -313,13 +313,13 @@ export function runPaymentsRepositoryContract(
           buildPaymentRequest({ id: 'pr_01JC000000000000000000001' })
         )
 
-        const all = await repo.listAllPayments()
+        const all = await repo.listEveryPayment()
 
         expect(all.map((item) => item.id).sort()).toEqual([a.id, b.id])
       })
 
       it('devuelve una lista vacía sin pagos', async () => {
-        expect(await repo.listAllPayments()).toEqual([])
+        expect(await repo.listEveryPayment()).toEqual([])
       })
     })
 

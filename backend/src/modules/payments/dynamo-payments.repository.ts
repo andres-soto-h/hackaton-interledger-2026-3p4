@@ -287,7 +287,7 @@ export function createDynamoPaymentsRepository({
      * Full scan filtered by the `pay_` id prefix. Fine for the low volume of the
      * admin summary; if it grows, move the aggregate to a counter item.
      */
-    async listAllPayments() {
+    async listEveryPayment() {
       const items: Payment[] = []
       let startKey: Record<string, unknown> | undefined
       do {

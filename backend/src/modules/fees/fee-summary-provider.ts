@@ -6,11 +6,11 @@ export function createFeeSummaryProvider({
   payments,
   now
 }: {
-  payments: Pick<PaymentsRepository, 'listAllPayments'>
+  payments: Pick<PaymentsRepository, 'listEveryPayment'>
   /** Milliseconds since the epoch. */
   now: () => number
 }): FeeSummaryProvider {
   return {
-    summary: async () => summarizeFees(await payments.listAllPayments(), now())
+    summary: async () => summarizeFees(await payments.listEveryPayment(), now())
   }
 }

@@ -36,7 +36,7 @@ export interface PaymentsRepository {
     opts: { expectedStatus: PaymentRequestStatus }
   ): Promise<PaymentRequest>
   /** Every payment (never payment requests); used by the admin fee summary (spec 024). */
-  listAllPayments(): Promise<Payment[]>
+  listEveryPayment(): Promise<Payment[]>
   listByWallet(q: ListByWalletQuery): Promise<{
     items: (Payment | PaymentRequest)[]
     nextCursor?: string
