@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LambdaConfig, LocalConfig } from '../../src/config/env.js'
 import { loadSecrets, SecretsError } from '../../src/config/secrets.js'
+import { openPaymentsTestConfig } from '../helpers/app.js'
 
 // Fake credentials: never real keys in the repo.
 const openPayments = {
@@ -13,6 +14,7 @@ const openPayments = {
 }
 
 const lambdaConfig: LambdaConfig = {
+  ...openPaymentsTestConfig,
   runtime: 'lambda',
   nodeEnv: 'production',
   logLevel: 'info',
@@ -27,6 +29,7 @@ describe('loadSecrets', () => {
   beforeEach(async () => {
     dir = await mkdtemp(join(tmpdir(), 'secrets-test-'))
     localConfig = {
+      ...openPaymentsTestConfig,
       runtime: 'local',
       nodeEnv: 'test',
       logLevel: 'silent',
