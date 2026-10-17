@@ -540,9 +540,20 @@ export function createWalletLinksService({
     },
 
     async revokeForUser(userId) {
-      const link = await links.findActiveByUser(userId)
-      if (link === null) return
-      await revoke(link)
+      const active = await links.findActiveByUser(userId)
+      if (active !== null) {
+        await revoke(active)
+        return
+      }
+      // Spec 027: also cancel a pending grant so deleting the account leaves no
+      // orphan authorization in the wallet.
+      const pending = await links.findLatestByUser(userId)
+      if (
+        pending !== null &&
+        (pending.status === 'PENDING_AUTHORIZATION' || pending.status === 'AUTHORIZING')
+      ) {
+        await revoke(pending)
+      }
     }
   }
 

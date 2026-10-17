@@ -595,6 +595,42 @@ describe('desvincular', () => {
   })
 })
 
+// Spec 027: al borrar la cuenta también se cancela el grant pendiente.
+describe('DELETE /api/v1/me con vinculación pendiente', () => {
+  const deleteMe = (token: string) =>
+    request(ctx.app).delete('/api/v1/me').set('authorization', bearer(token))
+
+  it('cancela el grant pendiente en la wallet y deja la vinculación REVOKED', async () => {
+    const { user, token } = await ctx.seedUser()
+    const started = bodyOf<StartBody>(await startLink(token))
+    const continueToken = (await ctx.links.get(started.linkId))?.continueToken
+
+    const res = await deleteMe(token)
+    expect(res.status).toBe(204)
+    expect(ctx.gateway.cancelledGrants()).toEqual([continueToken])
+
+    const stored = await ctx.links.get(started.linkId)
+    expect(stored?.status).toBe('REVOKED')
+    expect(stored?.revokedAt).toBeTruthy()
+    expect(await ctx.users.getUser(user.id)).toBeNull()
+  })
+
+  it('si la cancelación del grant falla, el borrado continúa y el fallo queda en el log', async () => {
+    const { logger, text } = captureLogs()
+    ctx = buildWalletLinksContext({ logger })
+
+    const { user, token } = await ctx.seedUser()
+    const started = bodyOf<StartBody>(await startLink(token))
+    ctx.gateway.failNext('cancelGrant', new AppError(502, 'OPEN_PAYMENTS_ERROR', 'boom'))
+
+    const res = await deleteMe(token)
+    expect(res.status).toBe(204)
+    expect(await ctx.users.getUser(user.id)).toBeNull()
+    expect((await ctx.links.get(started.linkId))?.status).toBe('REVOKED')
+    expect(text()).toMatch(/failed to cancel/i)
+  })
+})
+
 // Caso 13
 describe('el token nunca se expone', () => {
   it('no aparece en respuestas ni en logs durante el flujo completo', async () => {
