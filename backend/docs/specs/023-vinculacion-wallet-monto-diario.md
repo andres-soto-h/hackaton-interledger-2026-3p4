@@ -10,7 +10,7 @@
 
 ## Estado
 
-Lote 1 integrado en `develop-andres` (2026-10-17, 684 tests en verde): tareas 2, 3, 5, 6, 7 y 8 hechas con fakes y repositorio en memoria; 4 parcial (falta DynamoDB con reservas atómicas condicionales). Quedan: 4 (DynamoDB), 9 (OpenAPI) y 10. La tarea 1 (spike en la red real) es un pendiente del responsable.
+Lotes 1 y 2 integrados en `develop-andres` (2026-10-17): 9 / 10 tareas, 705 tests (más 76 contra DynamoDB Local), typecheck y lint en verde. **Solo falta la tarea 1 (spike en la red de prueba real)**, que requiere al responsable ([PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md)); el spec no pasa a **Hecho** hasta cerrarla.
 
 0 / 10 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); se desarrolla en la rama `spec/023`. La tarea 1 (spike en la red de prueba) queda como pendiente del responsable en [PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md); el resto se desarrolla con fakes. Depende de
 los specs 003, 004, 005 y 019. Requiere cambios de infraestructura en el spec 002.
@@ -247,13 +247,13 @@ pagos a medias (pago sí, comisión no):
 1. [ ] Spike en la red de prueba (caso 1) y ajustes al diseño si hace falta.
 2. [x] Cambios del puerto y del adapter de Open Payments (grant con límites, rotar, cancelar).
 3. [x] Cifrado de tokens (caso 7).
-4. [~] Entidad `WalletLink`, repositorio y reservas con tests de contrato (caso 10).
+4. [x] Entidad `WalletLink`, repositorio y reservas con tests de contrato (caso 10).
 5. [x] Iniciar vinculación: casos 2–3.
 6. [x] Callback: casos 4–6 y 14.
 7. [x] Rotación del token: casos 8–9.
 8. [x] Disponible, desvincular y cancelación al borrar la cuenta: casos 11–13.
-9. [ ] Contrato en `openapi.yaml`.
-10. [ ] Suite completa en verde, lint y typecheck limpios.
+9. [x] Contrato en `openapi.yaml`.
+10. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
