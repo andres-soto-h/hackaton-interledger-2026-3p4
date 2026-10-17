@@ -1,3 +1,4 @@
+import type { FeeSummaryProvider } from '../../src/modules/fees/fee-summary.js'
 import type { Express } from 'express'
 import request from 'supertest'
 import type {
@@ -28,6 +29,7 @@ export const DEFAULT_SETTINGS: EditableSettings = {
 }
 
 export interface HarnessOptions {
+  feeSummary?: FeeSummaryProvider
   paymentsSummary?: PaymentsSummaryProvider
   openPaymentsStatus?: OpenPaymentsStatusChecker
   enabled?: boolean
@@ -52,6 +54,7 @@ export function buildAdminHarness(options: HarnessOptions = {}) {
     settingsStore,
     activityLog,
     paymentsSummary: options.paymentsSummary,
+    feeSummary: options.feeSummary,
     openPaymentsStatus: options.openPaymentsStatus,
     now
   })

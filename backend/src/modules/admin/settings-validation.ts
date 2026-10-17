@@ -1,5 +1,6 @@
 import { isIP } from 'node:net'
 import type { EditableSettings } from '../../shared/settings/editable-settings.js'
+import { isValidFeePercentage } from '../fees/fee-percentage.js'
 
 export type SettingsFormResult =
   { ok: true; values: EditableSettings } | { ok: false; errors: Record<string, string> }
@@ -63,15 +64,6 @@ function parseAmountMap(
   return { ok: true, value: result }
 }
 
-function validateFeePercentage(value: string): boolean {
-  const match = /^(\d+)(?:\.(\d{1,3}))?$/.exec(value)
-  if (match === null) return false
-  const whole = match[1]!
-  const fraction = (match[2] ?? '').padEnd(3, '0')
-  const milli = BigInt(whole) * 1000n + BigInt(fraction)
-  return milli <= 10_000n
-}
-
 function parseTtl(value: string): number | null {
   if (!/^\d+$/.test(value)) return null
   const number = Number(value)
@@ -124,7 +116,7 @@ export function parseSettingsForm(
   else errors.dailySpendLimits = 'Cada moneda debe ser CODIGO:monto positivo'
 
   const fee = input.feePercentage ?? ''
-  if (validateFeePercentage(fee)) values.feePercentage = fee
+  if (isValidFeePercentage(fee)) values.feePercentage = fee
   else errors.feePercentage = 'Porcentaje entre 0 y 10 con hasta 3 decimales'
 
   const ttl = parseTtl(input.linkAuthTtlSeconds ?? '')

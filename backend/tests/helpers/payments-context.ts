@@ -3,10 +3,13 @@ import { createApp } from '../../src/app.js'
 import { createFakeOpenPaymentsGateway } from '../../src/integrations/open-payments/fake-gateway.js'
 import type { WalletAddress } from '../../src/integrations/open-payments/gateway.js'
 import { createInMemoryPaymentsRepository } from '../../src/modules/payments/in-memory-payments.repository.js'
+import { createFeeCalculator } from '../../src/modules/fees/fee-calculator.js'
+import { createFeeCollector } from '../../src/modules/fees/fee-collector.js'
 import type { FeeCalculator, FeeCollector } from '../../src/modules/payments/fee.js'
 import { createPaymentsRouter } from '../../src/modules/payments/payments.routes.js'
 import { createPaymentsService } from '../../src/modules/payments/payments.service.js'
 import { createInMemoryUsersRepository } from '../../src/modules/users/in-memory-users.repository.js'
+import type { Payment } from '../../src/modules/payments/payment.types.js'
 import type { User } from '../../src/modules/users/user.types.js'
 import { computeCallbackHash } from '../../src/modules/wallet-links/callback-hash.js'
 import { createStaticDailyLimitProvider } from '../../src/modules/wallet-links/daily-limit.provider.js'
@@ -67,10 +70,14 @@ export const createFakeFeeCalculator = (): FeeCalculator => ({
  * in USD and pesos in MXN), repositories, fake WebAuthn verifier, wallet-link
  * service, static daily limits and a controllable clock.
  */
+export const PLATFORM_WALLET = wallet('platform')
+
 export function buildPaymentsContext(
   options: {
     tokenTtlSeconds?: number
     settings?: Partial<EditableSettings>
+    /** `real` wires the spec 024 calculator and collector over the settings (default `fake`). */
+    fees?: 'fake' | 'real'
   } = {}
 ) {
   const clock = { value: START }
@@ -83,7 +90,7 @@ export function buildPaymentsContext(
     now: () => new Date(clock.value),
     tokenTtlSeconds: options.tokenTtlSeconds ?? 3600
   })
-  for (const name of ['alice', 'bob', 'shop']) gateway.addWallet(wallet(name))
+  for (const name of ['alice', 'bob', 'shop', 'platform']) gateway.addWallet(wallet(name))
   gateway.addWallet(wallet('pesos', 'MXN'))
   const sessions = createSessionService({
     signingKey: SESSION_KEY,
@@ -111,7 +118,19 @@ export function buildPaymentsContext(
     invalidate: () => undefined
   }
 
-  const feeCollector: FeeCollector = { collect: vi.fn(() => Promise.resolve()) }
+  const useRealFees = options.fees === 'real'
+  const feeCollector: FeeCollector = useRealFees
+    ? createFeeCollector({
+        gateway,
+        payments,
+        walletLinks,
+        platformWalletUrl: PLATFORM_WALLET.id,
+        now
+      })
+    : {
+        collect: vi.fn(() => Promise.resolve()),
+        refresh: vi.fn((payment: Payment) => Promise.resolve(payment))
+      }
   const service = createPaymentsService({
     gateway,
     payments,
@@ -120,7 +139,11 @@ export function buildPaymentsContext(
     users,
     verifier,
     settings,
-    fees: createFakeFeeCalculator(),
+    fees: useRealFees
+      ? createFeeCalculator({
+          percentage: async () => (await settings.getEditable()).settings.feePercentage
+        })
+      : createFakeFeeCalculator(),
     feeCollector,
     webauthn: { rpID: RP_ID, origins: ORIGINS },
     now

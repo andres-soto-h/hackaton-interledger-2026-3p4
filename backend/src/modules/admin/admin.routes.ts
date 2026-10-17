@@ -16,6 +16,7 @@ import {
   type AdminSessionManager
 } from './admin-session.js'
 import type { PaymentStatus } from '../payments/payment.types.js'
+import type { FeeSummary, FeeSummaryProvider } from '../fees/fee-summary.js'
 import {
   type OpenPaymentsStatus,
   type OpenPaymentsStatusChecker,
@@ -51,6 +52,7 @@ export interface AdminDeps {
   activityLog: ActivityLog
   paymentsSummary?: PaymentsSummaryProvider
   openPaymentsStatus?: OpenPaymentsStatusChecker
+  feeSummary?: FeeSummaryProvider
   loginAttempts?: LoginAttemptsStore
   now?: () => number
   logger?: Logger
@@ -442,6 +444,15 @@ export function createAdminRouter(deps: AdminDeps): Router {
       }
     }
 
+    let fees: FeeSummary | null = null
+    if (deps.feeSummary !== undefined) {
+      try {
+        fees = await deps.feeSummary.summary()
+      } catch {
+        fees = null
+      }
+    }
+
     const rows = HOME_STATUSES.map(
       (status) => html`
         <tr>
@@ -458,6 +469,41 @@ export function createAdminRouter(deps: AdminDeps): Router {
           ? html`<span class="badge text-bg-success">Conectado</span>`
           : html`<span class="badge text-bg-danger">Error: ${openPayments.error}</span>`
 
+    const feesSection =
+      fees === null
+        ? ''
+        : html`
+            <h2>Comisiones cobradas</h2>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Moneda</th>
+                  <th>Últimas 24 h</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Object.entries(fees.byCurrency).map(
+                  ([currency, totals]) => html`
+                    <tr>
+                      <td>${currency}</td>
+                      <td>${totals.last24h}</td>
+                      <td>${totals.total}</td>
+                    </tr>
+                  `
+                )}
+              </tbody>
+            </table>
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>Comisiones fallidas</th>
+                  <td>${fees.failedCount}</td>
+                </tr>
+              </tbody>
+            </table>
+          `
+
     const body = html`
       <h1>Inicio</h1>
       <h2>Pagos (últimas 24 h)</h2>
@@ -472,6 +518,7 @@ export function createAdminRouter(deps: AdminDeps): Router {
           ${rows}
         </tbody>
       </table>
+      ${feesSection}
       <h2>Open Payments</h2>
       <p>${statusBadge}</p>
       <ul>

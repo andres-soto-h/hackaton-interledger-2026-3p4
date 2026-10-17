@@ -252,7 +252,10 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
 
     assertWithinLimit(debitAmount, runtime.maxPaymentAmounts)
 
-    const { percentage, fee, totalDebit } = await fees.calculate(debitAmount)
+    const { percentage, fee, totalDebit } = await fees.calculate(
+      debitAmount,
+      sender.assetScale
+    )
 
     const allowance = await walletLinks.getAllowance(user.id)
     const link = await links.findActiveByUser(user.id)
@@ -288,7 +291,7 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       feePercentage: percentage,
       fee,
       totalDebit,
-      feeStatus: 'NONE',
+      feeStatus: /[1-9]/.test(fee.value) ? 'PENDING' : 'NONE',
       status: 'AWAITING_CONFIRMATION',
       ...(body.description !== undefined ? { description: body.description } : {}),
       createdAt,
@@ -476,7 +479,11 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       const apiError = asApiError(error, 'createOutgoingPayment')
       await payments.updatePayment(
         paymentId,
-        { status: 'FAILED', error: { code: apiError.code, message: apiError.message } },
+        {
+          status: 'FAILED',
+          feeStatus: 'NONE',
+          error: { code: apiError.code, message: apiError.message }
+        },
         { expectedStatus: 'PROCESSING' }
       )
       try {
@@ -491,15 +498,17 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       throw apiError
     }
 
-    await payments.updatePayment(
+    const updatedPayment = await payments.updatePayment(
       paymentId,
       { outgoingPaymentUrl: outgoingId },
       { expectedStatus: 'PROCESSING' }
     )
 
-    void feeCollector.collect(taken).catch((error: unknown) => {
+    try {
+      await feeCollector.collect(updatedPayment)
+    } catch (error) {
       logger?.warn({ paymentId, err: error }, 'Fee collection failed')
-    })
+    }
 
     return { paymentId, status: 'PROCESSING' }
   }
