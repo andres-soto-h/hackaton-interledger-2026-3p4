@@ -2,10 +2,10 @@ import { Platform, ScrollView, StyleSheet, View, type ViewProps } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, layout, spacing } from '@/theme';
 
-type Props = ViewProps & { scroll?: boolean };
+type Props = ViewProps & { scroll?: boolean; tone?: 'light' | 'dark' };
 
 /** Fondo, márgenes, área segura y, en web, contenido centrado a 480 px como máximo. */
-export function Screen({ children, scroll = true, testID, style, ...rest }: Props) {
+export function Screen({ children, scroll = true, tone = 'light', testID, style, ...rest }: Props) {
   const content = (
     <View
       testID={testID ? `${testID}-content` : undefined}
@@ -16,7 +16,7 @@ export function Screen({ children, scroll = true, testID, style, ...rest }: Prop
     </View>
   );
   return (
-    <SafeAreaView testID={testID} style={styles.root}>
+    <SafeAreaView testID={testID} style={[styles.root, tone === 'dark' ? styles.dark : null]}>
       {scroll ? (
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           {content}
@@ -30,6 +30,7 @@ export function Screen({ children, scroll = true, testID, style, ...rest }: Prop
 
 const styles = StyleSheet.create({
   root: { backgroundColor: colors.background, flex: 1 },
+  dark: { backgroundColor: colors.primary },
   scroll: { alignItems: 'center', flexGrow: 1 },
   content: { flexGrow: 1, gap: spacing.lg, paddingHorizontal: layout.screenMargin, paddingVertical: spacing.xl },
   webWidth: { maxWidth: layout.maxContentWidth, width: '100%' },

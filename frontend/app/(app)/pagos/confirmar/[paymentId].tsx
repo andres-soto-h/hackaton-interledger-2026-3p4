@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/client';
@@ -11,7 +12,8 @@ import { cancelPayment, confirmErrorKind, confirmPayment, type ConfirmErrorKind 
 import { formatCountdown, useCountdown } from '@/features/payments/use-countdown';
 import { usePayment } from '@/features/transactions/hooks';
 import { formatMoney } from '@/lib/money';
-import { AmountRow, AppHeader, AppText, Button, Card, ErrorState, Screen, StepIndicator } from '@/ui';
+import { colors, spacing } from '@/theme';
+import { AmountRow, AppHeader, AppText, Button, Card, ErrorState, IconBadge, Screen, StepIndicator } from '@/ui';
 
 const MESSAGES: Partial<Record<ConfirmErrorKind, string>> = {
   cancelled: 'No se confirmó el pago. No se movió ni un peso.',
@@ -104,7 +106,10 @@ export default function ConfirmPayment() {
       <AppText variant="title" accessibilityRole="header">
         Revise su pago
       </AppText>
-      <AppText>{spoken}</AppText>
+      <View style={styles.speech}>
+        <IconBadge name="chatbubble-ellipses" tone="accent" size={36} />
+        <AppText style={styles.speechText}>{spoken}</AppText>
+      </View>
       <Card>
         {buildBreakdown(view).map(({ id, ...row }) => (
           <AmountRow key={id} {...row} />
@@ -112,13 +117,24 @@ export default function ConfirmPayment() {
       </Card>
 
       {secondsLeft !== null && !expired ? (
-        <AppText
-          variant="label"
-          color={secondsLeft < 60 ? 'danger' : 'textMuted'}
-          accessibilityLabel={`Tiene ${formatCountdown(secondsLeft)} para confirmar`}
-        >
-          {`Tiene ${formatCountdown(secondsLeft)} para confirmar`}
-        </AppText>
+        <View style={styles.timer}>
+          <Ionicons name="time-outline" size={18} color={secondsLeft < 60 ? colors.danger : colors.textMuted} accessibilityElementsHidden />
+          <AppText
+            variant="label"
+            color={secondsLeft < 60 ? 'danger' : 'textMuted'}
+            accessibilityLabel={`Tiene ${formatCountdown(secondsLeft)} para confirmar`}
+          >
+            {`Tiene ${formatCountdown(secondsLeft)} para confirmar`}
+          </AppText>
+        </View>
+      ) : null}
+      {!expired ? (
+        <Card tone="alt" style={styles.safe}>
+          <Ionicons name="shield-checkmark-outline" size={22} color={colors.primary} accessibilityElementsHidden />
+          <AppText variant="label" style={styles.speechText}>
+            Nada se mueve sin su sí. Usted confirma con su huella o el bloqueo del teléfono.
+          </AppText>
+        </Card>
       ) : null}
 
       {kind === 'daily-limit' ? (
@@ -146,20 +162,28 @@ export default function ConfirmPayment() {
       ) : null}
 
       {expired ? (
-        <Button label="Preparar el pago otra vez" onPress={() => router.replace('/pagos')} />
+        <Button label="Preparar el pago otra vez" icon="refresh" onPress={() => router.replace('/pagos')} />
       ) : (
         <>
           <Button
             label="Sí, pagar"
+            icon="finger-print"
             accessibilityHint="Usa su huella o el bloqueo del teléfono para confirmar"
             onPress={confirm}
             loading={busy}
             disabled={kind === 'relink'}
           />
-          <Button label="Repítamelo" variant="secondary" onPress={() => AccessibilityInfo.announceForAccessibility(spoken)} />
+          <Button label="Repítamelo" icon="volume-high" variant="secondary" onPress={() => AccessibilityInfo.announceForAccessibility(spoken)} />
         </>
       )}
       <Button label="No pagar" variant="ghost" onPress={dontPay} disabled={busy} />
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  speech: { alignItems: 'flex-start', flexDirection: 'row', gap: spacing.md },
+  speechText: { flexShrink: 1 },
+  timer: { alignItems: 'center', flexDirection: 'row', gap: spacing.xs },
+  safe: { alignItems: 'center', flexDirection: 'row' },
+});

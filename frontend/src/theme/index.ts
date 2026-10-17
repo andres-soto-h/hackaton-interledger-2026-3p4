@@ -13,11 +13,16 @@ export const colors = {
   // Borde sutil para superficies (tarjetas, chips): delinean sin parecer una "caja".
   // En modo oscuro se invierte a rgba(255,255,255,0.08).
   borderSubtle: 'rgba(0,0,0,0.06)',
+  // Tonos suaves para insignias de ícono y avisos.
+  primarySoft: '#E3EAF6',
+  accentSoft: '#FDE8DC',
+  successSoft: '#DDEEE3',
+  dangerSoft: '#F6E3D9',
 } as const;
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
-export const radii = { card: 16, button: 14, chip: 22, bubble: 18, bubbleTip: 4, circle: 999 } as const;
+export const radii = { card: 20, button: 14, chip: 22, bubble: 18, bubbleTip: 4, circle: 999 } as const;
 
 export const layout = {
   screenMargin: 20,
@@ -31,7 +36,7 @@ export const layout = {
 /** Ancho de borde. Hairline = 1 px (bordes sutiles, no cajas de 2 px). */
 export const borderWidth = { hairline: 1 } as const;
 
-export const iconSize = { sm: 18, md: 20, lg: 24 } as const;
+export const iconSize = { sm: 18, md: 20, lg: 24, xl: 32 } as const;
 
 /** Elevación en capas: sombras muy sutiles y teñidas con la marca (nunca el "drop shadow" genérico). */
 export const shadows = {

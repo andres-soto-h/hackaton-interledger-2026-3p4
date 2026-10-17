@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgent } from '@/features/agent/agent-context';
@@ -10,7 +10,8 @@ import { formatClock, formatRelativeDate } from '@/features/transactions/format'
 import { merchantNameFrom } from '@/features/payments/confirmation';
 import { formatMoney } from '@/lib/money';
 import { hapticError, hapticSuccess } from '@/ui/haptics';
-import { AmountRow, AppHeader, AppText, Button, Card, ErrorState, Screen } from '@/ui';
+import { spacing } from '@/theme';
+import { AmountRow, AppHeader, AppText, Button, Card, ErrorState, IconBadge, Screen } from '@/ui';
 
 export default function PaymentResult() {
   const router = useRouter();
@@ -61,15 +62,23 @@ export default function PaymentResult() {
 
       {payment ? (
         <>
-          {phase !== 'timeout' ? (
-            <AppText variant="title" accessibilityRole="header" accessibilityLiveRegion="polite">
-              {title}
-            </AppText>
-          ) : (
-            <AppText variant="title" accessibilityLiveRegion="polite">
-              El pago sigue en proceso
-            </AppText>
-          )}
+          <View style={styles.hero}>
+            <IconBadge
+              name={HERO[phase === 'timeout' ? 'PROCESSING' : payment.status]?.icon ?? 'time'}
+              tone={HERO[phase === 'timeout' ? 'PROCESSING' : payment.status]?.tone ?? 'primary'}
+              solid
+              size={88}
+            />
+            {phase !== 'timeout' ? (
+              <AppText variant="title" accessibilityRole="header" accessibilityLiveRegion="polite" style={styles.center}>
+                {title}
+              </AppText>
+            ) : (
+              <AppText variant="title" accessibilityLiveRegion="polite" style={styles.center}>
+                El pago sigue en proceso
+              </AppText>
+            )}
+          </View>
 
           {payment.status === 'PROCESSING' && phase === 'polling' ? (
             <AppText color="textMuted">Esto toma unos segundos.</AppText>
@@ -111,15 +120,15 @@ export default function PaymentResult() {
           {phase !== 'polling' || payment.status !== 'PROCESSING' ? (
             <>
               {payment.status === 'CANCELLED' || payment.status === 'EXPIRED' || payment.status === 'FAILED' ? (
-                <Button label="Preparar el pago otra vez" onPress={() => router.replace('/pagos')} />
+                <Button label="Preparar el pago otra vez" icon="refresh" onPress={() => router.replace('/pagos')} />
               ) : (
-                <Button label="Pagar algo más" onPress={() => router.replace('/pagos')} />
+                <Button label="Pagar algo más" icon="add-circle" onPress={() => router.replace('/pagos')} />
               )}
               {agent.isFromChat(paymentId) ? (
-                <Button label="Volver al chat" onPress={() => router.replace('/agente')} />
+                <Button label="Volver al chat" icon="chatbubble-ellipses" onPress={() => router.replace('/agente')} />
               ) : null}
-              <Button label="Ver mis transacciones" variant="secondary" onPress={() => router.replace('/transacciones')} />
-              <Button label="Ir al inicio" variant="ghost" onPress={() => router.replace('/')} />
+              <Button label="Ver mis transacciones" icon="list" variant="secondary" onPress={() => router.replace('/transacciones')} />
+              <Button label="Ir al inicio" icon="home" variant="ghost" onPress={() => router.replace('/')} />
             </>
           ) : null}
         </>
@@ -127,6 +136,20 @@ export default function PaymentResult() {
     </Screen>
   );
 }
+
+const HERO: Record<string, { icon: string; tone: 'primary' | 'success' | 'danger' | 'accent' }> = {
+  AWAITING_CONFIRMATION: { icon: 'hourglass', tone: 'primary' },
+  PROCESSING: { icon: 'hourglass', tone: 'primary' },
+  COMPLETED: { icon: 'checkmark', tone: 'success' },
+  FAILED: { icon: 'alert', tone: 'danger' },
+  CANCELLED: { icon: 'close', tone: 'primary' },
+  EXPIRED: { icon: 'time', tone: 'danger' },
+};
+
+const styles = StyleSheet.create({
+  hero: { alignItems: 'center', gap: spacing.lg, paddingVertical: spacing.lg },
+  center: { textAlign: 'center' },
+});
 
 const TITLES: Record<string, string> = {
   AWAITING_CONFIRMATION: 'Esperando su confirmación',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMerchants } from '@/features/merchants/hooks';
-import { CATEGORY_LABELS, type MerchantCategory } from '@/features/merchants/types';
+import { CATEGORY_ICONS, CATEGORY_LABELS, type MerchantCategory } from '@/features/merchants/types';
 import { StatusFilter } from '@/features/transactions/components/StatusFilter';
 import { spacing } from '@/theme';
 import { AppHeader, AppText, EmptyState, MerchantTile, Screen, TextField } from '@/ui';
@@ -28,6 +28,7 @@ export default function Directory() {
             key={m.id}
             name={m.name}
             subtitle={CATEGORY_LABELS[m.category]}
+            icon={CATEGORY_ICONS[m.category]}
             onPress={() => router.push(`/pagos/${m.id}/datos` as never)}
           />
         ))}

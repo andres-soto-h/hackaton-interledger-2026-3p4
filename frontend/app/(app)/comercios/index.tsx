@@ -24,6 +24,7 @@ export default function SafeMerchants() {
               ? formatMoney({ value: m.fixedAmount, assetCode: m.assetCode })
               : 'Monto a ingresar'
           }
+          icon="storefront"
           onPress={() => router.push(`/comercios/${m.id}` as never)}
         />
       ))}

@@ -19,3 +19,12 @@ export const CATEGORY_LABELS: Record<MerchantCategory, string> = {
   celular: 'Celular',
   internet: 'Internet',
 };
+
+/** Ícono (Ionicons) de cada categoría, para reconocer el servicio sin leer. */
+export const CATEGORY_ICONS: Record<MerchantCategory, string> = {
+  energia: 'flash',
+  agua: 'water',
+  gas: 'flame',
+  celular: 'phone-portrait',
+  internet: 'wifi',
+};

@@ -7,7 +7,9 @@ import { paymentErrorMessage } from '@/features/payments/errors';
 import { useMerchantValidation } from '@/features/payments/use-merchant-validation';
 import { hasBlockingError } from '@/features/payments/verify';
 import { newIdempotencyKey } from '@/lib/uuid';
-import { AppHeader, AppText, Button, Card, CheckItem, ErrorState, Screen, StepIndicator } from '@/ui';
+import { StyleSheet, View } from 'react-native';
+import { colors, spacing } from '@/theme';
+import { AppHeader, AppText, Button, Card, CheckItem, ErrorState, IconBadge, Screen, StepIndicator } from '@/ui';
 import type { Merchant } from '@/features/merchants/types';
 
 export default function MerchantValidation() {
@@ -83,7 +85,7 @@ function Validation({
       {validation.isError ? (
         <ErrorState message="No pudimos revisar la cuenta. Intente de nuevo." onRetry={validation.retry} />
       ) : (
-        <Card>
+        <Card style={styles.checks}>
           {validation.steps.map((step, i) => (
             <CheckItem
               key={step.id}
@@ -102,9 +104,12 @@ function Validation({
         </AppText>
       ) : null}
       {validation.done && !blocked ? (
-        <AppText variant="heading" accessibilityLiveRegion="polite">
-          {`Listo, ya revisé. La cuenta de ${merchant.name} es la correcta`}
-        </AppText>
+        <View style={styles.verdict} accessibilityLiveRegion="polite">
+          <IconBadge name="checkmark" tone="success" solid size={40} />
+          <AppText variant="heading" style={styles.verdictText}>
+            {`Listo, ya revisé. La cuenta de ${merchant.name} es la correcta`}
+          </AppText>
+        </View>
       ) : null}
 
       {error ? (
@@ -119,7 +124,7 @@ function Validation({
       ) : null}
 
       {validation.done && !blocked ? (
-        <Button label="Seguir con el pago" onPress={createPayment} loading={creating} />
+        <Button label="Seguir con el pago" icon="arrow-forward" onPress={createPayment} loading={creating} />
       ) : null}
       {validation.done && blocked ? (
         <Button label="Elegir otro servicio" variant="secondary" onPress={() => router.replace('/pagos')} />
@@ -127,3 +132,10 @@ function Validation({
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  // Borde de marca: la revisión es el paso que da tranquilidad, por eso se destaca.
+  checks: { borderColor: colors.primary, borderWidth: 2, gap: spacing.lg },
+  verdict: { alignItems: 'center', flexDirection: 'row', gap: spacing.md },
+  verdictText: { flexShrink: 1 },
+});

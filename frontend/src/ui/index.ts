@@ -13,3 +13,6 @@ export { StepIndicator } from './StepIndicator';
 export { CheckItem, type CheckStatus } from './CheckItem';
 export { MerchantTile } from './MerchantTile';
 export { PressableScale, type HapticKind } from './PressableScale';
+export { BrandMark } from './BrandMark';
+export { IconBadge } from './IconBadge';
+export { ActionTile } from './ActionTile';
