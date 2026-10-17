@@ -1,5 +1,6 @@
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
+import { errorOf } from '../helpers/errors.js'
 import { buildTestApp, TEST_API_KEY } from '../helpers/app.js'
 
 /**
@@ -24,7 +25,7 @@ describe('rutas protegidas', () => {
   it.each(PROTECTED_ROUTES)('%s %s sin API key → 401', async (method, path) => {
     const res = await request(app)[method](path)
     expect(res.status).toBe(401)
-    expect(res.body.error.code).toBe('UNAUTHORIZED')
+    expect(errorOf(res).code).toBe('UNAUTHORIZED')
   })
 
   it.each(PROTECTED_ROUTES)(

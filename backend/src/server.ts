@@ -4,6 +4,13 @@ import { loadConfig } from './config/env.js'
 import { loadSecrets } from './config/secrets.js'
 import { createLogger } from './shared/logger.js'
 
+/** Comma-separated host allowlist from `CORS_ALLOWED_ORIGINS`; empty values dropped. */
+const corsAllowedOrigins = (): string[] =>
+  (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0)
+
 /** Local entry point: `pnpm dev`. Lambda uses `lambda.ts` instead. */
 async function main(): Promise<void> {
   // Variables already set in the shell take precedence over `.env`.
@@ -16,7 +23,12 @@ async function main(): Promise<void> {
 
   const logger = createLogger(config)
   const secrets = await loadSecrets(config)
-  const app = createApp({ config, secrets, logger })
+  const app = createApp({
+    config,
+    secrets,
+    logger,
+    corsAllowedOrigins: corsAllowedOrigins()
+  })
 
   app.listen(config.port, () => {
     logger.info({ port: config.port }, 'API listening')

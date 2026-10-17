@@ -3,6 +3,7 @@ import request from 'supertest'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createInMemoryIdempotencyStore } from '../../src/shared/idempotency/in-memory-store.js'
 import { idempotency } from '../../src/shared/middlewares/idempotency.js'
+import { errorOf } from '../helpers/errors.js'
 import { buildTestApp, TEST_API_KEY } from '../helpers/app.js'
 
 const KEY = 'order-0001-abcdef'
@@ -26,9 +27,10 @@ const makeApp = () => {
 }
 
 let app: ReturnType<typeof makeApp>
-const pay = (body: unknown, key: string | undefined = KEY) => {
+/** `key = null` sends the request without an Idempotency-Key header. */
+const pay = (body: unknown, key: string | null = KEY) => {
   const req = request(app).post('/api/v1/pay').set('x-api-key', TEST_API_KEY)
-  return (key === undefined ? req : req.set('idempotency-key', key)).send(body as object)
+  return (key === null ? req : req.set('idempotency-key', key)).send(body as object)
 }
 
 beforeEach(() => {
@@ -49,8 +51,8 @@ describe('idempotency · repetición', () => {
   })
 
   it('sin Idempotency-Key ejecuta el handler cada vez', async () => {
-    await pay({ amount: '10' }, undefined)
-    await pay({ amount: '10' }, undefined)
+    await pay({ amount: '10' }, null)
+    await pay({ amount: '10' }, null)
     expect(calls).toBe(2)
   })
 
@@ -73,7 +75,7 @@ describe('idempotency · repetición', () => {
     async (key) => {
       const res = await pay({ amount: '10' }, key)
       expect(res.status).toBe(400)
-      expect(res.body.error.code).toBe('VALIDATION_ERROR')
+      expect(errorOf(res).code).toBe('VALIDATION_ERROR')
       expect(calls).toBe(0)
     }
   )
@@ -85,7 +87,7 @@ describe('idempotency · otro body', () => {
     await pay({ amount: '10' })
     const res = await pay({ amount: '99' })
     expect(res.status).toBe(409)
-    expect(res.body.error.code).toBe('IDEMPOTENCY_CONFLICT')
+    expect(errorOf(res).code).toBe('IDEMPOTENCY_CONFLICT')
     expect(calls).toBe(1)
   })
 })
@@ -104,7 +106,7 @@ describe('idempotency · en curso', () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
     const second = await pay({ amount: '10' })
     expect(second.status).toBe(409)
-    expect(second.body.error.code).toBe('IDEMPOTENCY_CONFLICT')
+    expect(errorOf(second).code).toBe('IDEMPOTENCY_CONFLICT')
 
     release()
     const done = await first

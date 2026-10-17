@@ -8,6 +8,12 @@ const isJsonParseError = (err: unknown): boolean =>
   err !== null &&
   (err as { type?: unknown }).type === 'entity.parse.failed'
 
+/** Error raised by express.json() when the body exceeds the size limit. */
+const isEntityTooLarge = (err: unknown): boolean =>
+  typeof err === 'object' &&
+  err !== null &&
+  (err as { type?: unknown }).type === 'entity.too.large'
+
 /**
  * Central error middleware: every error leaves the API with the standard
  * format, and unexpected errors never expose their message or stack.
@@ -21,12 +27,17 @@ export const errorHandler =
     }
 
     if (err instanceof AppError) {
-      res.status(err.status).json(errorBody(err.code, err.message))
+      res.status(err.status).json(errorBody(err.code, err.message, err.details))
       return
     }
 
     if (isJsonParseError(err)) {
       res.status(400).json(errorBody('INVALID_JSON', 'Malformed JSON body'))
+      return
+    }
+
+    if (isEntityTooLarge(err)) {
+      res.status(413).json(errorBody('PAYLOAD_TOO_LARGE', 'Request body too large'))
       return
     }
 

@@ -6,7 +6,11 @@ export type { Logger }
 /** Never let credentials reach the logs. */
 const redactPaths = [
   'req.headers["x-api-key"]',
+  'req.headers["authorization"]',
+  'req.headers["idempotency-key"]',
   'headers["x-api-key"]',
+  'headers["authorization"]',
+  'headers["idempotency-key"]',
   'apiKey',
   '*.apiKey',
   'privateKey',
