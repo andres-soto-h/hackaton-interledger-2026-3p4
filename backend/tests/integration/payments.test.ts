@@ -11,10 +11,11 @@ import {
   FAKE_FEE,
   type PaymentsContext
 } from '../helpers/payments-context.js'
-import { START } from '../helpers/auth-context.js'
+import { START, wallet } from '../helpers/auth-context.js'
 import { TEST_API_KEY } from '../helpers/app.js'
 
 const usd = (value: string): Amount => ({ value, assetCode: 'USD' })
+const cop = (value: string): Amount => ({ value, assetCode: 'COP' })
 const ALICE_BOB = 'https://ilp.interledger-test.dev/bob'
 
 interface QuoteBody {
@@ -214,6 +215,65 @@ describe('POST /api/v1/payments · cotizar', () => {
     expect(second.status).toBe(201)
     expect(bodyOf<QuoteBody>(second).paymentId).toBe(bodyOf<QuoteBody>(first).paymentId)
     expect(createQuote).toHaveBeenCalledTimes(1)
+  })
+})
+
+// Spec 026
+describe('POST /api/v1/payments · p2m a comercio en COP', () => {
+  it('caso 2: p2m con wallet + monto COP (emisor USD) → 201 con receiveAmount en COP', async () => {
+    const seeded = await ctx.seedLinkedUser()
+    ctx.gateway.addWallet(wallet('epm', 'COP'))
+    // The fake gateway refuses cross-currency quotes, so the conversion is simulated.
+    vi.spyOn(ctx.gateway, 'createQuote').mockImplementationOnce((input) =>
+      Promise.resolve({
+        id: `${input.sender.resourceServer}/quotes/q-cross`,
+        walletAddress: input.sender.id,
+        receiver: input.receiver,
+        debitAmount: usd('25.07'),
+        receiveAmount: cop('86400.00'),
+        expiresAt: new Date(ctx.clock.value + 5 * 60_000)
+      })
+    )
+
+    const res = await quote(seeded.token, {
+      type: 'p2m',
+      receiverWalletAddress: 'https://ilp.interledger-test.dev/epm',
+      amount: cop('86400.00'),
+      description: 'EPM'
+    })
+
+    expect(res.status).toBe(201)
+    const body = bodyOf<QuoteBody>(res)
+    expect(body.quote.receiveAmount).toEqual(cop('86400.00'))
+    expect(body.quote.debitAmount).toEqual(usd('25.07'))
+  })
+
+  it('caso 3: p2m con amount en USD → 422 MERCHANT_CURRENCY_NOT_SUPPORTED sin cotizar', async () => {
+    const seeded = await ctx.seedLinkedUser()
+    ctx.gateway.addWallet(wallet('epm', 'COP'))
+    const createQuote = vi.spyOn(ctx.gateway, 'createQuote')
+
+    const res = await quote(seeded.token, {
+      type: 'p2m',
+      receiverWalletAddress: 'https://ilp.interledger-test.dev/epm',
+      amount: usd('10.00')
+    })
+
+    expect(res.status).toBe(422)
+    expect(errorOf(res).code).toBe('MERCHANT_CURRENCY_NOT_SUPPORTED')
+    expect(createQuote).not.toHaveBeenCalled()
+  })
+
+  it('caso 4: p2m con wallet del receptor en otra moneda → 422', async () => {
+    const seeded = await ctx.seedLinkedUser()
+    const res = await quote(seeded.token, {
+      type: 'p2m',
+      receiverWalletAddress: 'https://ilp.interledger-test.dev/shop',
+      amount: cop('86400.00')
+    })
+
+    expect(res.status).toBe(422)
+    expect(errorOf(res).code).toBe('MERCHANT_CURRENCY_NOT_SUPPORTED')
   })
 })
 

@@ -213,7 +213,8 @@ convierte monedas ni maneja tasas. Lo que sí define:
 
    Si ambos usan la misma moneda, el monto es lo que recibe el receptor (las
    comisiones las paga el emisor y se ven en el quote). Una solicitud de pago
-   (P2M) siempre fija lo que recibe el comercio, en su moneda.
+   (P2M) siempre fija lo que recibe el comercio, en su moneda (para el pago a
+   comercio por wallet, esa moneda es siempre COP, spec 026).
 2. **Mostrar la conversión antes de aprobar.** La respuesta de `POST /payments`
    incluye ambos montos, la tasa implícita y la comisión para que la app se los
    muestre al usuario.
@@ -272,6 +273,7 @@ Formato estándar (spec 001):
 | `CURRENCY_NOT_SUPPORTED` | 422 | Moneda del emisor sin límite configurado | 003 |
 | `AMOUNT_EXCEEDS_LIMIT` | 422 | Monto mayor al máximo de su moneda | 003 |
 | `INCOMING_PAYMENT_NOT_PAYABLE` | 422 | Incoming payment completado, vencido o sin monto | 007 |
+| `MERCHANT_CURRENCY_NOT_SUPPORTED` | 422 | Pago a comercio (`p2m` por wallet) cuya moneda no es COP (monto o wallet del receptor) | 026 |
 | `DAILY_LIMIT_EXCEEDED` | 422 | El total (pago + comisión) supera el disponible del día | 023 |
 | `QUOTE_FAILED` | 422 | Open Payments no pudo cotizar (sin ruta, sin liquidez, monto muy pequeño) | 003 |
 | `OPEN_PAYMENTS_UNAUTHORIZED` | 502 | Open Payments rechazó el token de la vinculación | 023 |

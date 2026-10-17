@@ -95,6 +95,13 @@ const paymentNotFound = (): AppError =>
 const notPayable = (): AppError =>
   new AppError(422, 'INCOMING_PAYMENT_NOT_PAYABLE', 'Incoming payment is not payable')
 
+const merchantCurrencyNotSupported = (): AppError =>
+  new AppError(
+    422,
+    'MERCHANT_CURRENCY_NOT_SUPPORTED',
+    'Merchant payments only support COP'
+  )
+
 const notConfirmable = (): AppError =>
   new AppError(409, 'PAYMENT_NOT_CONFIRMABLE', 'Payment is not awaiting confirmation')
 
@@ -209,6 +216,47 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
                 receiver: incomingId,
                 debitAmount: body.amount
               })
+        quoteId = quoted.id
+        debitAmount = quoted.debitAmount
+        receiveAmount = quoted.receiveAmount
+        quoteExpiresAt = quoted.expiresAt
+      } catch (error) {
+        throw asApiError(error, 'createQuote')
+      }
+
+      incomingPaymentUrl = incomingId
+    } else if ('receiverWalletAddress' in body) {
+      // Spec 026: p2m to a merchant wallet with a fixed COP amount.
+      const safeReceiverUrl = assertSafeWalletUrl(body.receiverWalletAddress, runtime)
+      receiverWalletAddress = safeReceiverUrl
+
+      let receiver: WalletAddress
+      try {
+        receiver = await gateway.getWalletAddress(safeReceiverUrl)
+      } catch (error) {
+        throw asApiError(error, 'getWalletAddress')
+      }
+
+      if (receiver.assetCode !== 'COP' || body.amount.assetCode !== 'COP') {
+        throw merchantCurrencyNotSupported()
+      }
+
+      fixedAmountSide = 'receive'
+
+      let incomingId: string
+      try {
+        const incoming = await gateway.createIncomingPayment({
+          wallet: receiver,
+          amount: body.amount,
+          expiresAt: new Date(now() + INCOMING_PAYMENT_TTL_MS)
+        })
+        incomingId = incoming.id
+      } catch (error) {
+        throw asApiError(error, 'createIncomingPayment')
+      }
+
+      try {
+        const quoted = await gateway.createQuote({ sender, receiver: incomingId })
         quoteId = quoted.id
         debitAmount = quoted.debitAmount
         receiveAmount = quoted.receiveAmount

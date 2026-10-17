@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Hecho** |
 | Creado | 2026-10-17 |
-| Spec aprobado | — |
-| Desarrollo aprobado | — |
-| Finalizado | — |
+| Spec aprobado | 2026-10-17 |
+| Desarrollo aprobado | 2026-10-17 |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-0 / 4 tareas completadas. Borrador pendiente de aprobación. Ajusta el contrato
+4 / 4 tareas completadas e integradas en `develop-andres` (1114 tests en verde, typecheck y lint limpios). Ajusta el contrato
 de `POST /payments` del [spec 007](007-pago-y-autorizacion.md) (Hecho). Surge de
 la decisión del responsable del 2026-10-17 a partir de la pregunta del frontend
 ([frontend 005](../../../frontend/docs/specs/005-pago-servicios.md)).
@@ -66,10 +66,10 @@ el pago a comercios a **una sola moneda: COP**.
 
 ## Tareas
 
-1. [ ] Casos 1–5 en rojo.
-2. [ ] Schema y validación de moneda en `PaymentsService.quote`.
-3. [ ] Contrato en `openapi.yaml` y [API.md](../API.md).
-4. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Casos 1–5 en rojo.
+2. [x] Schema y validación de moneda en `PaymentsService.quote`.
+3. [x] Contrato en `openapi.yaml` y [API.md](../API.md).
+4. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 

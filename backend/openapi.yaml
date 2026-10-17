@@ -101,7 +101,7 @@ paths:
                   code: WALLET_NOT_LINKED
                   message: Wallet is not linked
         '422':
-          description: El total supera el disponible del día; también ASSET_MISMATCH o INCOMING_PAYMENT_NOT_PAYABLE.
+          description: El total supera el disponible del día; también ASSET_MISMATCH, INCOMING_PAYMENT_NOT_PAYABLE o MERCHANT_CURRENCY_NOT_SUPPORTED.
           content:
             application/json:
               schema:
@@ -1027,7 +1027,7 @@ components:
             id:
               type: string
     CreatePaymentBody:
-      description: P2P (wallet del receptor y monto) o P2M (incoming payment existente). El emisor sale de la sesión.
+      description: P2P (wallet del receptor y monto) o P2M (incoming payment existente, o wallet del comercio + monto en COP). El emisor sale de la sesión.
       oneOf:
         - type: object
           additionalProperties: false
@@ -1054,6 +1054,21 @@ components:
             incomingPaymentUrl:
               type: string
               format: uri
+              maxLength: 2048
+            amount:
+              $ref: '#/components/schemas/Amount'
+            description:
+              type: string
+              maxLength: 140
+        - type: object
+          additionalProperties: false
+          required: [type, receiverWalletAddress, amount]
+          properties:
+            type:
+              type: string
+              enum: [p2m]
+            receiverWalletAddress:
+              type: string
               maxLength: 2048
             amount:
               $ref: '#/components/schemas/Amount'

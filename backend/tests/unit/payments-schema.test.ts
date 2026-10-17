@@ -31,6 +31,17 @@ describe('createPaymentBodySchema', () => {
     ).toBe(true)
   })
 
+  it('acepta P2M con wallet del receptor + monto (spec 026)', () => {
+    expect(
+      ok(createPaymentBodySchema, {
+        type: 'p2m',
+        receiverWalletAddress: wallet,
+        amount: { value: '86400.00', assetCode: 'COP' },
+        description: 'EPM'
+      })
+    ).toBe(true)
+  })
+
   it.each([
     [
       'las dos variantes a la vez',
@@ -38,6 +49,7 @@ describe('createPaymentBodySchema', () => {
     ],
     ['P2P sin monto', { type: 'p2p', receiverWalletAddress: wallet }],
     ['sin ninguna variante', { type: 'p2p', amount }],
+    ['P2M con wallet pero sin monto', { type: 'p2m', receiverWalletAddress: wallet }],
     [
       'senderWalletAddress',
       { type: 'p2p', receiverWalletAddress: wallet, amount, senderWalletAddress: wallet }

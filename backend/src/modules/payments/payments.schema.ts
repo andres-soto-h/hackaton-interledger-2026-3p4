@@ -14,7 +14,16 @@ const p2pSchema = z.strictObject({
   description: descriptionSchema
 })
 
-const p2mSchema = z.strictObject({
+/** Spec 026: `p2m` to a merchant wallet with a fixed COP amount (primary variant). */
+const p2mByWalletSchema = z.strictObject({
+  type: z.literal('p2m'),
+  receiverWalletAddress: walletAddressSchema,
+  amount: amountSchema,
+  description: descriptionSchema
+})
+
+/** Spec 007: `p2m` pointing at an existing incoming payment (amount only when it has none). */
+const p2mByUrlSchema = z.strictObject({
   type: z.literal('p2m'),
   incomingPaymentUrl: incomingPaymentUrlSchema,
   amount: amountSchema.optional(),
@@ -22,14 +31,16 @@ const p2mSchema = z.strictObject({
 })
 
 /**
- * Strict body of `POST /api/v1/payments` (spec 007). The two variants are
- * exclusive: `p2p` fixes the receiver wallet and requires an amount, while
- * `p2m` points at an existing incoming payment (amount only when it has none).
- * The sender always comes from the session, never from the body.
+ * Strict body of `POST /api/v1/payments` (specs 007 and 026). `p2p` fixes the
+ * receiver wallet and requires an amount. `p2m` either points at an existing
+ * incoming payment (`incomingPaymentUrl`) or fixes the merchant wallet and a
+ * COP amount (`receiverWalletAddress` + `amount`, spec 026). The sender always
+ * comes from the session, never from the body.
  */
-export const createPaymentBodySchema = z.discriminatedUnion('type', [
+export const createPaymentBodySchema = z.union([
   p2pSchema,
-  p2mSchema
+  p2mByWalletSchema,
+  p2mByUrlSchema
 ])
 
 export type CreatePaymentBody = z.infer<typeof createPaymentBodySchema>
