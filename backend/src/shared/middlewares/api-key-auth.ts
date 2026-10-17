@@ -41,6 +41,15 @@ const isPublicPaymentRoute = (method: string, path: string): boolean => {
   return PAYMENT_CONFIRM_PATH.test(path)
 }
 
+/** Payments/transactions query routes use the user session, not the API key (spec 008). */
+const PAYMENT_STATUS_PATH = new RegExp(`^/api/v1/payments/${PAYMENT_ID}$`)
+
+const isPublicQueryRoute = (method: string, path: string): boolean => {
+  if (method !== 'GET') return false
+  if (path === '/api/v1/transactions') return true
+  return PAYMENT_STATUS_PATH.test(path)
+}
+
 // Hashing both values gives equal-length buffers, so the comparison takes the
 // same time whatever the length of the received key.
 const digest = (value: string): Buffer => createHash('sha256').update(value).digest()
@@ -60,7 +69,8 @@ export function apiKeyAuth(expectedApiKey: string): RequestHandler {
     if (
       (req.method === 'GET' && PUBLIC_GET_PATHS.has(req.path)) ||
       PUBLIC_ROUTES.has(`${req.method} ${req.path}`) ||
-      isPublicPaymentRoute(req.method, req.path)
+      isPublicPaymentRoute(req.method, req.path) ||
+      isPublicQueryRoute(req.method, req.path)
     ) {
       next()
       return

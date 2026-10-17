@@ -6,7 +6,12 @@ import {
   UpdateCommand,
   type DynamoDBDocumentClient
 } from '@aws-sdk/lib-dynamodb'
-import type { Payment, PaymentRequest, PaymentStatus } from './payment.types.js'
+import type {
+  Payment,
+  PaymentRequest,
+  PaymentRequestStatus,
+  PaymentStatus
+} from './payment.types.js'
 import {
   ConflictError,
   type ListByWalletQuery,
@@ -268,6 +273,54 @@ export function createDynamoPaymentsRepository({
         new GetCommand({ TableName: tableName, Key: { id } })
       )
       return result.Item ? (result.Item as unknown as PaymentRequest) : null
+    },
+
+    async updatePaymentRequest(id, changes, opts) {
+      const raw = changes as Record<string, unknown>
+      const newStatus = raw['status'] as PaymentRequestStatus | undefined
+
+      const names: Record<string, string> = { '#id': 'id', '#status': 'status' }
+      const values: Record<string, unknown> = { ':expected': opts.expectedStatus }
+      const setParts: string[] = []
+
+      for (const [field, value] of Object.entries(raw)) {
+        if (field === 'status') continue
+        if (value === undefined) continue
+        const nameKey = `#${field}`
+        const valueKey = `:${field}`
+        names[nameKey] = field
+        values[valueKey] = value
+        setParts.push(`${nameKey} = ${valueKey}`)
+      }
+
+      if (newStatus !== undefined) {
+        setParts.push('#status = :status')
+        values[':status'] = newStatus
+      }
+
+      const updateExpression = setParts.length > 0 ? `SET ${setParts.join(', ')}` : ''
+
+      try {
+        const result = await client.send(
+          new UpdateCommand({
+            TableName: tableName,
+            Key: { id },
+            ConditionExpression: 'attribute_exists(#id) AND #status = :expected',
+            ExpressionAttributeNames: names,
+            ExpressionAttributeValues: values,
+            UpdateExpression: updateExpression,
+            ReturnValues: 'ALL_NEW'
+          })
+        )
+        return result.Attributes as unknown as PaymentRequest
+      } catch (error) {
+        if (error instanceof ConditionalCheckFailedException) {
+          throw new ConflictError(
+            `Payment request ${id} does not exist or status is not ${opts.expectedStatus}`
+          )
+        }
+        throw error
+      }
     },
 
     async listByWallet(q) {

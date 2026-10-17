@@ -110,6 +110,20 @@ export function createInMemoryPaymentsRepository(): PaymentsRepository {
       return Promise.resolve(request ? structuredClone(request) : null)
     },
 
+    updatePaymentRequest(id, changes, opts) {
+      const current = requests.get(id)
+      if (!current || current.status !== opts.expectedStatus) {
+        const message = !current
+          ? `Payment request ${id} does not exist`
+          : `Unexpected status: ${current.status} (expected ${opts.expectedStatus})`
+        return Promise.reject(new ConflictError(message))
+      }
+
+      const next: PaymentRequest = { ...current, ...changes }
+      requests.set(id, structuredClone(next))
+      return Promise.resolve(structuredClone(next))
+    },
+
     listByWallet(q) {
       const all: Item[] = [...payments.values(), ...requests.values()]
 
