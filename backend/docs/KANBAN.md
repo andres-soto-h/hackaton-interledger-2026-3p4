@@ -5,7 +5,7 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 0/8 | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 9/21 · *listo para desplegar en `dev` (requiere credenciales de AWS)* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
+| | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 0/8 | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 9/22 · *despliegue bloqueado: reparar bootstrap de CDK (tarea 22, pendiente de autorización)* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
 | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 0/7 | | |
 | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | | |
 | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 0/5 | | |
@@ -22,7 +22,7 @@
 **Orden de desarrollo:** 001 → (003, 004) → 005 → 019 → 023 → 006 → 007 → 024 →
 008 → 009 → 020 → 021 → 022. Las cuentas (019) y la vinculación (023) van antes
 de los pagos porque ahora todo pago requiere sesión y wallet vinculada.
-El despliegue del 002 ya se puede hacer (el 001 está hecho).
+El despliegue del 002 depende de reparar el bootstrap de CDK de la cuenta (tarea 22).
 
 ## Backlog (specs por escribir)
 
@@ -68,3 +68,4 @@ El despliegue del 002 ya se puede hacer (el 001 está hecho).
 | 2026-10-16 | 007, 019, 023, 024 | Decisiones: confirmación de pagos con passkey; dominio de CloudFront; día de Bogotá; se asume `interval` (plan B: control en la API); la comisión la paga quien paga |
 | 2026-10-16 | 008 | `GET /transactions` devuelve todos los datos de cada transacción (incluido el nombre del comercio) en lotes paginados para carga perezosa; `status` de un solo valor (pedido del frontend 004) |
 | 2026-10-16 | — | Regla de flujo: hasta 3 specs En desarrollo en paralelo con memoria compartida ([orquestacion](../../orquestacion/README.md)); orquestación con Claude + workers de DeepSeek |
+| 2026-10-16 | 002 | Agregada tarea 22: reparar el bootstrap de CDK de la cuenta `340464868186` con `tranqui-cfn-exec-policy` (bloquea el despliegue, pendiente de autorización); usuario `tranqui-deployer` creado; riesgo de `iam:PutRolePolicy` aceptado y anotado en SEGURIDAD |

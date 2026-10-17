@@ -74,7 +74,20 @@ servicios internos, por ejemplo al endpoint de metadata de AWS.
 | Reemplazar las llaves personales por las de una wallet de la plataforma, sin fondos | Spec 002 |
 | Llaves distintas por entorno | Recomendación |
 | Llave KMS propia (CMK) para secretos y tabla, si se requiere auditoría de uso | Recomendación |
-| No usar la cuenta **root** de AWS para desplegar: usuario o rol IAM con MFA y permisos mínimos | Recomendación (urgente) |
+| No usar la cuenta **root** de AWS para desplegar: usuario o rol IAM con MFA y permisos mínimos | Usuario `tranqui-deployer` (ver [Permisos de despliegue](#permisos-de-despliegue-aws)); falta MFA |
+
+## Permisos de despliegue (AWS)
+
+Cuenta `340464868186`, región `us-east-1`. El despliegue con CDK usa dos niveles de permisos:
+
+| Medida | Dónde |
+|---|---|
+| Usuario IAM `tranqui-deployer` (perfil local del mismo nombre) para desplegar. Solo puede asumir los roles `deploy`, `file-publishing`, `image-publishing` y `lookup` del bootstrap de CDK, leer y escribir valores de los secretos `tranqui/*` y consultar los stacks y logs `TranquiBackend-*`. No puede asumir el rol de ejecución de CloudFormation | Política inline `tranqui-deploy-scope` |
+| El rol de ejecución de CloudFormation del bootstrap usa la política administrada `tranqui-cfn-exec-policy` en lugar de `AdministratorAccess`. Solo opera sobre recursos `TranquiBackend-*` (Lambda, DynamoDB, logs, alarmas, roles IAM), secretos `tranqui/*`, HTTP APIs y el bucket de assets de CDK. A los roles solo se les puede adjuntar `AWSLambdaBasicExecutionRole` y solo se pueden pasar a Lambda | Spec 002 (tarea 22) |
+| Un recurso nuevo en el stack necesita que su nombre empiece por `TranquiBackend-` (o `tranqui/` si es un secreto) y, si es de un servicio nuevo, ampliar `tranqui-cfn-exec-policy` antes de desplegar | Spec 002 |
+| El usuario administrador (`drive-backup-admin`) solo se usa para preparar la cuenta, no para desplegar | Regla de operación |
+| **Riesgo aceptado (2026-10-16):** `tranqui-cfn-exec-policy` permite `iam:PutRolePolicy` sobre los roles `TranquiBackend-*`, e IAM no puede limitar el contenido de una política inline. Un template malicioso o con un error podría darle a la Lambda permisos más amplios que el scope del proyecto. Se acepta durante el hackathon. Mitigación futura: permissions boundary obligatorio en los roles del stack (aspecto de CDK + condición `iam:PermissionsBoundary` en la política) | Recomendación |
+| MFA para el usuario de despliegue o credenciales temporales (IAM Identity Center) en lugar de access keys de larga duración | Recomendación |
 
 ## Datos y tokens
 

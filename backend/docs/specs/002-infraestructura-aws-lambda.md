@@ -10,10 +10,11 @@
 
 ## Estado
 
-9 / 21 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
+9 / 22 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
 en verde, typecheck y `cdk synth` correctos. Pendiente: cambios aprobados el
 2026-10-16 (tabla de pagos con índices, throttling, configuración y alarmas),
 reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
+El despliegue está bloqueado por la tarea 22: reparar el bootstrap de CDK de la cuenta, pendiente de autorización.
 
 > 2026-10-16: aprobados los cambios que piden los specs de la API (003–009).
 > La evaluación de JWT pasó a deuda técnica ([TD-001](../DEUDA-TECNICA.md#td-001--autenticación-de-la-api-más-fuerte-que-la-api-key)).
@@ -204,7 +205,7 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 8. [x] Definir log group con retención hasta pasar el test 7.
 9. [x] Documentar dónde y cómo se guardan las llaves privadas en el despliegue (formato del secreto, carga, rotación) en el README.
 10. [ ] **Reemplazar las llaves de la wallet personal por las de una wallet de la plataforma** (crear la wallet `tranqui-app` en la red de prueba, sin fondos; generar sus llaves y cargarlas en el secreto). Las wallets de comercios de prueba solo se crean para recibir pagos; no necesitan llaves.
-11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de credenciales de AWS.*
+11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de la tarea 22.*
 12. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 11).*
 13. [ ] Tabla de pagos: índices y renombre a `PAYMENTS_TABLE_NAME` (casos 12 y 14).
 14. [ ] Throttling de API Gateway (caso 13).
@@ -219,6 +220,24 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 20. [ ] Secreto `admin-password`, índice `byPayment` y `ADMIN_ENABLED` (casos 16–18, specs 020 y 022).
 21. [ ] Secreto `token-encryption-key` y configuración del monto diario y la comisión (casos 16 y 18, specs 023 y 024).
 
+*Preparación de la cuenta de AWS (bloquea la tarea 11):*
+
+22. [ ] **Reparar el bootstrap de CDK con permisos limitados al proyecto** (cuenta `340464868186`, `us-east-1`, perfil `drive-backup-admin`). *Requiere autorización del responsable: borra un stack compartido de la cuenta.*
+    - [x] Crear el usuario de despliegue `tranqui-deployer` con la política inline `tranqui-deploy-scope` (ver [SEGURIDAD.md](../SEGURIDAD.md#permisos-de-despliegue-aws)).
+    - [x] Crear la política administrada `tranqui-cfn-exec-policy` (v2, sin hallazgos en Access Analyzer).
+    - [ ] Borrar el stack `CDKToolkit`, que está roto: el bucket `cdk-hnb659fds-assets-340464868186-us-east-1` y el repositorio ECR `cdk-hnb659fds-container-assets-340464868186-us-east-1` se borraron fuera de CloudFormation y la actualización falla con `ECRRepository:NotFound`. Ningún otro stack de la cuenta lo usa.
+      ```
+      AWS_PROFILE=drive-backup-admin AWS_REGION=us-east-1 aws cloudformation delete-stack --stack-name CDKToolkit
+      AWS_PROFILE=drive-backup-admin AWS_REGION=us-east-1 aws cloudformation wait stack-delete-complete --stack-name CDKToolkit
+      ```
+    - [ ] Volver a hacer el bootstrap con la política limitada:
+      ```
+      cd backend/infra
+      AWS_PROFILE=drive-backup-admin AWS_REGION=us-east-1 pnpm exec cdk bootstrap aws://340464868186/us-east-1 \
+        --cloudformation-execution-policies arn:aws:iam::340464868186:policy/tranqui-cfn-exec-policy
+      ```
+    - [ ] Verificar que el rol `cdk-hnb659fds-cfn-exec-role-340464868186-us-east-1` solo tiene `tranqui-cfn-exec-policy` y que `tranqui-deployer` puede asumir el rol de deploy.
+
 ~~Evaluar un mecanismo de autenticación más seguro que la API key~~ → deuda técnica TD-001.
 
 ## Decisiones
@@ -231,6 +250,8 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 | 4 | Organización de secretos | Un secreto con la identidad del cliente Open Payments (`tranqui/dev/open-payments`) y uno para la API key (`tranqui/dev/api-key`) |
 | 5 | Autenticación de la API | API key en header `x-api-key`, validada en middleware |
 | 6 | Región de AWS | `us-east-1` por defecto, configurable con `CDK_DEFAULT_REGION` |
+| 7 | Cuenta y credenciales de despliegue | Cuenta `340464868186`; se despliega con el perfil `tranqui-deployer` (`AWS_PROFILE=tranqui-deployer pnpm cdk deploy`) (2026-10-16) |
+| 8 | Permisos de CloudFormation | Bootstrap de CDK con `tranqui-cfn-exec-policy` (limitada a `TranquiBackend-*` y `tranqui/*`) en lugar de `AdministratorAccess`; se acepta el riesgo de `iam:PutRolePolicy` sin permissions boundary (2026-10-16, ver [SEGURIDAD.md](../SEGURIDAD.md#permisos-de-despliegue-aws)) |
 
 ## Notas
 
