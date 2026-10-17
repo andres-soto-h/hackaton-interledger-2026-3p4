@@ -27,8 +27,17 @@ Formato:
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
 | 019 | `spec/019` | `../<repo>-worktrees/spec-019` | 2026-10-17 | Cuentas, passkeys y sesiones |
 | 020 | `spec/020` | `../<repo>-worktrees/spec-020` | 2026-10-17 | Panel admin: base, configuración y `ActivityLog` |
+| 006 | `spec/006` | `../<repo>-worktrees/spec-006` | 2026-10-17 | Solicitar pago |
+
+> El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
 
 ## Decisiones
+
+### 2026-10-17 · Dueños de archivos del spec 006
+- Origen: orquestador
+- Afecta: specs 006, 019, 020
+- Decisión: el **006** es dueño de `src/modules/payments/` (servicios, controlador, rutas, lo que agregue) y de `src/shared/qr/` si lo necesita. Sigue sin editar `app.ts`, `server.ts`, `lambda.ts` ni `config/`: exporta `createPaymentsRouter(deps)` y el orquestador lo cablea. Si necesita la sesión del usuario (spec 019, aún sin integrar), recibe un middleware `requireSession` por inyección con un fake en los tests; no importa código del 019.
+- Acción para los demás: ninguna.
 
 ### 2026-10-17 · Dueños de archivos del lote 019 + 020 y cableado de `createApp`
 - Origen: orquestador

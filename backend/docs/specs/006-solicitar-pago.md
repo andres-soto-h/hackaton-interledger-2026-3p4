@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 5 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de los specs 003, 004 y 005.
+0 / 5 tareas completadas. Desarrollo aprobado el 2026-10-17; se desarrolla en la rama `spec/006` (worker de DeepSeek) en paralelo con los specs 019 y 020. Depende de los specs 003, 004 y 005.
 
 ## Contexto
 

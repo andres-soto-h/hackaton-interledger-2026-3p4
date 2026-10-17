@@ -10,6 +10,8 @@
 
 ## Estado
 
+**Pausado desde el 2026-10-17** por decisión del responsable: no cuenta para el límite de 3 specs en paralelo y se retoma cuando el backend tenga una versión inicial completa (tarea 11, despliegue en `dev`).
+
 21 / 22 tareas completadas (la 22 solo conserva la comprobación de `tranqui-deployer`). Plantilla IaC en `backend/infra/`: 22/22 tests en
 verde y typecheck limpio. Tareas 13–21 hechas en la rama `spec/002`, pendientes
 de integrar. Pendiente: reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
