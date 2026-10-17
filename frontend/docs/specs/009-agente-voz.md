@@ -1,4 +1,4 @@
-# 018 — Agente por voz
+# 009 — Agente por voz
 
 | Campo | Valor |
 |---|---|
@@ -16,7 +16,7 @@
 
 Muchas personas prefieren hablar que escribir (mockups 3.1 – 3.2: "Toque y
 dígame qué pagar", "Le estoy escuchando"). Este spec agrega voz a la
-conversación del spec 017: lo que el usuario dice se convierte en texto y se
+conversación del spec 008: lo que el usuario dice se convierte en texto y se
 envía al agente, y la respuesta del agente se lee en voz alta. La voz **no
 aprueba pagos**: decir "sí" puede llevar a la confirmación, pero la aprobación
 sigue siendo en la wallet ([PLAN.md](../PLAN.md#seguridad)).
@@ -28,7 +28,7 @@ sigue siendo en la wallet ([PLAN.md](../PLAN.md#seguridad)).
 - Voz a texto con `expo-speech-recognition` (Web Speech API en web; reconocedor del sistema en Android), idioma `es-CO`.
 - "Ya terminé de hablar" y "Cancelar"; fin automático tras un silencio.
 - Mostrar "Usted dijo: «…»" antes de enviar y enviarlo al agente con `inputMode: "voice"`.
-- Texto a voz con `expo-speech` para las respuestas del agente y el resumen de la confirmación (015), con opción de silenciar.
+- Texto a voz con `expo-speech` para las respuestas del agente y el resumen de la confirmación (006), con opción de silenciar.
 - Permiso de micrófono: pedirlo, explicar para qué y manejar el rechazo.
 - Respaldo a texto cuando el dispositivo o navegador no soporta reconocimiento de voz.
 
@@ -45,7 +45,7 @@ sigue siendo en la wallet ([PLAN.md](../PLAN.md#seguridad)).
 - **Dado** el permiso negado, **cuando** toca el micrófono, **entonces** ve cómo activarlo y puede escribir en su lugar.
 - **Dado** un navegador sin reconocimiento de voz, **cuando** abre el chat, **entonces** el micrófono no aparece y se usa solo texto.
 - **Dado** una respuesta del agente, **cuando** llega y la voz está activa, **entonces** se lee en voz alta en español; si el usuario empieza a hablar o toca "Parar", la lectura se detiene.
-- **Dado** que el agente propone un pago y el usuario dice "sí", **cuando** el agente responde, **entonces** como máximo se navega a la confirmación (015); el pago solo se aprueba en la wallet.
+- **Dado** que el agente propone un pago y el usuario dice "sí", **cuando** el agente responde, **entonces** como máximo se navega a la confirmación (006); el pago solo se aprueba en la wallet.
 - **Dado** "Repítamelo" en la confirmación, **cuando** lo toca, **entonces** se vuelve a leer el resumen del pago.
 
 ## Diseño
@@ -63,7 +63,7 @@ interface SpeechOutput { speak(text: string, opts: { lang: "es-CO" }): void; sto
 - `useVoiceInput()` maneja los estados `idle → requesting → listening →
   processing → idle | error`.
 - La lectura en voz alta usa el texto de la respuesta (`reply.text`), sin
-  markdown, y en la confirmación usa `toSpokenAmount` (spec 010).
+  markdown, y en la confirmación usa `toSpokenAmount` (spec 001).
 
 ### Plataformas
 

@@ -1,4 +1,4 @@
-# 011 — Registro
+# 003 — Registro
 
 | Campo | Valor |
 |---|---|
@@ -26,11 +26,11 @@ pública ([API.md](../../../backend/docs/API.md#identidad-de-la-api-cliente-open
 **Incluye**
 - Pantalla de registro: nombre, correo, dirección de la wallet, PIN y confirmación del PIN.
 - Validación en el cliente (Zod) y verificación de la wallet antes de enviar.
-- Llamada a `POST /api/v1/users`; con éxito, inicia la sesión con el token recibido (`signIn` del spec 012) y lleva al inicio.
+- Llamada a `POST /api/v1/users`; con éxito, inicia la sesión con el token recibido (`signIn` del spec 002) y lleva al inicio.
 - Componente `PinField`.
 
 **No incluye**
-- Bienvenida, inicio de sesión, cierre y eliminación de cuenta (spec 012).
+- Bienvenida, inicio de sesión, cierre y eliminación de cuenta (spec 002).
 - Verificación del correo, recuperación del PIN, passkeys.
 - El endpoint del backend (spec de backend por escribir; aquí se usa MSW).
 
@@ -117,4 +117,4 @@ POST /api/v1/users
 
 ## Notas
 
-- Depende de 010 y 012 (sesión). Por eso se desarrolla después del 012.
+- Depende de 001 y 002 (sesión).

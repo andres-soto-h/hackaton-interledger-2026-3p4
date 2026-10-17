@@ -1,4 +1,4 @@
-# 010 — Bootstrap del frontend
+# 001 — Bootstrap del frontend
 
 | Campo | Valor |
 |---|---|
@@ -33,8 +33,8 @@ specs siguientes se apoyan en esto. Decisiones en [PLAN.md](../PLAN.md#decisione
 - README del frontend.
 
 **No incluye**
-- Pantallas de negocio (specs 011–018).
-- Sesión y guard de rutas (spec 012).
+- Pantallas de negocio (specs 002–009).
+- Sesión y guard de rutas (spec 002).
 - Despliegue de la app web.
 
 ## Criterios de aceptación
@@ -56,12 +56,12 @@ type ApiError = { code: string; message: string; status: number; requestId?: str
 apiClient.get<T>(path, { query?, signal? }): Promise<T>
 apiClient.post<T>(path, body, { idempotencyKey? }): Promise<T>
 apiClient.delete(path): Promise<void>
-apiClient.setTokenProvider(() => string | null)   // lo conecta el spec 012
-apiClient.onUnauthorized(handler)                  // 401 → cerrar sesión (spec 012)
+apiClient.setTokenProvider(() => string | null)   // lo conecta el spec 002
+apiClient.onUnauthorized(handler)                  // 401 → cerrar sesión (spec 002)
 ```
 
-- `idempotencyKey` se envía como `Idempotency-Key` (spec 005 del backend).
-- Expone los headers de la respuesta que se necesitan (`Retry-After`, spec 016).
+- `idempotencyKey` se envía como `Idempotency-Key` (backend 005).
+- Expone los headers de la respuesta que se necesitan (`Retry-After`, spec 007).
 - Nunca registra el body de las peticiones (puede llevar el PIN).
 
 ### Montos
@@ -72,7 +72,7 @@ decimales si son cero; símbolo por moneda (`COP → $`, `USD → US$`, otra →
 código). Entradas inválidas lanzan error (no se muestran montos inventados).
 
 `toSpokenAmount(amount)`: texto en palabras para lector de pantalla y voz
-(specs 015 y 018).
+(specs 006 y 009).
 
 ### Estructura
 
@@ -119,5 +119,5 @@ La de [PLAN.md](../PLAN.md#estructura-del-frontend).
 
 ## Notas
 
-- Si Android necesita módulos nativos que no estén en Expo Go (voz, spec 018),
+- Si Android necesita módulos nativos que no estén en Expo Go (voz, spec 009),
   se usa un *development build*; se documenta en el README cuando llegue ese spec.

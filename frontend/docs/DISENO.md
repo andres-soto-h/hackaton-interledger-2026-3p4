@@ -2,7 +2,7 @@
 
 Referencia común para los specs del frontend. Tomado de los mockups
 ([PLAN.md](PLAN.md)); se implementa como tokens en `src/theme/` y
-componentes en `src/ui/` (spec [010](specs/010-bootstrap-frontend.md)).
+componentes en `src/ui/` (spec [001](specs/001-bootstrap-frontend.md)).
 
 ## Público y tono
 

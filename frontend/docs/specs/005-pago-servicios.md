@@ -1,4 +1,4 @@
-# 014 — Pago de servicios
+# 005 — Pago de servicios
 
 | Campo | Valor |
 |---|---|
@@ -18,7 +18,7 @@ El usuario paga un servicio (luz, agua, celular…) a un comercio registrado en
 el directorio de TuTranqui. Escoge el comercio, escribe la referencia y el
 valor de la factura, y la app revisa la wallet del comercio antes de pedir el
 pago (mockups 1.6, 2.1 – 2.3). Este spec llega hasta crear el pago; la
-confirmación y la aprobación son del spec 015.
+confirmación y la aprobación son del spec 006.
 
 ## Alcance
 
@@ -26,7 +26,7 @@ confirmación y la aprobación son del spec 015.
 - Directorio: lista de comercios con búsqueda por nombre y filtro por categoría.
 - Datos del pago: referencia (la etiqueta la define el comercio, p. ej. "Número de contrato"), valor y descripción opcional.
 - Validación del comercio (mockups 1.6, 2.2, 2.3): pasos animados con `CheckItem` mientras se verifica la wallet; resultado con lo que se revisó.
-- Creación del pago: `POST /api/v1/payments` con `Idempotency-Key`, y navegación a la confirmación (015) con el `paymentId`.
+- Creación del pago: `POST /api/v1/payments` con `Idempotency-Key`, y navegación a la confirmación (006) con el `paymentId`.
 
 **No incluye**
 - Guardar comercios favoritos o cuentas de servicio.
@@ -63,7 +63,7 @@ GET /api/v1/merchants?query=&category=
                    "referenceLabel": "Número de contrato", "logoUrl": "..." } ] }
 ```
 
-Validación: `GET /api/v1/wallets/verify?walletAddress=` (spec 011). Los pasos
+Validación: `GET /api/v1/wallets/verify?walletAddress=` (spec 003). Los pasos
 de la UI se derivan de la respuesta:
 
 | Paso en la UI | Se cumple si |
@@ -76,7 +76,7 @@ de la UI se derivan de la respuesta:
 Si `publicName` no coincide, se muestra como advertencia (no bloquea): "La
 wallet dice ser de <publicName>".
 
-Crear el pago ([spec 007](../../../backend/docs/specs/007-pago-y-autorizacion.md#post-apiv1payments)):
+Crear el pago ([backend 007](../../../backend/docs/specs/007-pago-y-autorizacion.md#post-apiv1payments)):
 
 ```
 POST /api/v1/payments        Idempotency-Key: <uuid generado al entrar a la validación>
@@ -88,7 +88,7 @@ POST /api/v1/payments        Idempotency-Key: <uuid generado al entrar a la vali
 ```
 
 La respuesta se guarda en la caché de TanStack Query con la clave del pago
-para que la confirmación (015) la muestre sin otra petición.
+para que la confirmación (006) la muestre sin otra petición.
 
 ### Mensajes de error
 

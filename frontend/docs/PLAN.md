@@ -25,7 +25,7 @@ visual, el tono y la estructura de las pantallas, no todos sus flujos
 | Lenguaje | TypeScript estricto | Igual que el backend |
 | Tests | **Jest (`jest-expo`) + React Native Testing Library** | Vitest no tiene soporte estable para React Native; `jest-expo` es el preset oficial. Misma sintaxis (`describe/it/expect`) que el backend |
 | Mocks de la API | **MSW** (Mock Service Worker) | Los tests y el desarrollo local usan la API "de mentira" con los contratos del backend; el front avanza aunque el backend no esté listo |
-| Estado del servidor | **TanStack Query** | Caché, reintentos y polling (`refetchInterval` según `Retry-After` del spec 009) |
+| Estado del servidor | **TanStack Query** | Caché, reintentos y polling (`refetchInterval` según `Retry-After` del backend 009) |
 | Estado de la sesión | React Context | Solo hay sesión y usuario; no justifica una librería |
 | Formularios | **react-hook-form + Zod** | Zod ya es la validación del backend; se pueden compartir reglas |
 | Almacenamiento de la sesión | `expo-secure-store` en Android; memoria + `sessionStorage` en web | Ver [Seguridad](#seguridad) |
@@ -80,7 +80,7 @@ frontend/
 - **Contrato primero:** cada spec que consume un endpoint escribe primero sus
   handlers de MSW con el contrato del backend. El front se prueba contra eso.
 - **Montos como string:** igual que la API, nunca `Number`/`parseFloat` para
-  dinero; el formateo es una función pura con tests (spec 010).
+  dinero; el formateo es una función pura con tests (spec 001).
 - **Sin secretos en el bundle:** todo lo que va en `EXPO_PUBLIC_*` es público.
   La app **no** usa la API key del backend (ver [Seguridad](#seguridad)).
 - **Accesible y responsive:** pensada para personas mayores (como en los
@@ -91,27 +91,27 @@ frontend/
 
 | Pantalla | Mockup de referencia | Spec |
 |---|---|---|
-| Bienvenida | 1.1 | [012](specs/012-inicio-sesion.md) |
-| Registro (nombre, correo, wallet, PIN) | 1.2 – 1.4 (adaptado) | [011](specs/011-registro.md) |
-| Inicio de sesión (correo, PIN) | — | [012](specs/012-inicio-sesion.md) |
-| Mi cuenta (cerrar sesión, eliminar cuenta) | 1.5 ("Mi cuenta") | [012](specs/012-inicio-sesion.md) |
-| Inicio | 1.5, 2.1, 3.1 | [013](specs/013-inicio-transacciones.md) |
-| Lista y detalle de transacciones | — | [013](specs/013-inicio-transacciones.md) |
-| Directorio de comercios y datos del pago | 2.1 | [014](specs/014-pago-servicios.md) |
-| Validación del comercio | 1.6, 2.2, 2.3 | [014](specs/014-pago-servicios.md) |
-| Confirmación ("Revisar y decir sí") | 1.7, 2.4 | [015](specs/015-confirmacion-aprobacion.md) |
-| Aprobación en la wallet | 1.3 (pantalla del proveedor) | [015](specs/015-confirmacion-aprobacion.md) |
-| Resultado de la transacción | 1.8, 2.5, 3.6 | [016](specs/016-resultado-transaccion.md) |
-| Chat con el agente | 3.3 – 3.5 | [017](specs/017-agente-chat.md) |
-| Voz con el agente | 3.1 – 3.2 | [018](specs/018-agente-voz.md) |
+| Bienvenida | 1.1 | [002](specs/002-inicio-sesion.md) |
+| Registro (nombre, correo, wallet, PIN) | 1.2 – 1.4 (adaptado) | [003](specs/003-registro.md) |
+| Inicio de sesión (correo, PIN) | — | [002](specs/002-inicio-sesion.md) |
+| Mi cuenta (cerrar sesión, eliminar cuenta) | 1.5 ("Mi cuenta") | [002](specs/002-inicio-sesion.md) |
+| Inicio | 1.5, 2.1, 3.1 | [004](specs/004-inicio-transacciones.md) |
+| Lista y detalle de transacciones | — | [004](specs/004-inicio-transacciones.md) |
+| Directorio de comercios y datos del pago | 2.1 | [005](specs/005-pago-servicios.md) |
+| Validación del comercio | 1.6, 2.2, 2.3 | [005](specs/005-pago-servicios.md) |
+| Confirmación ("Revisar y decir sí") | 1.7, 2.4 | [006](specs/006-confirmacion-aprobacion.md) |
+| Aprobación en la wallet | 1.3 (pantalla del proveedor) | [006](specs/006-confirmacion-aprobacion.md) |
+| Resultado de la transacción | 1.8, 2.5, 3.6 | [007](specs/007-resultado-transaccion.md) |
+| Chat con el agente | 3.3 – 3.5 | [008](specs/008-agente-chat.md) |
+| Voz con el agente | 3.1 – 3.2 | [009](specs/009-agente-voz.md) |
 
-**Orden de desarrollo:** 010 → 012 → 011 → 013 → 014 → 015 → 016 → 017 → 018.
+**Orden de desarrollo:** 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009.
 
 ## Flujo de pago en la app
 
 ```
 Directorio ─▶ Datos del pago ─▶ Validación del comercio ─▶ Confirmación
- (014)          (014)               (014)                    (015)
+ (005)          (005)               (005)                    (006)
                                                                │ "Sí, pagar"
                                     POST /api/v1/payments ◀────┘  (quote + authorizationUrl)
                                                                │
@@ -120,11 +120,11 @@ Directorio ─▶ Datos del pago ─▶ Validación del comercio ─▶ Confirma
                                               │ redirect
                        GET /api/v1/auth/callback (backend) ─▶ FRONTEND_RESULT_URL
                                               │
-                                      Resultado (016) ── polling GET /payments/{id}
-                                                         hasta isFinal (spec 009)
+                                      Resultado (007) ── polling GET /payments/{id}
+                                                         hasta isFinal (backend 009)
 ```
 
-El agente (017/018) entra al mismo flujo en el paso de **Confirmación**: su
+El agente (008/009) entra al mismo flujo en el paso de **Confirmación**: su
 tool crea el pago y la app muestra la tarjeta de confirmación con el quote; el
 usuario la aprueba igual que un pago manual.
 
@@ -134,24 +134,24 @@ Endpoints que ya están especificados en el backend:
 
 | Endpoint | Spec backend | Lo usa |
 |---|---|---|
-| `POST /api/v1/payments` | 007 | 015, 017 |
-| `GET /api/v1/auth/callback` → `FRONTEND_RESULT_URL` | 007 | 016 |
-| `GET /api/v1/payments/{id}` (`isFinal`, `Retry-After`) | 008, 009 | 016 |
-| `GET /api/v1/transactions` | 008 | 013 |
+| `POST /api/v1/payments` | 007 | 006, 008 |
+| `GET /api/v1/auth/callback` → `FRONTEND_RESULT_URL` | 007 | 007 |
+| `GET /api/v1/payments/{id}` (`isFinal`, `Retry-After`) | 008, 009 | 007 |
+| `GET /api/v1/transactions` | 008 | 004 |
 
 Endpoints que el front necesita y **todavía no tienen spec en el backend**
 (se agregan al backlog del [KANBAN del backend](../../backend/docs/KANBAN.md)):
 
 | Necesidad | Propuesta de contrato | Lo usa |
 |---|---|---|
-| Registro de usuario | `POST /api/v1/users` `{ name, email, walletAddress, pin }` → `201 { user, token }`; valida que la wallet exista | 011 |
-| Inicio de sesión | `POST /api/v1/sessions` `{ email, pin }` → `200 { user, token }`; bloqueo tras intentos fallidos | 012 |
-| Usuario actual / eliminar cuenta | `GET /api/v1/users/me` · `DELETE /api/v1/users/me` | 012 |
+| Registro de usuario | `POST /api/v1/users` `{ name, email, walletAddress, pin }` → `201 { user, token }`; valida que la wallet exista | 003 |
+| Inicio de sesión | `POST /api/v1/sessions` `{ email, pin }` → `200 { user, token }`; bloqueo tras intentos fallidos | 002 |
+| Usuario actual / eliminar cuenta | `GET /api/v1/users/me` · `DELETE /api/v1/users/me` | 002 |
 | Autenticación de la app | `Authorization: Bearer <token>` en vez de `x-api-key` | todos |
-| Directorio de comercios | `GET /api/v1/merchants?query=&category=` → `{ items: [{ id, name, category, walletAddress, logoUrl, referenceLabel }] }` | 014 |
-| Validación de una wallet | `GET /api/v1/wallets/verify?walletAddress=` → `{ exists, publicName, assetCode, assetScale }` | 011, 014 |
-| Transacciones del usuario en sesión | `GET /api/v1/transactions` toma la wallet del token (sin `walletAddress` en el query) | 013 |
-| Agente | `POST /api/v1/agent/messages` `{ conversationId?, text }` → `{ conversationId, reply, actions: [...] }` (ver spec 017) | 017, 018 |
+| Directorio de comercios | `GET /api/v1/merchants?query=&category=` → `{ items: [{ id, name, category, walletAddress, logoUrl, referenceLabel }] }` | 005 |
+| Validación de una wallet | `GET /api/v1/wallets/verify?walletAddress=` → `{ exists, publicName, assetCode, assetScale }` | 003, 005 |
+| Transacciones del usuario en sesión | `GET /api/v1/transactions` toma la wallet del token (sin `walletAddress` en el query) | 004 |
+| Agente | `POST /api/v1/agent/messages` `{ conversationId?, text }` → `{ conversationId, reply, actions: [...] }` (ver spec 008) | 008, 009 |
 
 Mientras no existan, el front se desarrolla y prueba contra MSW con estos
 contratos. Si el backend los cambia al especificarlos, se actualizan los
@@ -193,8 +193,9 @@ handlers y el spec afectado.
 Mismas reglas que el backend ([CLAUDE.md](../../CLAUDE.md)). Los specs del
 frontend viven en `frontend/docs/specs/`, se crean desde
 [`backend/docs/specs/_TEMPLATE.md`](../../backend/docs/specs/_TEMPLATE.md) y
-siguen la **numeración global** del proyecto (el backend va en 009, el frontend
-empieza en 010) para que un número de spec nunca sea ambiguo.
+tienen **numeración propia** desde 001. Para no confundirlos con los del
+backend, toda referencia a un spec del backend dice "backend NNN" (p. ej.
+"backend 007"); un número solo es un spec del frontend.
 
 Tipos de prueba en los specs del frontend:
 

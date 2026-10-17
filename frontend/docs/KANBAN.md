@@ -5,18 +5,18 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| [010 — Bootstrap del frontend](specs/010-bootstrap-frontend.md) · 0/11 | | | |
-| [011 — Registro](specs/011-registro.md) · 0/6 | | | |
-| [012 — Inicio de sesión y mi cuenta](specs/012-inicio-sesion.md) · 0/7 | | | |
-| [013 — Inicio y transacciones](specs/013-inicio-transacciones.md) · 0/6 | | | |
-| [014 — Pago de servicios](specs/014-pago-servicios.md) · 0/6 | | | |
-| [015 — Confirmación y aprobación](specs/015-confirmacion-aprobacion.md) · 0/6 | | | |
-| [016 — Resultado de la transacción](specs/016-resultado-transaccion.md) · 0/5 | | | |
-| [017 — Agente por chat](specs/017-agente-chat.md) · 0/6 | | | |
-| [018 — Agente por voz](specs/018-agente-voz.md) · 0/6 | | | |
+| [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 0/11 | | | |
+| [002 — Inicio de sesión y mi cuenta](specs/002-inicio-sesion.md) · 0/7 | | | |
+| [003 — Registro](specs/003-registro.md) · 0/6 | | | |
+| [004 — Inicio y transacciones](specs/004-inicio-transacciones.md) · 0/6 | | | |
+| [005 — Pago de servicios](specs/005-pago-servicios.md) · 0/6 | | | |
+| [006 — Confirmación y aprobación](specs/006-confirmacion-aprobacion.md) · 0/6 | | | |
+| [007 — Resultado de la transacción](specs/007-resultado-transaccion.md) · 0/5 | | | |
+| [008 — Agente por chat](specs/008-agente-chat.md) · 0/6 | | | |
+| [009 — Agente por voz](specs/009-agente-voz.md) · 0/6 | | | |
 
-**Orden de desarrollo:** 010 → 012 → 011 → 013 → 014 → 015 → 016 → 017 → 018.
-El 012 va antes que el 011 porque el registro usa la sesión. Los specs se desarrollan contra la API simulada (MSW); la integración con el
+**Orden de desarrollo:** 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009.
+Los specs se desarrollan contra la API simulada (MSW); la integración con el
 backend real se verifica cuando su endpoint esté **Hecho**.
 
 ## Backlog (specs por escribir)
@@ -31,4 +31,5 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | Fecha | Spec | Cambio |
 |---|---|---|
 | 2026-10-16 | — | Plan del frontend y sistema de diseño creados como borrador a partir de los mockups |
-| 2026-10-16 | 010–018 | Creados como borrador |
+| 2026-10-16 | 001–009 | Creados como borrador |
+| 2026-10-16 | 001–009 | Renumerados desde 001 (antes 010–018; numeración propia del frontend). Sesión pasa a 002 y registro a 003 para que el orden de desarrollo sea el numérico |

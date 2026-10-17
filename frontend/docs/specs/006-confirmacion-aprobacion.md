@@ -1,4 +1,4 @@
-# 015 — Confirmación y aprobación del pago
+# 006 — Confirmación y aprobación del pago
 
 | Campo | Valor |
 |---|---|
@@ -19,20 +19,20 @@ desde dónde (mockups 1.7, 2.4, 3.5: "Revisar y decir sí"). Si está de acuerdo
 la app lo lleva a **su wallet** para aprobar el débito (grant interactivo de
 Open Payments, mockup 1.3). La app y el agente nunca aprueban: solo el usuario,
 en su proveedor de wallet ([PLAN.md](../PLAN.md#seguridad)). La misma pantalla
-la usan los pagos manuales (014) y los que prepara el agente (017).
+la usan los pagos manuales (005) y los que prepara el agente (008).
 
 ## Alcance
 
 **Incluye**
 - Pantalla de confirmación del pago a partir de la respuesta de `POST /payments` (o de `GET /payments/{id}` si se abre de nuevo).
 - Desglose: le paga a, valor que recibe el comercio, costo del pago (comisiones del quote), sale de (wallet del usuario), total que sale; tasa de cambio si las monedas son distintas.
-- Mensaje hablado del resumen (texto accesible con `toSpokenAmount`; lo lee la voz en 018).
+- Mensaje hablado del resumen (texto accesible con `toSpokenAmount`; lo lee la voz en 009).
 - Cuenta regresiva hasta que vence la autorización; al vencer se deshabilita "Sí, pagar".
 - "Sí, pagar": abre la `authorizationUrl` en la wallet (web: misma pestaña; Android: `expo-web-browser`).
 - "Repítamelo" (vuelve a anunciar el resumen) y "No pagar" (vuelve al inicio; el pago queda pendiente y vence solo).
 
 **No incluye**
-- El resultado después de aprobar (spec 016).
+- El resultado después de aprobar (spec 007).
 - Cancelar el pago en el backend (no existe endpoint; vence por TTL).
 - Comisión propia de TuTranqui (decisión pendiente 2 del [PLAN](../PLAN.md#decisiones-pendientes)).
 
@@ -42,7 +42,7 @@ la usan los pagos manuales (014) y los que prepara el agente (017).
 - **Dado** `debitAmount` en COP y `receiveAmount` en USD, **cuando** se muestra, **entonces** también ve la tasa ("Dólar de hoy $3.950") calculada sin `Number` y con aviso de que vale hasta que vence.
 - **Dado** el lector de pantalla, **cuando** entra, **entonces** se anuncia "La factura es de ochenta y seis mil cuatrocientos pesos… ¿Hacemos el pago?".
 - **Dado** "Sí, pagar" en web, **cuando** lo toca, **entonces** el navegador va a la `authorizationUrl` (solo si es `https`).
-- **Dado** "Sí, pagar" en Android, **cuando** lo toca, **entonces** se abre la wallet en el navegador del sistema y, al cerrarse, la app va al resultado (016) con el `paymentId`.
+- **Dado** "Sí, pagar" en Android, **cuando** lo toca, **entonces** se abre la wallet en el navegador del sistema y, al cerrarse, la app va al resultado (007) con el `paymentId`.
 - **Dado** que faltan menos de 60 s, **cuando** se muestra, **entonces** la cuenta regresiva se resalta; al llegar a 0, "Sí, pagar" queda deshabilitado y ve "Se venció el tiempo. Prepare el pago otra vez".
 - **Dado** un pago que ya no está `PENDING_AUTHORIZATION`, **cuando** abre la confirmación (p. ej. con el botón atrás), **entonces** se redirige al resultado.
 - **Dado** "No pagar", **cuando** lo toca, **entonces** vuelve al inicio y no se abre la wallet.
@@ -55,7 +55,7 @@ la usan los pagos manuales (014) y los que prepara el agente (017).
 
 ### Datos
 
-Toma el pago de la caché (lo dejó 014 o 017); si no está, `usePayment(paymentId)`.
+Toma el pago de la caché (lo dejó 005 o 008); si no está, `usePayment(paymentId)`.
 
 | Fila | Campo de la API |
 |---|---|
@@ -65,7 +65,7 @@ Toma el pago de la caché (lo dejó 014 o 017); si no está, `usePayment(payment
 | Tasa | `debitAmount / receiveAmount` con aritmética de enteros (unidad mínima) |
 | Sale de | Wallet del usuario (sesión) |
 | Total | `quote.debitAmount` |
-| Vence | `min(quote.expiresAt, authorizationExpiresAt)` (lo que devuelva el 007) |
+| Vence | `min(quote.expiresAt, authorizationExpiresAt)` (lo que devuelva el backend 007) |
 
 ### Abrir la wallet
 
@@ -76,7 +76,7 @@ con implementación por plataforma:
   `FRONTEND_RESULT_URL` (`https://<app>/pagos/resultado`) con `paymentId` y `status`.
 - **Android:** `WebBrowser.openAuthSessionAsync(url, <FRONTEND_RESULT_URL>)`;
   al cerrarse (por redirect o porque el usuario volvió), navega a
-  `/pagos/resultado?paymentId=…` y el 016 consulta el estado por polling
+  `/pagos/resultado?paymentId=…` y el 007 consulta el estado por polling
   (decisión pendiente 4 del [PLAN](../PLAN.md#decisiones-pendientes)).
 - Rechaza URLs que no sean `https`.
 
@@ -102,13 +102,13 @@ con implementación por plataforma:
 2. [ ] Caso 3 en rojo → `openAuthorization` por plataforma.
 3. [ ] Caso 4 en rojo → hook de cuenta regresiva.
 4. [ ] Casos 5–10 en rojo → pantalla de confirmación.
-5. [ ] Verificación manual (caso 11) cuando el spec 007 del backend esté desplegado.
+5. [ ] Verificación manual (caso 11) cuando el backend 007 esté desplegado.
 6. [ ] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes
 
 1. **`authorizationUrl` en `GET /payments/{id}`:** para abrir la confirmación
    sin caché (caso 6) el backend debe devolverla mientras el pago esté
-   `PENDING_AUTHORIZATION`. Hay que confirmarlo en el spec 008.
+   `PENDING_AUTHORIZATION`. Hay que confirmarlo en el backend 008.
 2. **Cancelar un pago pendiente:** hoy vence solo. ¿Se agrega
    `POST /payments/{id}/cancel`? Recomendación: no para el hackatón.

@@ -1,4 +1,4 @@
-# 012 — Inicio de sesión y mi cuenta
+# 002 — Inicio de sesión y mi cuenta
 
 | Campo | Valor |
 |---|---|
@@ -15,7 +15,7 @@
 ## Contexto
 
 La bienvenida (mockup 1.1, adaptada) es la puerta de entrada: lleva a crear
-cuenta (spec 011) o a ingresar. El usuario registrado entra con su correo y PIN. La app guarda la
+cuenta (spec 003) o a ingresar. El usuario registrado entra con su correo y PIN. La app guarda la
 sesión de forma segura, protege las pantallas privadas y permite cerrar sesión
 y eliminar la cuenta desde "Mi cuenta" (mockup 1.5).
 
@@ -71,7 +71,7 @@ useSession(): { status: "loading" | "signedIn" | "signedOut"; user?: User; signI
 - `sessionStore` (`src/features/auth/storage.ts`) con una implementación por
   plataforma (`storage.native.ts` / `storage.web.ts`) y una en memoria para tests.
 - Al iniciar, el provider registra `apiClient.setTokenProvider` y
-  `apiClient.onUnauthorized(signOut)` (spec 010).
+  `apiClient.onUnauthorized(signOut)` (spec 001).
 - `signOut` también limpia la caché de TanStack Query para no mostrar datos de
   otro usuario.
 

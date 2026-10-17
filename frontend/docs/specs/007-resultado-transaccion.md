@@ -1,4 +1,4 @@
-# 016 — Resultado de la transacción
+# 007 — Resultado de la transacción
 
 | Campo | Valor |
 |---|---|
@@ -17,10 +17,10 @@
 Después de aprobar (o rechazar) en su wallet, el usuario vuelve a la app y debe
 saber, sin dudas, qué pasó con su plata (mockups 1.8, 2.5, 3.6). El backend
 redirige a `FRONTEND_RESULT_URL?paymentId=…&status=…[&error=…]`
-([spec 007](../../../backend/docs/specs/007-pago-y-autorizacion.md#respuesta-del-callback)),
+([backend 007](../../../backend/docs/specs/007-pago-y-autorizacion.md#respuesta-del-callback)),
 pero ese `status` suele ser `PROCESSING`: el estado final se obtiene consultando
 `GET /payments/{id}` según `isFinal` y `Retry-After`
-([spec 009](../../../backend/docs/specs/009-seguimiento-estado-agente.md)).
+([backend 009](../../../backend/docs/specs/009-seguimiento-estado-agente.md)).
 
 ## Alcance
 
@@ -42,7 +42,7 @@ pero ese `status` suele ser `PROCESSING`: el estado final se obtiene consultando
 - **Dado** `FAILED` o `EXPIRED`, **cuando** se muestra, **entonces** ve qué pasó en lenguaje simple (según `error.code`) y que no se debitó nada si `sentAmount` es cero.
 - **Dado** un estado final, **cuando** se muestra, **entonces** la app deja de consultar.
 - **Dado** que pasan 2 minutos sin estado final, **cuando** se cumple el tiempo, **entonces** deja de consultar y ve "El pago sigue en proceso. Lo puede revisar en sus transacciones" con un botón para consultar de nuevo.
-- **Dado** que no hay sesión al volver (p. ej. otra pestaña en web), **cuando** abre el resultado, **entonces** ingresa (spec 012) y vuelve al resultado.
+- **Dado** que no hay sesión al volver (p. ej. otra pestaña en web), **cuando** abre el resultado, **entonces** ingresa (spec 002) y vuelve al resultado.
 - **Dado** un `paymentId` inexistente o de otro usuario (`404`), **cuando** abre el resultado, **entonces** ve "No encontramos ese pago" y "Ir al inicio".
 - **Dado** el `status` del query, **cuando** se muestra, **entonces** solo se usa como estado inicial; lo que se muestra como final siempre viene de la API (el query se puede manipular).
 
@@ -51,7 +51,7 @@ pero ese `status` suele ser `PROCESSING`: el estado final se obtiene consultando
 ### Ruta
 
 `app/(app)/pagos/resultado.tsx`. Está en `(app)` (requiere sesión); el guard
-del 012 conserva el query al redirigir a ingresar.
+del 002 conserva el query al redirigir a ingresar.
 
 ### Polling
 
@@ -62,7 +62,7 @@ usePaymentStatus(paymentId): { payment, phase: "polling" | "final" | "timeout" |
 - `refetchInterval` = `Retry-After` de la última respuesta (en segundos; por
   defecto 3 s si no viene), deja de consultar con `isFinal: true`.
 - Tiempo máximo 2 min (configurable), luego `timeout`.
-- Comparte la caché con `usePayment` del 013.
+- Comparte la caché con `usePayment` del 004.
 
 ### Textos por estado
 
@@ -91,7 +91,7 @@ usePaymentStatus(paymentId): { payment, phase: "polling" | "final" | "timeout" |
 1. [ ] Handlers MSW de `/payments/{id}` con secuencias de estados y `Retry-After`.
 2. [ ] Casos 1–2 en rojo → `usePaymentStatus`.
 3. [ ] Casos 3–7 en rojo → pantalla de resultado.
-4. [ ] Configurar `FRONTEND_RESULT_URL` del backend con la ruta de la app web (coordinar con el spec 002).
+4. [ ] Configurar `FRONTEND_RESULT_URL` del backend con la ruta de la app web (coordinar con el backend 002).
 5. [ ] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes

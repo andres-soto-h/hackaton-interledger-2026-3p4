@@ -1,4 +1,4 @@
-# 013 — Inicio y transacciones
+# 004 — Inicio y transacciones
 
 | Campo | Valor |
 |---|---|
@@ -18,7 +18,7 @@ La pantalla de inicio (mockups 1.5, 2.1, 3.1) es el punto de partida: saluda,
 ofrece hablar con el agente, muestra accesos a comercios y las últimas
 transacciones. Desde ahí el usuario abre la lista completa y el detalle de cada
 pago. Los datos vienen de `GET /api/v1/transactions` y
-`GET /api/v1/payments/{id}` (spec [008 del backend](../../../backend/docs/specs/008-consulta-pagos-transacciones.md)).
+`GET /api/v1/payments/{id}` ([backend 008](../../../backend/docs/specs/008-consulta-pagos-transacciones.md)).
 
 ## Alcance
 
@@ -29,7 +29,7 @@ pago. Los datos vienen de `GET /api/v1/transactions` y
 - Estados vacío, cargando y error con reintento.
 
 **No incluye**
-- Accesos rápidos a comercios favoritos con vencimientos ("vence el 24"): requiere datos de facturas que el backend no tiene. Los accesos del inicio llevan al directorio (spec 014).
+- Accesos rápidos a comercios favoritos con vencimientos ("vence el 24"): requiere datos de facturas que el backend no tiene. Los accesos del inicio llevan al directorio (spec 005).
 - Solicitudes de pago entrantes (`kind=payment-request`): la app solo paga.
 - Exportar o compartir comprobantes.
 
@@ -40,8 +40,8 @@ pago. Los datos vienen de `GET /api/v1/transactions` y
 - **Dado** más de una página, **cuando** llega al final de la lista, **entonces** se carga la siguiente con `nextCursor` sin duplicar elementos.
 - **Dado** el filtro "Exitosas", **cuando** lo escoge, **entonces** se pide `status=COMPLETED` y la lista se reinicia.
 - **Dado** cada transacción, **cuando** se muestra, **entonces** tiene nombre del comercio (o la wallet si no está en el directorio), monto con su moneda, fecha relativa ("hoy, 3:24 p. m.") y `StatusBadge`.
-- **Dado** una transacción no final en el detalle, **cuando** está abierta, **entonces** el estado se actualiza solo (polling con `Retry-After`, como el spec 016).
-- **Dado** un error de la API, **cuando** carga, **entonces** ve `ErrorState` con "Reintentar"; un `401` cierra la sesión (spec 012).
+- **Dado** una transacción no final en el detalle, **cuando** está abierta, **entonces** el estado se actualiza solo (polling con `Retry-After`, como el spec 007).
+- **Dado** un error de la API, **cuando** carga, **entonces** ve `ErrorState` con "Reintentar"; un `401` cierra la sesión (spec 002).
 
 ## Diseño
 
@@ -55,10 +55,10 @@ pago. Los datos vienen de `GET /api/v1/transactions` y
 ```ts
 useTransactions({ status?, limit = 20 })   // useInfiniteQuery sobre GET /transactions
 useRecentTransactions()                     // limit = 5
-usePayment(paymentId)                       // GET /payments/{id}, compartido con 016
+usePayment(paymentId)                       // GET /payments/{id}, compartido con 007
 ```
 
-- Contrato de [008](../../../backend/docs/specs/008-consulta-pagos-transacciones.md#diseño):
+- Contrato del [backend 008](../../../backend/docs/specs/008-consulta-pagos-transacciones.md#diseño):
   `GET /transactions?direction=outgoing&kind=payment&status=&limit=&cursor=` →
   `{ items, nextCursor }`. La wallet sale del token (pendiente en el backend;
   ver [PLAN.md](../PLAN.md#dependencias-con-el-backend)).
@@ -67,7 +67,7 @@ usePayment(paymentId)                       // GET /payments/{id}, compartido co
   `REJECTED`, `EXPIRED`. Si el backend solo acepta un `status`, "En curso" y
   "No realizadas" filtran en el cliente (decisión pendiente 1).
 - Nombre del comercio: se cruza `receiverWalletAddress` con el directorio
-  (spec 014, cacheado); si no está, se muestra el host y la ruta de la wallet.
+  (spec 005, cacheado); si no está, se muestra el host y la ruta de la wallet.
 
 ### Componentes
 
@@ -100,7 +100,7 @@ usePayment(paymentId)                       // GET /payments/{id}, compartido co
 ## Decisiones pendientes
 
 1. **Filtro por varios estados:** ¿el backend acepta `status` múltiple
-   (`status=FAILED,REJECTED`)? Recomendación: sí, es un cambio pequeño en 008.
+   (`status=FAILED,REJECTED`)? Recomendación: sí, es un cambio pequeño en el backend 008.
 2. **Nombre del comercio en la transacción:** cruzarlo en el cliente con el
    directorio o que el backend lo devuelva. Recomendación: el backend
    (`receiverName`), cuando exista el directorio.
