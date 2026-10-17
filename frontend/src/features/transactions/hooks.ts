@@ -21,14 +21,17 @@ export const useRecentTransactions = () => useTransactions({ limit: 5 });
 const DEFAULT_POLL_MS = 3000;
 
 /** Pago por id; mientras no sea final consulta de nuevo según `Retry-After` (backend 009). */
-export function usePayment(paymentId: string, { enabled = true }: { enabled?: boolean } = {}) {
+export function usePayment(
+  paymentId: string,
+  { enabled = true, poll = true }: { enabled?: boolean; poll?: boolean } = {},
+) {
   return useQuery({
     enabled,
     queryKey: transactionKeys.payment(paymentId),
     queryFn: () => transactionsApi.getPayment(paymentId),
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (!data) return false;
+      if (!poll || !data) return false;
       const isFinal =
         data.payment.isFinal ??
         ['COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED'].includes(data.payment.status);

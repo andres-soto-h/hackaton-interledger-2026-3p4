@@ -20,6 +20,8 @@ type RequestOptions = {
   query?: Query;
   signal?: AbortSignal;
   idempotencyKey?: string;
+  /** Tiempo máximo de esta petición (por omisión, el del cliente). */
+  timeoutMs?: number;
 };
 
 export type ApiResponse<T> = { data: T; retryAfterSeconds?: number };
@@ -82,7 +84,7 @@ export function createApiClient({ baseUrl, timeoutMs = DEFAULT_TIMEOUT_MS }: Api
     const timer = setTimeout(() => {
       timedOut = true;
       controller.abort();
-    }, timeoutMs);
+    }, options.timeoutMs ?? timeoutMs);
     options.signal?.addEventListener('abort', () => controller.abort());
 
     let response: Response;

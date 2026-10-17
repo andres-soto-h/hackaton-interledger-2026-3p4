@@ -137,4 +137,16 @@ describe('apiClient', () => {
     expect(logged).not.toContain('secreto');
     spy.mockRestore();
   });
+
+  it('permite un timeout propio por petición', async () => {
+    server.use(
+      http.post(`${BASE}/slow`, async () => {
+        await delay(100);
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    const c = createApiClient({ baseUrl: BASE, timeoutMs: 20 });
+    await expect(c.post('/slow', {})).rejects.toMatchObject({ code: 'TIMEOUT' });
+    await expect(c.post('/slow', {}, { timeoutMs: 1000 })).resolves.toEqual({ ok: true });
+  });
 });

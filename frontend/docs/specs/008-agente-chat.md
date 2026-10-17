@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 6 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+5 / 6 tareas completadas (295 tests en verde, lint y typecheck limpios), contra el contrato propuesto y MSW. **Falta la tarea 5** (proponer el contrato al backend/agente y registrar diferencias): es un pendiente del backend y de la definición del SDK de Gemini. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 ## Contexto
 
@@ -117,12 +117,12 @@ en un reducer testeable. Al volver del 007, el resultado agrega una acción
 
 ## Tareas
 
-1. [ ] Handlers MSW de `/agent/messages` con guiones de conversación (pago directo, elegir comercio, error).
-2. [ ] Casos 1–2 en rojo → reducer y parser de acciones.
-3. [ ] Casos 3–4 en rojo → burbujas y tarjeta de pago.
-4. [ ] Casos 5–10 en rojo → pantalla de chat.
-5. [ ] Proponer el contrato al backend/agente (spec por escribir) y registrar diferencias.
-6. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Handlers MSW de `/agent/messages` con guiones de conversación (pago directo, elegir comercio, error).
+2. [x] Casos 1–2 en rojo → reducer y parser de acciones.
+3. [x] Casos 3–4 en rojo → burbujas y tarjeta de pago.
+4. [x] Casos 5–10 en rojo → pantalla de chat.
+5. [~] Proponer el contrato al backend/agente (spec por escribir) y registrar diferencias.
+6. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes
 
@@ -135,3 +135,15 @@ en un reducer testeable. Al volver del 007, el resultado agrega una acción
    componentes o un protocolo propio para el chat en React, el contrato de
    `POST /agent/messages` y los componentes de este spec se ajustan a él. Se
    define junto con la voz (spec [009](009-agente-voz.md)).
+
+## Notas de la implementación
+
+- La conversación vive en `AgentProvider` (en memoria, montado en el layout raíz): sobrevive a la navegación dentro de la sesión.
+- `markFromChat` recuerda los pagos que salieron del chat; al llegar a un estado final, la pantalla de resultado (007) agrega al chat la tarjeta `payment_status` y ofrece "Volver al chat".
+- El cliente HTTP acepta `timeoutMs` por petición; el agente usa 30 s.
+- El endpoint `POST /agent/messages` no existe en el backend: hasta que exista, el chat muestra "No pude responder" en la app real (los tests usan MSW).
+
+## Pendientes del backend (para validar con el responsable)
+
+- Spec y endpoint `POST /api/v1/agent/messages` (contrato propuesto arriba), con sus tools sin permiso de confirmar pagos.
+- Definir el SDK de agentes de Gemini (decisión 3), que puede cambiar este contrato.
