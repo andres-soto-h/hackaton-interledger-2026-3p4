@@ -8,6 +8,8 @@ import {
   AtkinsonHyperlegible_700Bold,
 } from '@expo-google-fonts/atkinson-hyperlegible';
 import { useFonts } from 'expo-font';
+import { PasskeysProvider } from '@/features/auth/passkeys-context';
+import { SessionProvider } from '@/features/auth/session';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,8 +33,12 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }} />
+      <SessionProvider>
+        <PasskeysProvider>
+          <StatusBar style="dark" />
+          <Stack screenOptions={{ headerShown: false }} />
+        </PasskeysProvider>
+      </SessionProvider>
     </QueryClientProvider>
   );
 }

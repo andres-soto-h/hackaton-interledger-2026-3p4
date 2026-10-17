@@ -27,9 +27,6 @@
       "expo-router",
       "expo-font"
     ],
-    "scheme": "tutranqui",
-    "experiments": {
-      "typedRoutes": true
-    }
+    "scheme": "tutranqui"
   }
 }
