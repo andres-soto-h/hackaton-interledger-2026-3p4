@@ -1,14 +1,20 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { colors, layout, radii, spacing } from '@/theme';
 import { AppText } from '@/ui';
-import { STATUS_FILTERS, type StatusFilterId } from '../filters';
+import { STATUS_FILTERS } from '../filters';
 
-type Props = { value: StatusFilterId; onChange: (id: StatusFilterId) => void };
+type Option = { id: string; label: string };
+type Props<T extends string> = {
+  value: T;
+  onChange: (id: T) => void;
+  options?: Option[];
+};
 
-export function StatusFilter({ value, onChange }: Props) {
+/** Selector de un solo valor en chips; por omisión, los filtros de estado de las transacciones. */
+export function StatusFilter<T extends string = string>({ value, onChange, options }: Props<T>) {
   return (
     <View style={styles.row} accessibilityRole="radiogroup">
-      {STATUS_FILTERS.map(({ id, label }) => {
+      {(options ?? STATUS_FILTERS).map(({ id, label }) => {
         const selected = id === value;
         return (
           <Pressable
@@ -16,7 +22,7 @@ export function StatusFilter({ value, onChange }: Props) {
             accessibilityRole="radio"
             accessibilityLabel={label}
             accessibilityState={{ selected }}
-            onPress={() => onChange(id)}
+            onPress={() => onChange(id as T)}
             style={[styles.chip, selected ? styles.chipOn : null]}
           >
             <AppText variant="label" color={selected ? 'surface' : 'primary'}>

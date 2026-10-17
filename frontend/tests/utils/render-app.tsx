@@ -30,6 +30,9 @@ const baseScreens = (): Screens => ({
   '(app)/vincular/resultado': require('../../app/(app)/vincular/resultado').default,
   '(app)/transacciones/index': require('../../app/(app)/transacciones/index').default,
   '(app)/transacciones/[paymentId]': require('../../app/(app)/transacciones/[paymentId]').default,
+  '(app)/pagos/index': require('../../app/(app)/pagos/index').default,
+  '(app)/pagos/[merchantId]/datos': require('../../app/(app)/pagos/[merchantId]/datos').default,
+  '(app)/pagos/[merchantId]/validacion': require('../../app/(app)/pagos/[merchantId]/validacion').default,
   '(app)/cuenta': require('../../app/(app)/cuenta').default,
 });
 /* eslint-enable @typescript-eslint/no-require-imports */

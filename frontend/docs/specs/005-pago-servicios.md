@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 6 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+5 / 6 tareas completadas (221 tests en verde, lint y typecheck limpios). **Solo falta la tarea 5**, que es un pendiente del backend (conectar los comercios con la base de Google Cloud); no bloquea. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 > **Decisiones del responsable (2026-10-17):** (1) los pagos a comercios son
 > **solo en COP**; (2) el body de `p2m` lleva `receiverWalletAddress` + `amount`
@@ -127,12 +127,12 @@ con el `requestId` en letra pequeña para soporte.
 
 ## Tareas
 
-1. [ ] Lista simulada de comercios (`mock-merchants.ts` + hook `useMerchants`) y handlers MSW de `/wallets/verify` y `POST /payments` con fixtures (EPM, Claro, comercio con wallet inválida).
-2. [ ] Casos 1–4 en rojo → búsqueda, schema, pasos de validación y mensajes de error.
-3. [ ] Casos 5–6 en rojo → directorio y datos del pago.
-4. [ ] Casos 7–10 en rojo → validación y creación del pago.
-5. [ ] **Pendiente del backend:** conectar la lista de comercios contra la base de datos en Google Cloud (`GET /merchants`) y cambiar la fuente de `useMerchants`. Registrado en el [KANBAN del backend](../../../backend/docs/KANBAN.md#backlog-specs-por-escribir); no bloquea el desarrollo de este spec.
-6. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Lista simulada de comercios (`mock-merchants.ts` + hook `useMerchants`) y handlers MSW de `/wallets/verify` y `POST /payments` con fixtures (EPM, Claro, comercio con wallet inválida).
+2. [x] Casos 1–4 en rojo → búsqueda, schema, pasos de validación y mensajes de error.
+3. [x] Casos 5–6 en rojo → directorio y datos del pago.
+4. [x] Casos 7–10 en rojo → validación y creación del pago.
+5. [~] **Pendiente del backend:** conectar la lista de comercios contra la base de datos en Google Cloud (`GET /merchants`) y cambiar la fuente de `useMerchants`. Registrado en el [KANBAN del backend](../../../backend/docs/KANBAN.md#backlog-specs-por-escribir); no bloquea el desarrollo de este spec.
+6. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
@@ -147,3 +147,19 @@ con el `requestId` en letra pequeña para soporte.
 
 Ninguna. Dependen del backend la aprobación del spec 026 (contrato del `p2m`) y el
 endpoint `GET /merchants`; el front avanza con MSW y la lista simulada.
+
+## Notas de la implementación
+
+- La validación del comercio llama a `GET /wallets/verify`; como el backend todavía no tiene ese endpoint
+  (responde `404 NOT_FOUND` por ruta inexistente), `verifyWallet` usa una verificación local del directorio
+  para no bloquear el flujo. Se elimina al existir el endpoint (pendiente del backend).
+- Se agregó un quinto paso de validación, "La cuenta recibe pesos colombianos", por la restricción COP.
+- El valor se acepta como "86400", "86.400" o "86.400,50" (la coma es el decimal) y se envía como `"86400.00"`.
+- La respuesta de `POST /payments` queda en la caché con la clave `['payment-quote', paymentId]` para el spec 006.
+- El `Idempotency-Key` se genera al entrar a la validación y se reusa en los reintentos.
+- Los tests esperan hasta 6 s por los pasos animados (350 ms cada uno, con timers falsos).
+
+## Pendientes del backend (para validar con el responsable)
+
+- `GET /merchants` conectado a Google Cloud (tarea 5) y `GET /wallets/verify`.
+- Spec 026 (`p2m` con `receiverWalletAddress` + `amount`, solo COP): el front ya envía ese body.

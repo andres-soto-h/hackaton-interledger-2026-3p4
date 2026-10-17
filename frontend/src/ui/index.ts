@@ -9,3 +9,5 @@ export { StatusBadge, paymentStatusText, type PaymentStatus } from './StatusBadg
 export { TextField } from './TextField';
 export { ConfirmPanel } from './ConfirmPanel';
 export { StepIndicator } from './StepIndicator';
+export { CheckItem, type CheckStatus } from './CheckItem';
+export { MerchantTile } from './MerchantTile';
