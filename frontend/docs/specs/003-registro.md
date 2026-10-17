@@ -1,4 +1,4 @@
-# 003 — Registro
+# 003 — Registro y vinculación de la wallet
 
 | Campo | Valor |
 |---|---|
@@ -10,111 +10,120 @@
 
 ## Estado
 
-0 / 6 tareas completadas. Spec en borrador, pendiente de aprobación.
+0 / 7 tareas completadas. Spec en borrador, pendiente de aprobación.
 
 ## Contexto
 
-Para pagar, la app necesita saber quién es el usuario y desde qué wallet paga.
-El usuario se registra con su nombre, correo, la dirección de su wallet y un
-PIN. Los mockups 1.1 – 1.4 muestran un registro con banco y permiso guardado;
-se reemplaza por este (ver [PLAN.md](../PLAN.md#diferencias-con-los-mockups)).
-El usuario **no** entrega llaves ni la clave de su wallet: solo su dirección
-pública ([API.md](../../../backend/docs/API.md#identidad-de-la-api-cliente-open-payments)).
+El usuario crea su cuenta con su nombre, la dirección de su wallet y un
+**passkey** (el desbloqueo de su dispositivo; no hay PIN de la app). Después
+**vincula su wallet**: aprueba una sola vez, en su wallet, que TuTranqui pague
+hasta un monto diario. Desde ahí cada pago se confirma en la app con el passkey,
+sin volver a la wallet (specs 006 y 008). El registro completo es cuenta +
+vinculación; sin vinculación la cuenta existe pero no puede pagar.
+
+Este flujo corresponde a los mockups 1.2 – 1.4 ("Su banco", "Autoriza en su
+banco", "Permiso guardado"), adaptados a wallet y monto diario. El usuario
+**no** entrega llaves ni la clave de su wallet: solo su dirección pública.
+Contratos en el [backend 019](../../../backend/docs/specs/019-cuentas-usuario-passkeys.md)
+y el [backend 023](../../../backend/docs/specs/023-vinculacion-wallet-monto-diario.md).
 
 ## Alcance
 
 **Incluye**
-- Pantalla de registro: nombre, correo, dirección de la wallet, PIN y confirmación del PIN.
-- Validación en el cliente (Zod) y verificación de la wallet antes de enviar.
-- Llamada a `POST /api/v1/users`; con éxito, inicia la sesión con el token recibido (`signIn` del spec 002) y lleva al inicio.
-- Componente `PinField`.
+- Paso 1 · Sus datos: nombre y dirección de la wallet, con validación en el cliente (Zod).
+- Paso 2 · Su passkey: explicación corta ("Use la huella o el bloqueo de su teléfono") y creación del passkey.
+- Paso 3 · Permiso en su wallet: muestra el monto diario y lo que TuTranqui podrá y no podrá hacer (mockup 1.3); abre la `authorizationUrl` de la wallet.
+- Vuelta desde la wallet: ruta de resultado de la vinculación, consulta del estado hasta que sea final y pantalla "Permiso guardado" (mockup 1.4).
+- Retomar la vinculación si el usuario la abandonó, la rechazó o se venció: aviso en el inicio "Vincule su wallet para empezar a pagar" y desde Mi cuenta (spec 002).
+- Wallets en cualquier moneda soportada (multimoneda).
 
 **No incluye**
-- Bienvenida, inicio de sesión, cierre y eliminación de cuenta (spec 002).
-- Verificación del correo, recuperación del PIN, passkeys.
-- El endpoint del backend (spec de backend por escribir; aquí se usa MSW).
+- Bienvenida, ingreso, desvincular y eliminar la cuenta (spec 002).
+- Cambiar el monto diario (se fija al vincular; para tomar uno nuevo se vuelve a vincular).
+- Recuperar la cuenta sin passkey.
 
 ## Criterios de aceptación
 
-- **Dado** el formulario vacío, **cuando** toca "Crear cuenta", **entonces** cada campo obligatorio muestra su error y no se llama a la API.
-- **Dado** un correo con formato inválido, **cuando** sale del campo, **entonces** ve "Escriba un correo válido".
-- **Dado** un PIN que no son 6 dígitos, o una confirmación distinta, **cuando** envía, **entonces** ve el error del campo.
-- **Dado** un PIN trivial (`000000`, `123456`, seis dígitos iguales o consecutivos), **cuando** envía, **entonces** ve "Escoja un PIN más difícil de adivinar".
+- **Dado** el paso 1 vacío, **cuando** toca "Seguir", **entonces** cada campo muestra su error y no se llama a la API.
 - **Dado** una dirección de wallet sin `https://` o mal formada, **cuando** sale del campo, **entonces** ve el error; si escribe `$ilp.interledger-test.dev/ana`, se normaliza a `https://ilp.interledger-test.dev/ana`.
-- **Dado** una wallet válida, **cuando** sale del campo, **entonces** la app la verifica y muestra "Wallet encontrada · <publicName> · <assetCode>", o "No encontramos esa wallet" si no existe.
-- **Dado** datos válidos, **cuando** toca "Crear cuenta", **entonces** el botón queda en carga, se llama `POST /users` una sola vez y al recibir `201` queda con sesión y ve el inicio.
-- **Dado** que el correo ya está registrado (`409 EMAIL_ALREADY_REGISTERED`), **cuando** envía, **entonces** ve el error en el campo correo y un enlace a "Ingresar".
-- **Dado** un error de red, **cuando** envía, **entonces** ve un mensaje para reintentar y los datos escritos se conservan (excepto el PIN, que se borra).
+- **Dado** datos válidos, **cuando** toca "Seguir", **entonces** se pide `POST /auth/register/options`; si la wallet no existe o no está permitida (`422 WALLET_NOT_FOUND` / `WALLET_NOT_ALLOWED`), ve el error en el campo de la wallet.
+- **Dado** una wallet que ya tiene cuenta (`409 WALLET_ALREADY_REGISTERED`), **cuando** sigue, **entonces** ve el error y un enlace a "Ingresar".
+- **Dado** el paso 2, **cuando** crea el passkey, **entonces** se llama `POST /auth/register/verify`, queda con sesión y pasa al paso 3; si cancela el diálogo, sigue en el paso 2 y puede reintentar.
+- **Dado** el paso 3, **cuando** lo abre, **entonces** ve el monto diario en la moneda de su wallet y "Cada pago lo confirma usted en la app".
+- **Dado** "Ir a mi wallet", **cuando** lo toca, **entonces** se llama `POST /me/wallet-link` y el navegador va a la `authorizationUrl` (solo si es `https`).
+- **Dado** que aprueba en su wallet, **cuando** vuelve a la app, **entonces** ve "Su wallet autorizó a TuTranqui", el monto diario y "Empezar a pagar".
+- **Dado** que rechaza o se vence el tiempo, **cuando** vuelve, **entonces** ve qué pasó y "Intentar de nuevo".
+- **Dado** que la moneda de su wallet no tiene monto diario configurado (`422 CURRENCY_NOT_SUPPORTED`), **cuando** intenta vincular, **entonces** ve que esa moneda todavía no está disponible.
+- **Dado** que cerró la app en el paso 3, **cuando** vuelve a ingresar, **entonces** el inicio le muestra el aviso para vincular y no puede pagar hasta hacerlo.
 
 ## Diseño
 
-### Ruta
+### Rutas
 
-`app/(publico)/registro.tsx`.
+`app/(publico)/registro.tsx` (pasos 1 y 2), `app/(app)/vincular/index.tsx`
+(paso 3) y `app/(app)/vincular/resultado.tsx` (vuelta desde la wallet; es la
+`FRONTEND_RESULT_URL` del backend).
 
 ### Formulario
 
 | Campo | Regla | Teclado |
 |---|---|---|
 | Nombre | 2–60 caracteres, sin solo espacios | texto, `autoComplete="name"` |
-| Correo | Formato de correo, se guarda en minúsculas y sin espacios | `email-address`, `autoComplete="email"` |
 | Dirección de la wallet | `https://` + host + ruta; acepta *payment pointer* `$host/ruta` y lo normaliza | `url`, sin autocorrección |
-| PIN | Exactamente 6 dígitos, no trivial | numérico, oculto |
-| Confirmar PIN | Igual al PIN | numérico, oculto |
 
 El schema vive en `src/features/auth/schemas.ts`.
 
-### Contrato (propuesto al backend)
+### Contrato
 
 ```
-GET  /api/v1/wallets/verify?walletAddress=<url>
-     200 { "exists": true, "publicName": "Claudia", "assetCode": "COP", "assetScale": 2 }
-     422 WALLET_NOT_FOUND | WALLET_NOT_ALLOWED
-
-POST /api/v1/users
-     { "name": "Claudia Pérez", "email": "claudia@example.com",
-       "walletAddress": "https://ilp.interledger-test.dev/claudia", "pin": "482915" }
-     201 { "user": { "id": "usr_...", "name": "...", "email": "...", "walletAddress": "...", "assetCode": "COP" },
-           "token": "<jwt>", "expiresAt": "..." }
-     409 EMAIL_ALREADY_REGISTERED · 422 WALLET_NOT_FOUND · 400 VALIDATION_ERROR
+POST /api/v1/auth/register/options  { displayName, walletAddress } → 200 { challengeId, ...opciones }
+                                     422 WALLET_NOT_FOUND | WALLET_NOT_ALLOWED · 409 WALLET_ALREADY_REGISTERED
+POST /api/v1/auth/register/verify   { challengeId, credential } → 201 { user, session }
+POST /api/v1/me/wallet-link         → 202 { linkId, authorizationUrl, dailyLimit, expiresAt }
+                                     409 WALLET_ALREADY_LINKED · 422 CURRENCY_NOT_SUPPORTED
+GET  /api/v1/me/wallet-link         → { status, dailyLimit, ... } + isFinal / Retry-After mientras está pendiente
+Vuelta: FRONTEND_RESULT_URL?linkId=…&status=…
 ```
 
-### Seguridad
-
-- El PIN no se guarda en estado global ni en almacenamiento; se borra del
-  formulario tras enviar o fallar.
-- Las reglas de PIN trivial también deben validarse en el backend; las del
-  cliente son solo para dar ayuda inmediata.
+- El `status` de la vuelta es solo el estado inicial; lo que se muestra como
+  final viene de `GET /me/wallet-link` (el query se puede manipular).
+- Estados: `PENDING_AUTHORIZATION`, `ACTIVE`, `REJECTED`, `EXPIRED`, `REVOKED`.
+- Los passkeys usan el módulo del spec 002.
 
 ## Casos de prueba
 
 | # | Tipo | Caso | Resultado esperado |
 |---|---|---|---|
-| 1 | unit | Schema: nombre, correo, PIN (longitud, dígitos, trivial, confirmación) | Acepta válidos, rechaza cada inválido con su mensaje |
-| 2 | unit | Normalización de wallet (`$host/ruta`, `https://`, espacios, `http://`) | URL https normalizada; `http://` rechazado |
-| 3 | component | `PinField`: solo dígitos, máximo 6, oculto, botón "ver" | Ignora letras; alterna visibilidad; accesible |
-| 4 | integration | Enlace "Ya tengo cuenta" | Navega a ingresar |
-| 5 | integration | Envío vacío | Errores por campo; MSW no recibe llamadas |
-| 6 | integration | Verificación de wallet existente / inexistente | Muestra nombre y moneda / error del campo |
-| 7 | integration | Registro exitoso | Una sola llamada a `POST /users` con el body esperado; sesión iniciada; navega al inicio |
-| 8 | integration | `409 EMAIL_ALREADY_REGISTERED` | Error en el correo y enlace a ingresar |
-| 9 | integration | Error de red | Mensaje de reintento; campos conservados; PIN vacío |
-| 10 | integration | Doble toque en "Crear cuenta" | Una sola petición |
+| 1 | unit | Schema: nombre; normalización de wallet (`$host/ruta`, `https://`, espacios, `http://`) | Acepta válidos; `http://` y mal formadas rechazadas |
+| 2 | unit | Polling del estado de la vinculación con reloj falso | Respeta `Retry-After`; se detiene en estado final |
+| 3 | integration | Paso 1 vacío; wallet inexistente; wallet ya registrada | Errores por campo / en la wallet / enlace a ingresar; sin passkey |
+| 4 | integration | Paso 2: passkey creado / cancelado | `register/verify` y sesión → paso 3 / sigue en paso 2 |
+| 5 | integration | Paso 3 → "Ir a mi wallet" | `POST /me/wallet-link`; navega a la `authorizationUrl`; `http` rechazada |
+| 6 | integration | Vuelta con `ACTIVE`, `REJECTED`, `EXPIRED`; query que dice `ACTIVE` pero la API dice pendiente | Pantalla de cada estado; manda la API |
+| 7 | integration | Usuario sin vinculación en el inicio; `CURRENCY_NOT_SUPPORTED` | Aviso para vincular / mensaje de moneda no disponible |
+| 8 | integration | Doble toque en "Seguir" o "Ir a mi wallet" | Una sola petición |
+| 9 | manual | Registro completo en Chrome con una wallet de la red de prueba | Cuenta creada, wallet vinculada y "Permiso guardado" |
 
 ## Tareas
 
-1. [ ] Handlers MSW de `POST /users` y `GET /wallets/verify` con el contrato.
-2. [ ] Casos 1–2 en rojo → schema y normalización de wallet.
-3. [ ] Caso 3 en rojo → `PinField`.
-4. [ ] Casos 4–10 en rojo → pantalla de registro.
-5. [ ] Proponer el contrato al backend (spec de usuarios) y registrar diferencias.
-6. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [ ] Handlers MSW de `/auth/register/*` y `/me/wallet-link` con fixtures por estado.
+2. [ ] Caso 1 en rojo → schema y normalización de wallet.
+3. [ ] Casos 3–4 en rojo → pasos 1 y 2.
+4. [ ] Casos 2 y 5–6 en rojo → paso 3 y vuelta desde la wallet.
+5. [ ] Casos 7–8 en rojo → aviso de vinculación pendiente y doble envío.
+6. [ ] Verificación manual (caso 9) cuando los backend 019 y 023 estén desplegados.
+7. [ ] Suite completa en verde, lint y typecheck limpios.
 
-## Decisiones pendientes
+## Decisiones
 
-1. **Longitud del PIN:** recomendación 6 dígitos (4 es muy fácil de adivinar).
-2. **Moneda de la wallet:** si la wallet no es COP ni USD, ¿se permite el registro? Recomendación: sí, se muestra con su código.
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Autenticación | Passkey; la app no tiene PIN propio (2026-10-16) |
+| 2 | Monedas | Multimoneda: se acepta cualquier moneda con monto diario configurado en el backend; se muestra con su código (2026-10-16) |
+| 3 | Aprobación de pagos | Una sola vez al vincular la wallet, con monto diario (backend 023); cada pago se confirma con el passkey (2026-10-16) |
 
 ## Notas
 
-- Depende de 001 y 002 (sesión).
+- Depende de 001 y 002 (sesión y passkeys).
+- El backend 019 no pide correo: el registro es con nombre y wallet, y el ingreso
+  es con el passkey, sin usuario.

@@ -62,7 +62,7 @@ apiClient.onUnauthorized(handler)                  // 401 → cerrar sesión (sp
 
 - `idempotencyKey` se envía como `Idempotency-Key` (backend 005).
 - Expone los headers de la respuesta que se necesitan (`Retry-After`, spec 007).
-- Nunca registra el body de las peticiones (puede llevar el PIN).
+- Nunca registra el body de las peticiones (puede llevar credenciales de passkeys).
 
 ### Montos
 

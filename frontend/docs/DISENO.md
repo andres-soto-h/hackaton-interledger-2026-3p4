@@ -66,8 +66,8 @@ sistema (`allowFontScaling`), con un tope para no romper el diseño.
 | `AppHeader` | Logo "TuTranqui" + acción a la derecha ("Mi cuenta", "Parar", "Cancelar") | todas |
 | `StepIndicator` | "Paso N de M · Nombre" | 1.6, 1.7 |
 | `Button` | Variantes `primary`, `secondary`, `ghost`, `danger`; estado `loading`; ícono opcional | todas |
-| `TextField` | Etiqueta visible, ayuda, error, `accessibilityLabel` | registro, login |
-| `PinField` | PIN de 6 dígitos con teclado numérico, oculto, botón "ver" | registro, login |
+| `TextField` | Etiqueta visible, ayuda, error, `accessibilityLabel` | registro |
+| `PasskeyButton` | Botón principal con ícono de huella; explica que se usa el desbloqueo del dispositivo | registro, ingreso, confirmación |
 | `Card` | Superficie con radio 16 | todas |
 | `AmountRow` | Etiqueta, detalle opcional y valor alineado a la derecha | 1.7, 1.8 |
 | `CheckItem` | Ítem de validación (✓ verde, pendiente o error) con título y detalle | 1.6, 2.2 |
