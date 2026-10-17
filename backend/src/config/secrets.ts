@@ -18,6 +18,11 @@ export type OpenPaymentsCredentials = z.infer<typeof openPaymentsSchema>
 export interface Secrets {
   apiKey: string
   openPayments: OpenPaymentsCredentials
+  /** HS256 key for user and admin sessions (spec 019, 020). */
+  sessionSigningKey: string
+  adminPassword: string
+  /** Raw secret; the AES-256 key is `SHA-256(secret)` (spec 023). */
+  tokenEncryptionKey: string
 }
 
 /** Secrets are missing or malformed. Messages never include secret values. */
@@ -54,17 +59,42 @@ export async function loadSecrets(
   if (config.runtime === 'local') {
     return {
       apiKey: config.apiKey,
-      openPayments: parseOpenPayments(await readKeysFile(config.openPaymentsKeysFile))
+      openPayments: parseOpenPayments(await readKeysFile(config.openPaymentsKeysFile)),
+      sessionSigningKey: config.sessionSecret,
+      adminPassword: config.adminPassword,
+      tokenEncryptionKey: config.tokenKey
     }
   }
 
-  const [apiKey, openPayments] = await Promise.all([
-    fetchSecret(config.apiKeySecretArn),
-    fetchSecret(config.openPaymentsSecretArn)
-  ])
+  const [apiKey, openPayments, sessionSigningKey, adminPassword, tokenEncryptionKey] =
+    await Promise.all([
+      fetchSecret(config.apiKeySecretArn),
+      fetchSecret(config.openPaymentsSecretArn),
+      fetchSecret(config.sessionSecretArn),
+      fetchSecret(config.adminPasswordSecretArn),
+      fetchSecret(config.tokenKeySecretArn)
+    ])
   if (apiKey.length === 0) throw new SecretsError('API key secret is empty')
+  requireSecret(sessionSigningKey, 'Session signing key', MIN_KEY_LENGTH)
+  requireSecret(adminPassword, 'Admin password')
+  requireSecret(tokenEncryptionKey, 'Token encryption key', MIN_KEY_LENGTH)
 
-  return { apiKey, openPayments: parseOpenPayments(openPayments) }
+  return {
+    apiKey,
+    openPayments: parseOpenPayments(openPayments),
+    sessionSigningKey,
+    adminPassword,
+    tokenEncryptionKey
+  }
+}
+
+const MIN_KEY_LENGTH = 32
+
+function requireSecret(value: string, label: string, minLength = 1): void {
+  if (value.length === 0) throw new SecretsError(`${label} secret is empty`)
+  if (value.length < minLength) {
+    throw new SecretsError(`${label} secret must have at least ${minLength} characters`)
+  }
 }
 
 async function readKeysFile(path: string): Promise<string> {

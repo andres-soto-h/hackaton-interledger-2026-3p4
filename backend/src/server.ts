@@ -1,15 +1,8 @@
 import { existsSync } from 'node:fs'
-import { createApp } from './app.js'
+import { bootstrap } from './composition/bootstrap.js'
 import { loadConfig } from './config/env.js'
 import { loadSecrets } from './config/secrets.js'
 import { createLogger } from './shared/logger.js'
-
-/** Comma-separated host allowlist from `CORS_ALLOWED_ORIGINS`; empty values dropped. */
-const corsAllowedOrigins = (): string[] =>
-  (process.env.CORS_ALLOWED_ORIGINS ?? '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0)
 
 /** Local entry point: `pnpm dev`. Lambda uses `lambda.ts` instead. */
 async function main(): Promise<void> {
@@ -23,12 +16,8 @@ async function main(): Promise<void> {
 
   const logger = createLogger(config)
   const secrets = await loadSecrets(config)
-  const app = createApp({
-    config,
-    secrets,
-    logger,
-    corsAllowedOrigins: corsAllowedOrigins()
-  })
+  const publicApiUrl = config.publicApiUrl ?? `http://localhost:${config.port}`
+  const app = await bootstrap({ config, secrets, logger, publicApiUrl })
 
   app.listen(config.port, () => {
     logger.info({ port: config.port }, 'API listening')

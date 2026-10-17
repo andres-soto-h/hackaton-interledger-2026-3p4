@@ -13,3 +13,15 @@ export function createStaticDailyLimitProvider(
     }
   }
 }
+
+/** Reads the daily allowances from the editable settings, so the admin panel changes them live. */
+export function createSettingsDailyLimitProvider(settings: {
+  getEditable(): Promise<{ settings: { dailySpendLimits: Record<string, string> } }>
+}): DailyLimitProvider {
+  return {
+    async getDailyLimit(assetCode) {
+      const { settings: current } = await settings.getEditable()
+      return current.dailySpendLimits[assetCode] ?? null
+    }
+  }
+}

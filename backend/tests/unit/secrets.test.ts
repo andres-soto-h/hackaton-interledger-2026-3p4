@@ -4,7 +4,12 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LambdaConfig, LocalConfig } from '../../src/config/env.js'
 import { loadSecrets, SecretsError } from '../../src/config/secrets.js'
-import { openPaymentsTestConfig } from '../helpers/app.js'
+import {
+  openPaymentsTestConfig,
+  TEST_ADMIN_PASSWORD,
+  TEST_SESSION_SECRET,
+  TEST_TOKEN_KEY
+} from '../helpers/app.js'
 
 // Fake credentials: never real keys in the repo.
 const openPayments = {
@@ -19,8 +24,25 @@ const lambdaConfig: LambdaConfig = {
   nodeEnv: 'production',
   logLevel: 'info',
   apiKeySecretArn: 'arn:aws:secretsmanager:us-east-1:1:secret:api-key',
-  openPaymentsSecretArn: 'arn:aws:secretsmanager:us-east-1:1:secret:open-payments'
+  openPaymentsSecretArn: 'arn:aws:secretsmanager:us-east-1:1:secret:open-payments',
+  sessionSecretArn: 'arn:aws:secretsmanager:us-east-1:1:secret:session',
+  adminPasswordSecretArn: 'arn:aws:secretsmanager:us-east-1:1:secret:admin',
+  tokenKeySecretArn: 'arn:aws:secretsmanager:us-east-1:1:secret:token',
+  paymentsTableName: 'payments-table',
+  storage: 'dynamo'
 }
+
+const awsValues: Record<string, string> = {
+  [lambdaConfig.apiKeySecretArn]: 'aws-api-key',
+  [lambdaConfig.openPaymentsSecretArn]: JSON.stringify(openPayments),
+  [lambdaConfig.sessionSecretArn]: 'a'.repeat(64),
+  [lambdaConfig.adminPasswordSecretArn]: 'aws-admin-password',
+  [lambdaConfig.tokenKeySecretArn]: 'b'.repeat(64)
+}
+const fromAws =
+  (overrides: Record<string, string> = {}) =>
+  (arn: string) =>
+    Promise.resolve({ ...awsValues, ...overrides }[arn] ?? '')
 
 describe('loadSecrets', () => {
   let dir: string
@@ -35,7 +57,10 @@ describe('loadSecrets', () => {
       logLevel: 'silent',
       port: 3000,
       apiKey: 'local-api-key',
-      openPaymentsKeysFile: join(dir, 'open-payments.json')
+      openPaymentsKeysFile: join(dir, 'open-payments.json'),
+      sessionSecret: TEST_SESSION_SECRET,
+      adminPassword: TEST_ADMIN_PASSWORD,
+      tokenKey: TEST_TOKEN_KEY
     }
   })
 
@@ -50,7 +75,13 @@ describe('loadSecrets', () => {
 
     const secrets = await loadSecrets(localConfig, { fetchSecret })
 
-    expect(secrets).toEqual({ apiKey: 'local-api-key', openPayments })
+    expect(secrets).toEqual({
+      apiKey: 'local-api-key',
+      openPayments,
+      sessionSigningKey: TEST_SESSION_SECRET,
+      adminPassword: TEST_ADMIN_PASSWORD,
+      tokenEncryptionKey: TEST_TOKEN_KEY
+    })
     expect(fetchSecret).not.toHaveBeenCalled()
   })
 
@@ -62,32 +93,62 @@ describe('loadSecrets', () => {
   })
 
   // Caso 13
-  it('en Lambda lee ambos secretos de Secrets Manager por ARN', async () => {
-    const fetchSecret = vi.fn((arn: string) =>
-      Promise.resolve(
-        arn === lambdaConfig.apiKeySecretArn
-          ? 'aws-api-key'
-          : JSON.stringify(openPayments)
-      )
-    )
+  it('en Lambda lee los cinco secretos de Secrets Manager por ARN', async () => {
+    const fetchSecret = vi.fn(fromAws())
 
     const secrets = await loadSecrets(lambdaConfig, { fetchSecret })
 
-    expect(secrets).toEqual({ apiKey: 'aws-api-key', openPayments })
-    expect(fetchSecret).toHaveBeenCalledTimes(2)
-    expect(fetchSecret).toHaveBeenCalledWith(lambdaConfig.apiKeySecretArn)
-    expect(fetchSecret).toHaveBeenCalledWith(lambdaConfig.openPaymentsSecretArn)
+    expect(secrets).toEqual({
+      apiKey: 'aws-api-key',
+      openPayments,
+      sessionSigningKey: 'a'.repeat(64),
+      adminPassword: 'aws-admin-password',
+      tokenEncryptionKey: 'b'.repeat(64)
+    })
+    expect(fetchSecret).toHaveBeenCalledTimes(5)
+    for (const arn of Object.keys(awsValues))
+      expect(fetchSecret).toHaveBeenCalledWith(arn)
   })
 
   it('en Lambda falla si la API key está vacía', async () => {
-    const fetchSecret = (arn: string) =>
-      Promise.resolve(
-        arn === lambdaConfig.apiKeySecretArn ? '' : JSON.stringify(openPayments)
-      )
+    await expect(
+      loadSecrets(lambdaConfig, {
+        fetchSecret: fromAws({ [lambdaConfig.apiKeySecretArn]: '' })
+      })
+    ).rejects.toThrow('API key secret is empty')
+  })
 
-    await expect(loadSecrets(lambdaConfig, { fetchSecret })).rejects.toThrow(
-      'API key secret is empty'
-    )
+  it.each([
+    ['la llave de sesión', 'sessionSecretArn', 'Session signing key secret is empty'],
+    [
+      'la contraseña del panel',
+      'adminPasswordSecretArn',
+      'Admin password secret is empty'
+    ],
+    [
+      'la llave de cifrado de tokens',
+      'tokenKeySecretArn',
+      'Token encryption key secret is empty'
+    ]
+  ] as const)('en Lambda falla si %s está vacía', async (_name, arnField, message) => {
+    await expect(
+      loadSecrets(lambdaConfig, {
+        fetchSecret: fromAws({ [lambdaConfig[arnField]]: '' })
+      })
+    ).rejects.toThrow(message)
+  })
+
+  it('en Lambda falla si la llave de sesión o de cifrado son demasiado cortas', async () => {
+    await expect(
+      loadSecrets(lambdaConfig, {
+        fetchSecret: fromAws({ [lambdaConfig.sessionSecretArn]: 'short' })
+      })
+    ).rejects.toThrow(/at least 32 characters/)
+    await expect(
+      loadSecrets(lambdaConfig, {
+        fetchSecret: fromAws({ [lambdaConfig.tokenKeySecretArn]: 'short' })
+      })
+    ).rejects.toThrow(/at least 32 characters/)
   })
 
   // Caso 14
@@ -107,8 +168,7 @@ describe('loadSecrets', () => {
   ])(
     'falla con un error claro si el secreto de Open Payments tiene formato inválido (%s)',
     async (_name, value, message) => {
-      const fetchSecret = (arn: string) =>
-        Promise.resolve(arn === lambdaConfig.apiKeySecretArn ? 'aws-api-key' : value)
+      const fetchSecret = fromAws({ [lambdaConfig.openPaymentsSecretArn]: value })
 
       const result = loadSecrets(lambdaConfig, { fetchSecret })
 
