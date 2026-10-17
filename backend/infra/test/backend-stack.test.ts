@@ -77,8 +77,8 @@ describe('BackendStack', () => {
     })
   })
 
-  // Caso 4
-  it('crea los secretos y la Lambda solo puede leer esos dos', () => {
+  // Casos 4 y 16
+  it('crea los secretos y la Lambda solo puede leer los suyos', () => {
     const opSecret = logicalId('AWS::SecretsManager::Secret', {
       Name: 'tranqui/dev/open-payments'
     })
@@ -100,10 +100,15 @@ describe('BackendStack', () => {
     const readable = secretStatements
       .filter((s) => actionsOf(s).includes('secretsmanager:GetSecretValue'))
       .map((s) => s.Resource)
-    expect(readable).toEqual(
-      expect.arrayContaining([{ Ref: opSecret }, { Ref: apiKeySecret }])
+    const generated = ['session-signing-key', 'admin-password', 'token-encryption-key'].map(
+      (name) => logicalId('AWS::SecretsManager::Secret', { Name: `tranqui/dev/${name}` })
     )
-    expect(readable).toHaveLength(2)
+    expect(readable).toEqual(
+      expect.arrayContaining(
+        [opSecret, apiKeySecret, ...generated].map((id) => ({ Ref: id }))
+      )
+    )
+    expect(readable).toHaveLength(5)
   })
 
   // Caso 5
@@ -298,6 +303,104 @@ describe('BackendStack', () => {
       )
       expect(alarm.Properties.TreatMissingData).toBe('notBreaching')
     }
+  })
+
+  // Caso 16
+  it('genera en AWS los secretos de sesión, del administrador y de cifrado de tokens', () => {
+    for (const [name, length] of [
+      ['session-signing-key', 64],
+      ['admin-password', 32],
+      ['token-encryption-key', 64]
+    ] as const) {
+      template.hasResourceProperties('AWS::SecretsManager::Secret', {
+        Name: `tranqui/dev/${name}`,
+        GenerateSecretString: Match.objectLike({
+          ExcludePunctuation: true,
+          PasswordLength: length
+        }),
+        SecretString: Match.absent()
+      })
+    }
+  })
+
+  // Caso 17
+  it('crea los índices byType, byUser y byPayment con createdAt como sort key', () => {
+    const indexes = [
+      ['byType', 'entityType'],
+      ['byUser', 'userId'],
+      ['byPayment', 'paymentId']
+    ].map(([indexName, hashKey]) =>
+      Match.objectLike({
+        IndexName: indexName,
+        KeySchema: [
+          { AttributeName: hashKey, KeyType: 'HASH' },
+          { AttributeName: 'createdAt', KeyType: 'RANGE' }
+        ],
+        Projection: { ProjectionType: 'ALL' }
+      })
+    )
+    template.hasResourceProperties('AWS::DynamoDB::Table', {
+      GlobalSecondaryIndexes: Match.arrayWith(indexes)
+    })
+  })
+
+  // Caso 18
+  it('pasa a la Lambda las referencias a los secretos nuevos y activa el panel en dev', () => {
+    const fn = template.findResources('AWS::Lambda::Function')[apiFunctionId()]!
+    const env: Record<string, unknown> = fn.Properties.Environment.Variables
+    const secretRef = (name: string) => ({
+      Ref: logicalId('AWS::SecretsManager::Secret', { Name: `tranqui/dev/${name}` })
+    })
+
+    expect(env).toMatchObject({
+      SESSION_SECRET_ARN: secretRef('session-signing-key'),
+      ADMIN_PASSWORD_SECRET_ARN: secretRef('admin-password'),
+      TOKEN_KEY_SECRET_ARN: secretRef('token-encryption-key'),
+      ADMIN_ENABLED: 'true'
+    })
+    // Without stack props the backend applies its own defaults.
+    for (const name of [
+      'WEBAUTHN_RP_ID',
+      'WEBAUTHN_ORIGINS',
+      'WALLET_PROVIDER_BASE_URL',
+      'DAILY_SPEND_LIMITS',
+      'DAILY_LIMIT_TIMEZONE',
+      'FEE_PERCENTAGE'
+    ]) {
+      expect(env).not.toHaveProperty(name)
+    }
+  })
+
+  it('pasa la configuración de passkeys, proveedor de wallets, monto diario y comisión', () => {
+    synth({
+      webauthnRpId: 'd111111abcdef8.cloudfront.net',
+      webauthnOrigins: 'https://d111111abcdef8.cloudfront.net',
+      walletProviderBaseUrl: 'https://wallet.example',
+      dailySpendLimits: 'USD:200,MXN:4000',
+      dailyLimitTimezone: 'America/Bogota',
+      feePercentage: '1.5',
+      adminEnabled: false
+    }).hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'lambda.handler',
+      Environment: {
+        Variables: Match.objectLike({
+          WEBAUTHN_RP_ID: 'd111111abcdef8.cloudfront.net',
+          WEBAUTHN_ORIGINS: 'https://d111111abcdef8.cloudfront.net',
+          WALLET_PROVIDER_BASE_URL: 'https://wallet.example',
+          DAILY_SPEND_LIMITS: 'USD:200,MXN:4000',
+          DAILY_LIMIT_TIMEZONE: 'America/Bogota',
+          FEE_PERCENTAGE: '1.5',
+          ADMIN_ENABLED: 'false'
+        })
+      }
+    })
+  })
+
+  it('desactiva el panel por defecto fuera de dev', () => {
+    synth({ stage: 'prod' }).hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'lambda.handler',
+      Environment: { Variables: Match.objectLike({ ADMIN_ENABLED: 'false' }) }
+    })
   })
 
   it('publica la URL de la API como output', () => {
