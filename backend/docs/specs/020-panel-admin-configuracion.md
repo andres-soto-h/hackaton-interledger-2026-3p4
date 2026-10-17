@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | 2026-10-17 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-Lote 1 integrado en `develop-andres` (2026-10-17): tareas 1, 3, 5, 6 y 8 hechas; 2 y 4 solo en memoria (`[~]`). Falta el lote 2: implementaciones DynamoDB de `ActivityLog` y del almacén de configuración, y la página de inicio (tarea 7).
+Lotes 1 y 2 integrados en `develop-andres` (2026-10-17): 9 / 9 tareas, 694 tests (más 54 contra DynamoDB Local), typecheck y lint en verde. La página de inicio usa puertos inyectables (resumen de pagos y estado de Open Payments); el cableado real y el conteo de pagos por estado de 24 h quedan para la integración.
 
 0 / 9 tareas completadas. Ajustado el 2026-10-16: configuración del monto
 diario (spec 023) y del porcentaje de comisión (spec 024); Cambios aprobados el 2026-10-16. Depende de
@@ -149,14 +149,14 @@ configurado responde.
 ## Tareas
 
 1. [x] Función `html` con escape y plantilla común (caso 10).
-2. [~] Puerto `ActivityLog` con campos permitidos por evento, en memoria y DynamoDB (casos 14–15).
+2. [x] Puerto `ActivityLog` con campos permitidos por evento, en memoria y DynamoDB (casos 14–15).
 3. [x] Login, logout, `adminAuth`, CSRF y bloqueo por intentos (casos 1–5, 12).
-4. [~] `SettingsProvider` en DynamoDB con caché y tests de contrato (caso 13).
+4. [x] `SettingsProvider` en DynamoDB con caché y tests de contrato (caso 13).
 5. [x] Página de configuración con validación, conflicto e historial (casos 6–8).
 6. [x] Interruptor `paymentsEnabled` (caso 9).
-7. [ ] Página de inicio con resumen y estado de Open Payments.
+7. [x] Página de inicio con resumen y estado de Open Payments.
 8. [x] Headers de seguridad del panel (caso 11).
-9. [ ] Suite completa en verde, lint y typecheck limpios.
+9. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 

@@ -9,12 +9,12 @@
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
 | | | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 5/5 |
+| | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 9/9 |
 | | | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 9/9 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
 | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 0/9 | | |
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
-| | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 5/9 · *lote 1 integrado; falta DynamoDB y página de inicio* | |
 | | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
 | | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 6/10 · *lote 1 integrado; falta DynamoDB y OpenAPI; spike pendiente del responsable* · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
@@ -93,3 +93,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 019 | Lote 2 integrado (DynamoDB, adapter SimpleWebAuthn, OpenAPI, página de prueba); 585 tests en verde → Hecho |
 | 2026-10-17 | 021 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 023 | Lote 1 integrado (tareas 2, 3, 5–8; 4 en memoria) |
+| 2026-10-17 | 020 | Lote 2 integrado (DynamoDB de ActivityLog y configuración, página de inicio); 694 tests en verde → Hecho |
