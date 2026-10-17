@@ -75,11 +75,14 @@ backend/
 
 ## Endpoints
 
+> Detalle actualizado en [API.md](API.md#endpoints).
+
 | Módulo | Endpoint | Qué hace |
 |---|---|---|
 | payment-requests | `POST /api/v1/payment-requests` | Crea un incoming payment (solicitar pago) |
 | payments | `POST /api/v1/payments` | Crea el quote e inicia el grant; devuelve la URL de aprobación |
 | auth | `GET /api/v1/auth/callback` | Recibe `interact_ref`, continúa el grant y ejecuta el outgoing payment |
+| payments | `GET /api/v1/payments/{id}` | Estado de un pago |
 | transactions | `GET /api/v1/transactions` | Lista pagos entrantes y salientes de una wallet |
 | — | `GET /health` | Verifica que la API esté arriba |
 
@@ -93,6 +96,9 @@ backend/
 backend/docs/
 ├── PLAN.md          ← este documento
 ├── KANBAN.md        ← tablero de avance de specs
+├── API.md           ← visión general de la API (compartida por los specs)
+├── SEGURIDAD.md     ← lineamientos de seguridad
+├── DEUDA-TECNICA.md ← decisiones a revisar más adelante
 └── specs/
     ├── _TEMPLATE.md
     └── NNN-<nombre>.md

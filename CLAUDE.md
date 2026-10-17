@@ -2,6 +2,9 @@
 
 App de pagos P2P / P2M sobre Open Payments (Interledger). Plan completo en
 [backend/docs/PLAN.md](backend/docs/PLAN.md); avance en [backend/docs/KANBAN.md](backend/docs/KANBAN.md).
+Visión de la API en [backend/docs/API.md](backend/docs/API.md); seguridad en
+[backend/docs/SEGURIDAD.md](backend/docs/SEGURIDAD.md); deuda técnica en
+[backend/docs/DEUDA-TECNICA.md](backend/docs/DEUDA-TECNICA.md).
 
 ## Stack
 
