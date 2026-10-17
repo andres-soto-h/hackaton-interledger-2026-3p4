@@ -34,7 +34,7 @@ export default function Register() {
 
   const { control, handleSubmit, setError } = useForm<RegisterInput, unknown, RegisterData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { displayName: '', walletAddress: '' },
+    defaultValues: { displayName: '', walletName: '' },
   });
 
   const submitData = handleSubmit(async (data) => {
@@ -43,16 +43,16 @@ export default function Register() {
     setFormError(null);
     setAlreadyRegistered(false);
     try {
-      setChallenge(await authApi.registerOptions(data));
+      setChallenge(await authApi.registerOptions({ displayName: data.displayName, walletAddress: data.walletName }));
       setStep('passkey');
     } catch (error) {
       const code = error instanceof ApiError ? error.code : '';
       if (code === 'WALLET_NOT_FOUND') {
-        setError('walletAddress', { message: 'No encontramos esa wallet. Revise la dirección.' });
+        setError('walletName', { message: 'No encontramos esa wallet. Revise el nombre.' });
       } else if (code === 'WALLET_NOT_ALLOWED') {
-        setError('walletAddress', { message: 'Esa wallet no está permitida por ahora.' });
+        setError('walletName', { message: 'Esa wallet no está permitida por ahora.' });
       } else if (code === 'WALLET_ALREADY_REGISTERED') {
-        setError('walletAddress', { message: 'Esa wallet ya tiene una cuenta.' });
+        setError('walletName', { message: 'Esa wallet ya tiene una cuenta.' });
         setAlreadyRegistered(true);
       } else {
         setFormError('No pudimos seguir. Revise su internet e intente de nuevo.');
@@ -102,16 +102,15 @@ export default function Register() {
           />
           <Controller
             control={control}
-            name="walletAddress"
+            name="walletName"
             render={({ field, fieldState }) => (
               <TextField
-                label="Dirección de su wallet"
-                help="Es la dirección pública de su cuenta, por ejemplo https://ilp.ejemplo.com/ana. No necesitamos su clave."
+                label="Nombre de su wallet"
+                help="Es el nombre de su cuenta en su wallet, por ejemplo claudia. No necesitamos su clave."
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
                 error={fieldState.error?.message}
-                keyboardType="url"
                 autoCapitalize="none"
                 autoCorrect={false}
               />

@@ -46,7 +46,8 @@
     "test": "jest",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "mock-api": "node scripts/mock-api.mjs"
   },
   "private": true
 }

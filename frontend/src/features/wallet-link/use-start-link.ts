@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ApiError } from '@/api/client';
-import { isHttpsUrl, openExternalUrl } from '@/lib/open-url';
+import { isAllowedAuthorizationUrl, openExternalUrl } from '@/lib/open-url';
 import { walletLinkApi } from './api';
 
 function startErrorMessage(error: unknown): string {
@@ -36,7 +36,7 @@ export function useStartLink() {
     setError(null);
     try {
       const { authorizationUrl } = await walletLinkApi.start();
-      if (!isHttpsUrl(authorizationUrl)) {
+      if (!isAllowedAuthorizationUrl(authorizationUrl)) {
         setError('No pudimos abrir su wallet. Intente de nuevo más tarde.');
         return finish();
       }

@@ -14,7 +14,7 @@
 
 ## Contexto
 
-El usuario crea su cuenta con su nombre, la dirección de su wallet y un
+El usuario crea su cuenta con su nombre, el nombre de su wallet y un
 **passkey** (el desbloqueo de su dispositivo; no hay PIN de la app). Después
 **vincula su wallet**: aprueba una sola vez, en su wallet, que TuTranqui pague
 hasta un monto diario. Desde ahí cada pago se confirma en la app con el passkey,
@@ -23,14 +23,15 @@ vinculación; sin vinculación la cuenta existe pero no puede pagar.
 
 Este flujo corresponde a los mockups 1.2 – 1.4 ("Su banco", "Autoriza en su
 banco", "Permiso guardado"), adaptados a wallet y monto diario. El usuario
-**no** entrega llaves ni la clave de su wallet: solo su dirección pública.
+**no** entrega llaves ni la clave de su wallet: solo el nombre de su wallet
+(con el que el backend arma la dirección pública usando la configuración del sistema).
 Contratos en el [backend 019](../../../backend/docs/specs/019-cuentas-usuario-passkeys.md)
 y el [backend 023](../../../backend/docs/specs/023-vinculacion-wallet-monto-diario.md).
 
 ## Alcance
 
 **Incluye**
-- Paso 1 · Sus datos: nombre y dirección de la wallet, con validación en el cliente (Zod).
+- Paso 1 · Sus datos: nombre y nombre de la wallet, con validación en el cliente (Zod).
 - Paso 2 · Su passkey: explicación corta ("Use la huella o el bloqueo de su teléfono") y creación del passkey.
 - Paso 3 · Permiso en su wallet: muestra el monto diario y lo que TuTranqui podrá y no podrá hacer (mockup 1.3); abre la `authorizationUrl` de la wallet.
 - Vuelta desde la wallet: ruta de resultado de la vinculación, consulta del estado hasta que sea final y pantalla "Permiso guardado" (mockup 1.4).
@@ -45,7 +46,7 @@ y el [backend 023](../../../backend/docs/specs/023-vinculacion-wallet-monto-diar
 ## Criterios de aceptación
 
 - **Dado** el paso 1 vacío, **cuando** toca "Seguir", **entonces** cada campo muestra su error y no se llama a la API.
-- **Dado** una dirección de wallet sin `https://` o mal formada, **cuando** sale del campo, **entonces** ve el error; si escribe `$ilp.interledger-test.dev/ana`, se normaliza a `https://ilp.interledger-test.dev/ana`.
+- **Dado** un nombre de wallet vacío o con espacios, `/`, `://`, `$`, `?`, `#` o `@`, **cuando** sale del campo, **entonces** ve el error. Solo se pide el nombre: el host lo aporta `WALLET_PROVIDER_BASE_URL` (configuración del sistema) y lo resuelve el backend.
 - **Dado** datos válidos, **cuando** toca "Seguir", **entonces** se pide `POST /auth/register/options`; si la wallet no existe o no está permitida (`422 WALLET_NOT_FOUND` / `WALLET_NOT_ALLOWED`), ve el error en el campo de la wallet.
 - **Dado** una wallet que ya tiene cuenta (`409 WALLET_ALREADY_REGISTERED`), **cuando** sigue, **entonces** ve el error y un enlace a "Ingresar".
 - **Dado** el paso 2, **cuando** crea el passkey, **entonces** se llama `POST /auth/register/verify`, queda con sesión y pasa al paso 3; si cancela el diálogo, sigue en el paso 2 y puede reintentar.
@@ -69,7 +70,7 @@ y el [backend 023](../../../backend/docs/specs/023-vinculacion-wallet-monto-diar
 | Campo | Regla | Teclado |
 |---|---|---|
 | Nombre | 2–60 caracteres, sin solo espacios | texto, `autoComplete="name"` |
-| Dirección de la wallet | `https://` + host + ruta; acepta *payment pointer* `$host/ruta` y lo normaliza | `url`, sin autocorrección |
+| Nombre de la wallet | un solo segmento (`claudia`), sin espacios, `/`, `://`, `$`, `?`, `#` ni `@`; el host lo aporta `WALLET_PROVIDER_BASE_URL` y lo resuelve el backend | texto, sin autocorrección |
 
 El schema vive en `src/features/auth/schemas.ts`.
 
@@ -88,13 +89,15 @@ Vuelta: FRONTEND_RESULT_URL?linkId=…&status=…
 - El `status` de la vuelta es solo el estado inicial; lo que se muestra como
   final viene de `GET /me/wallet-link` (el query se puede manipular).
 - Estados: `PENDING_AUTHORIZATION`, `ACTIVE`, `REJECTED`, `EXPIRED`, `REVOKED`.
+- En `register/options`, `walletAddress` lleva el **nombre** de la wallet (handle, p. ej.
+  `claudia`); el backend lo resuelve contra `WALLET_PROVIDER_BASE_URL` (spec 003 del backend).
 - Los passkeys usan el módulo del spec 002.
 
 ## Casos de prueba
 
 | # | Tipo | Caso | Resultado esperado |
 |---|---|---|---|
-| 1 | unit | Schema: nombre; normalización de wallet (`$host/ruta`, `https://`, espacios, `http://`) | Acepta válidos; `http://` y mal formadas rechazadas |
+| 1 | unit | Schema: nombre; nombre de la wallet (`claudia`, espacios, `https://`, `$host/ruta`, `?`, `#`, `@`) | Acepta nombres válidos; URLs, pointers y mal formados rechazados |
 | 2 | unit | Polling del estado de la vinculación con reloj falso | Respeta `Retry-After`; se detiene en estado final |
 | 3 | integration | Paso 1 vacío; wallet inexistente; wallet ya registrada | Errores por campo / en la wallet / enlace a ingresar; sin passkey |
 | 4 | integration | Paso 2: passkey creado / cancelado | `register/verify` y sesión → paso 3 / sigue en paso 2 |
@@ -123,6 +126,7 @@ Vuelta: FRONTEND_RESULT_URL?linkId=…&status=…
 | 3 | Aprobación de pagos | Una sola vez al vincular la wallet, con monto diario (backend 023); cada pago se confirma con el passkey (2026-10-16) |
 | 4 | Correo | No se pide: el backend 019 no lo requiere y el ingreso es con passkey. Si más adelante hace falta, se agrega en backend 019 y en este spec a la vez (2026-10-17) |
 | 5 | Passkeys en Android | Solo desde Chrome en esta fase; los passkeys en app nativa son deuda técnica del backend (TD-003) (2026-10-17) |
+| 6 | Nombre de la wallet | El registro pide solo el **nombre** de la wallet (handle, p. ej. `claudia`), no la URL completa. El host lo aporta `WALLET_PROVIDER_BASE_URL` (configuración del sistema, cambia según el proveedor) y lo resuelve el backend (2026-10-17) |
 
 ## Notas
 

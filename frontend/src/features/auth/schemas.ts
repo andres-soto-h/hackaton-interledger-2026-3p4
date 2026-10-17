@@ -1,23 +1,16 @@
 import { z } from 'zod';
 
 /**
- * Acepta una wallet como URL `https://host/ruta` o como *payment pointer* `$host/ruta` y la
- * devuelve en forma `https://host/ruta`. `null` si no es una dirección de wallet válida.
+ * Devuelve el nombre (handle) de la wallet recortado si es válido: un solo segmento, sin
+ * esquema, host, ruta, credenciales, query ni fragmento. El resto de la dirección la aporta la
+ * configuración del sistema (`WALLET_PROVIDER_BASE_URL`) y la resuelve el backend.
+ * `null` si no es un nombre válido.
  */
-export function normalizeWalletAddress(input: string): string | null {
-  const text = input.trim();
-  if (!text) return null;
-  const withScheme = text.startsWith('$') ? `https://${text.slice(1)}` : text;
-  if (!/^https:\/\//i.test(withScheme)) return null;
-  let url: URL;
-  try {
-    url = new URL(withScheme);
-  } catch {
-    return null;
-  }
-  const path = url.pathname.replace(/\/+$/, '');
-  if (!url.hostname || !path || url.username || url.password || url.search || url.hash) return null;
-  return `https://${url.host}${path}`;
+export function normalizeWalletName(input: string): string | null {
+  const name = input.trim();
+  if (!name || /\s/.test(name)) return null;
+  if (/[/\\?#@:$]/.test(name)) return null;
+  return name;
 }
 
 export const displayNameSchema = z
@@ -26,23 +19,23 @@ export const displayNameSchema = z
   .min(2, 'Escriba su nombre')
   .max(60, 'El nombre es muy largo (máximo 60 letras)');
 
-export const walletAddressSchema = z
+export const walletNameSchema = z
   .string()
   .transform((value, ctx) => {
-    const normalized = normalizeWalletAddress(value);
-    if (!normalized) {
+    const name = normalizeWalletName(value);
+    if (!name) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Escriba la dirección de su wallet, por ejemplo https://ilp.ejemplo.com/ana',
+        message: 'Escriba el nombre de su wallet, por ejemplo claudia',
       });
       return z.NEVER;
     }
-    return normalized;
+    return name;
   });
 
 export const registerSchema = z.object({
   displayName: displayNameSchema,
-  walletAddress: walletAddressSchema,
+  walletName: walletNameSchema,
 });
 
 export type RegisterInput = z.input<typeof registerSchema>;

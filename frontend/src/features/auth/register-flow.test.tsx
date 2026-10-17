@@ -19,9 +19,9 @@ const session: Session = { ...fixtures.session, user: fixtures.user };
 const openUrl = openExternalUrl as jest.Mock;
 beforeEach(() => openUrl.mockClear());
 
-async function fillStep1(name = 'Claudia Pérez', wallet = '$ilp.interledger-test.dev/claudia') {
+async function fillStep1(name = 'Claudia Pérez', wallet = 'claudia') {
   await fireEvent.changeText(await screen.findByLabelText('Su nombre'), name);
-  await fireEvent.changeText(screen.getByLabelText('Dirección de su wallet'), wallet);
+  await fireEvent.changeText(screen.getByLabelText('Nombre de su wallet'), wallet);
   await fireEvent.press(screen.getByRole('button', { name: 'Seguir' }));
 }
 
@@ -37,11 +37,11 @@ describe('Registro · paso 1 (datos)', () => {
     await renderApp({ initialUrl: '/registro' });
     await fireEvent.press(await screen.findByRole('button', { name: 'Seguir' }));
     expect(await screen.findByText('Escriba su nombre')).toBeTruthy();
-    expect(screen.getByText(/Escriba la dirección de su wallet/)).toBeTruthy();
+    expect(screen.getByText(/Escriba el nombre de su wallet/)).toBeTruthy();
     expect(called).toBe(false);
   });
 
-  it('normaliza el payment pointer antes de enviarlo', async () => {
+  it('envía el nombre de la wallet tal cual (la dirección la arma el backend)', async () => {
     let body: { displayName?: string; walletAddress?: string } = {};
     server.use(
       http.post(`${API}/auth/register/options`, async ({ request }) => {
@@ -54,7 +54,7 @@ describe('Registro · paso 1 (datos)', () => {
     expect(await screen.findByRole('button', { name: 'Crear mi passkey' })).toBeTruthy();
     expect(body).toEqual({
       displayName: 'Claudia',
-      walletAddress: 'https://ilp.interledger-test.dev/claudia',
+      walletAddress: 'claudia',
     });
   });
 
@@ -89,7 +89,7 @@ describe('Registro · paso 1 (datos)', () => {
     );
     await renderApp({ initialUrl: '/registro' });
     await fireEvent.changeText(await screen.findByLabelText('Su nombre'), 'Claudia');
-    await fireEvent.changeText(screen.getByLabelText('Dirección de su wallet'), '$ilp.interledger-test.dev/c');
+    await fireEvent.changeText(screen.getByLabelText('Nombre de su wallet'), 'c');
     const seguir = screen.getByRole('button', { name: 'Seguir' });
     await fireEvent.press(seguir);
     await fireEvent.press(seguir);

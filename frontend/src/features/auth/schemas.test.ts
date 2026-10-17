@@ -1,30 +1,30 @@
-import { displayNameSchema, normalizeWalletAddress, registerSchema } from './schemas';
+import { displayNameSchema, normalizeWalletName, registerSchema } from './schemas';
 
-describe('normalizeWalletAddress', () => {
+describe('normalizeWalletName', () => {
   it.each([
-    ['https://ilp.interledger-test.dev/ana', 'https://ilp.interledger-test.dev/ana'],
-    ['$ilp.interledger-test.dev/ana', 'https://ilp.interledger-test.dev/ana'],
-    ['  $ilp.interledger-test.dev/ana  ', 'https://ilp.interledger-test.dev/ana'],
-    ['HTTPS://ILP.Interledger-Test.dev/Ana', 'https://ilp.interledger-test.dev/Ana'],
-    ['https://ilp.interledger-test.dev/ana/', 'https://ilp.interledger-test.dev/ana'],
+    ['claudia', 'claudia'],
+    ['  claudia  ', 'claudia'],
+    ['ana.maria', 'ana.maria'],
+    ['ana_maria', 'ana_maria'],
+    ['mi-wallet-123', 'mi-wallet-123'],
   ])('normaliza %j', (input, expected) => {
-    expect(normalizeWalletAddress(input)).toBe(expected);
+    expect(normalizeWalletName(input)).toBe(expected);
   });
 
   it.each([
-    'http://ilp.interledger-test.dev/ana',
-    'ilp.interledger-test.dev/ana',
-    'https://',
-    'https://ilp.interledger-test.dev',
-    'https://ilp.interledger-test.dev/',
-    '$',
     '',
     '   ',
-    'https://usuario:clave@ilp.interledger-test.dev/ana',
-    'https://ilp.interledger-test.dev/ana?x=1',
-    'ftp://ilp.interledger-test.dev/ana',
+    'ana maria',
+    'claudia/perez',
+    'https://ilp.interledger-test.dev/claudia',
+    '$ilp.interledger-test.dev/claudia',
+    'ilp.interledger-test.dev/claudia',
+    'claudia?x=1',
+    'claudia#frag',
+    'usuario:clave',
+    'https://',
   ])('rechaza %j', (input) => {
-    expect(normalizeWalletAddress(input)).toBeNull();
+    expect(normalizeWalletName(input)).toBeNull();
   });
 });
 
@@ -39,23 +39,17 @@ describe('displayNameSchema', () => {
 });
 
 describe('registerSchema', () => {
-  it('devuelve el nombre recortado y la wallet normalizada', () => {
-    const parsed = registerSchema.parse({
-      displayName: '  Ana  ',
-      walletAddress: '$ilp.interledger-test.dev/ana',
-    });
-    expect(parsed).toEqual({
-      displayName: 'Ana',
-      walletAddress: 'https://ilp.interledger-test.dev/ana',
-    });
+  it('devuelve el nombre y el nombre de la wallet recortados', () => {
+    const parsed = registerSchema.parse({ displayName: '  Ana  ', walletName: '  ana  ' });
+    expect(parsed).toEqual({ displayName: 'Ana', walletName: 'ana' });
   });
 
   it('reporta error por campo', () => {
-    const result = registerSchema.safeParse({ displayName: '', walletAddress: 'http://x.dev/a' });
+    const result = registerSchema.safeParse({ displayName: '', walletName: 'https://x.dev/a' });
     expect(result.success).toBe(false);
     if (!result.success) {
       const paths = result.error.issues.map((i) => i.path[0]);
-      expect(paths).toEqual(expect.arrayContaining(['displayName', 'walletAddress']));
+      expect(paths).toEqual(expect.arrayContaining(['displayName', 'walletName']));
     }
   });
 });

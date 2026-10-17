@@ -10,6 +10,7 @@ Node 22+ y pnpm 10.
 
 ```bash
 pnpm install
+pnpm mock-api     # API simulada en memoria (sin backend): http://localhost:3001/api/v1
 pnpm web          # navegador (Chrome): http://localhost:8081
 pnpm android      # emulador o dispositivo con Expo Go
 pnpm test         # Jest + RNTL + MSW, sin red
@@ -17,7 +18,19 @@ pnpm lint
 pnpm typecheck
 ```
 
-Copie `.env.example` a `.env.local` y ajuste `EXPO_PUBLIC_API_BASE_URL`. Todo lo que empieza con
+## Correr el frontend sin el backend
+
+Para ver la app completa sin el backend real (que necesita llaves de Open Payments), use la API
+simulada `scripts/mock-api.mjs`. Sigue los contratos de `backend/openapi.yaml` y guarda todo en
+memoria (registro, vinculación de la wallet, pagos y chat).
+
+```bash
+pnpm mock-api      # terminal 1: API simulada en http://localhost:3001/api/v1
+pnpm web           # terminal 2: app web en http://localhost:8081
+```
+
+La app lee la URL de la API de `.env.local` (no versionado; ya viene apuntando a `localhost:3001`).
+Si quiere apuntar al backend real, cambie `EXPO_PUBLIC_API_BASE_URL` ahí. Todo lo que empieza con
 `EXPO_PUBLIC_` queda dentro del bundle: **no ponga secretos** (la app no usa la API key del backend).
 
 ## Cómo se prueba
