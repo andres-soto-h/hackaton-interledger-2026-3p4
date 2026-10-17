@@ -10,7 +10,7 @@
 
 ## Estado
 
-9 / 16 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
+9 / 20 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
 en verde, typecheck y `cdk synth` correctos. Pendiente: cambios aprobados el
 2026-10-16 (tabla de pagos con índices, throttling, configuración y alarmas),
 reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
@@ -121,15 +121,20 @@ Wallet (redirect)    ──HTTPS──────────────▶   
 | DynamoDB | Pagos, solicitudes e idempotencia | On-demand; TTL en `expiresAt`; índices `bySender` (`senderWalletAddress` + `createdAt`) y `byReceiver` (`receiverWalletAddress` + `createdAt`) |
 | Throttling | Limitar abuso | Stage por defecto de la HTTP API: rate 10 req/s, burst 20 (configurables) |
 | Alarmas CloudWatch | Detectar fallas y abuso | `5xx` de la API, picos de `401` y de `CALLBACK_INVALID` (métricas desde los logs) |
+| Índices adicionales | Usuarios, eventos y panel (specs 019–022) | `byType` (`entityType` + `createdAt`), `byUser` (`userId` + `createdAt`), `byPayment` (`paymentId` + `createdAt`) |
 | Secret `open-payments` | Wallet address, key ID y llave privada del cliente (wallet de la plataforma) | JSON; el valor se carga a mano, nunca en la plantilla |
 | Secret `api-key` | API key de los clientes de la API | Generado por AWS al crear el stack |
+| Secret `session-signing-key` | Firma de las sesiones JWT de usuarios y administrador (specs 019 y 020) | Generado por AWS (64 caracteres) |
+| Secret `admin-password` | Clave del panel de administración (spec 020) | Generado por AWS |
 | IAM Role | Permisos de la Lambda | Solo `GetSecretValue` de sus dos secretos, CRUD en su tabla, escribir sus logs |
 | CloudWatch Log Group | Logs de la Lambda | Retención de 14 días |
 
 **Variables de entorno de la Lambda (sin secretos):** `OPEN_PAYMENTS_SECRET_ARN`,
 `API_KEY_SECRET_ARN`, `PAYMENTS_TABLE_NAME`, y como propiedades del stack
 `ALLOWED_WALLET_HOSTS`, `MAX_PAYMENT_AMOUNTS` y
-`FRONTEND_RESULT_URL` (opcional). `API_BASE_URL` no se pasa: crearía una
+`FRONTEND_RESULT_URL` (opcional). Para los specs 019–022: `SESSION_SECRET_ARN`,
+`ADMIN_PASSWORD_SECRET_ARN`, `WEBAUTHN_RP_ID`, `WEBAUTHN_ORIGINS`,
+`WALLET_PROVIDER_BASE_URL` y `ADMIN_ENABLED`. `API_BASE_URL` no se pasa: crearía una
 dependencia circular entre la Lambda y la API (ver decisión pendiente del spec 007).
 
 ### Autenticación por API key
@@ -181,6 +186,9 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 | 13 | IaC | El stage de la HTTP API tiene throttling configurado | `ThrottlingRateLimit` y `ThrottlingBurstLimit` |
 | 14 | IaC | La Lambda recibe `PAYMENTS_TABLE_NAME` y la configuración de Open Payments | Variables presentes; sin `GRANTS_TABLE_NAME` |
 | 15 | IaC | Existen las alarmas de `5xx`, `401` y `CALLBACK_INVALID` | Alarmas y filtros de métricas presentes |
+| 16 | IaC | Existen los secretos `session-signing-key` y `admin-password`, generados, y la Lambda solo puede leerlos | Política limitada a sus ARN |
+| 17 | IaC | La tabla tiene los índices `byType`, `byUser` y `byPayment` | Índices presentes |
+| 18 | IaC | La Lambda recibe la configuración de passkeys, proveedor de wallets y panel | Variables presentes; sin secretos en texto plano |
 
 ## Tareas
 
@@ -200,6 +208,13 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 14. [ ] Throttling de API Gateway (caso 13).
 15. [ ] Configuración de la Lambda para los specs de la API (caso 14).
 16. [ ] Alarmas de CloudWatch (caso 15).
+
+*Requeridas por los specs 019–022; se implementan cuando esos specs se aprueben:*
+
+17. [ ] Secreto `session-signing-key` (caso 16, spec 019).
+18. [ ] Índices `byType` y `byUser` (caso 17, spec 019).
+19. [ ] Configuración de passkeys y proveedor de wallets en la Lambda (caso 18, specs 003 y 019).
+20. [ ] Secreto `admin-password`, índice `byPayment` y `ADMIN_ENABLED` (casos 16–18, specs 020 y 022).
 
 ~~Evaluar un mecanismo de autenticación más seguro que la API key~~ → deuda técnica TD-001.
 
