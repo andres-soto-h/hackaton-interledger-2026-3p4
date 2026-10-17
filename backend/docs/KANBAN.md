@@ -5,8 +5,8 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| | [028 — Agente de voz (Strands + Bedrock + ElevenLabs)](specs/028-agente-voz.md) · 0/9 · *aprobado; falta autorizar el desarrollo* | | |
 | | | | [026 — Pago a comercio con wallet del receptor (solo COP)](specs/026-pago-comercio-cop.md) · 4/4 · [027 — Cancelación de grant al borrar cuenta](specs/027-cancelacion-grant-cuenta.md) · 3/3 |
+| | | [028 — Agente de voz (Strands + Bedrock + ElevenLabs)](specs/028-agente-voz.md) · 0/9 | |
 | | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 22/22 · *desplegado en `dev` el 2026-10-17; falta cargar el secreto `open-payments`* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
@@ -121,3 +121,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 026 | Integrado en `develop-andres`, 1114 tests en verde → Hecho |
 | 2026-10-17 | 028 | Creado como borrador: agente de voz con Strands Agents, Amazon Bedrock y ElevenLabs en Lambda; tools para crear pagos, consultar comercios y consultar transacciones; el agente no confirma pagos |
 | 2026-10-17 | 028 | Spec aprobado → Aprobado. Decisiones: agente en Python, Claude Haiku en Bedrock (respaldo: pesos abiertos), voz ElevenLabs `JddqVF50ZSIR7SRbJE6u`, pruebas especificadas pero sin ejecutar (directiva vigente), impacto en frontend 008/009 aceptado |
+| 2026-10-17 | 028 | Desarrollo aprobado → En desarrollo; rama `develop-local` (directiva de no tests vigente) |

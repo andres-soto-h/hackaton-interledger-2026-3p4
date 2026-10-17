@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-17 |
 | Spec aprobado | 2026-10-17 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 9 tareas completadas. Sin iniciar. **Spec aprobado el 2026-10-17** con las decisiones de abajo; falta la autorización explícita para iniciar el desarrollo (aprobar el spec no la implica).
+0 / 9 tareas completadas. Sin iniciar. **Spec aprobado el 2026-10-17** con las decisiones de abajo; **Desarrollo aprobado el 2026-10-17**; se trabaja en la rama `develop-local`.
 
 ## Contexto
 
