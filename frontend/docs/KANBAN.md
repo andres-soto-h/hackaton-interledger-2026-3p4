@@ -5,11 +5,11 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
+| | | [005 — Pago de servicios](specs/005-pago-servicios.md) · 5/6 · *tarea 5 es un pendiente del backend (comercios en Google Cloud)* | |
 | | | | [004 — Inicio y transacciones](specs/004-inicio-transacciones.md) · 6/6 |
 | | | [003 — Registro y vinculación de la wallet](specs/003-registro.md) · 6/7 · *falta la verificación manual (red de prueba)* | |
 | | | [002 — Inicio de sesión y mi cuenta](specs/002-inicio-sesion.md) · 6/7 · *falta la verificación manual con passkeys reales* | |
 | | | [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 10/11 · *falta la verificación manual (web y Android)* | |
-| | [005 — Pago de servicios](specs/005-pago-servicios.md) · 0/6 · *directorio simulado; solo COP; pendiente del backend: conectar comercios con Google Cloud* | | |
 | | [006 — Confirmación del pago](specs/006-confirmacion-aprobacion.md) · 0/7 · *tarea 1: probar el pago sin autorización en la wallet* | | |
 | | [007 — Resultado de la transacción](specs/007-resultado-transaccion.md) · 0/4 | | |
 | | [008 — Agente por chat](specs/008-agente-chat.md) · 0/6 | | |
@@ -47,3 +47,4 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-17 | 002 | Desarrollo aprobado → En desarrollo; rama `front/002`. Passkeys, sesión, guards, ingreso y Mi cuenta hechos; 94 tests en verde. Falta la verificación manual (caso 11) |
 | 2026-10-17 | 003 | Desarrollo aprobado → En desarrollo; rama `front/003`. Registro en 2 pasos, permiso en la wallet, vuelta con polling y aviso en el inicio; 142 tests en verde. Pendiente del backend: monto diario antes de vincular |
 | 2026-10-17 | 004 | Hecho: inicio, lista paginada con filtro y detalle con polling; 167 tests en verde. Fixtures con monto diario COP 500000 |
+| 2026-10-17 | 005 | Desarrollo aprobado → En desarrollo. Directorio simulado, datos, validación del comercio y creación del pago p2m en COP; 221 tests en verde. Falta la tarea 5 (pendiente del backend) |
