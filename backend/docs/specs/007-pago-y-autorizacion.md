@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16, con revisión pendiente por la autorización diaria preaprobada |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec en borrador, pendiente de aprobación. Depende de los specs 003, 004 y 005.
+0 / 7 tareas completadas. Spec aprobado; debe revisarse por el cambio a una autorización diaria preaprobada. Depende de los specs 003, 004 y 005.
 
 ## Contexto
 

@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec en borrador, pendiente de aprobación. Depende de los specs 001 y 004.
+0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de los specs 001 y 004.
 
 ## Contexto
 

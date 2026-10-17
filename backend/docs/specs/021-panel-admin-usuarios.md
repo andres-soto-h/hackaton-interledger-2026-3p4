@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec en borrador, pendiente de aprobación. Depende de
+0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
 los specs 019 y 020 (usa su `ActivityLog`).
 
 ## Contexto
@@ -79,6 +79,8 @@ Todas usan la sesión, CSRF y la plantilla del spec 020.
   `userId` y TTL de 24 h. Se muestra una sola vez en el panel.
 - Enlace: `{FRONTEND_URL}/enroll?token=…`. Mientras no exista el frontend, la
   página HTML de prueba del spec 019.
+- **No se envían correos ni notificaciones.** El panel muestra el enlace con un
+  botón "Copiar" y el administrador lo comparte a mano (WhatsApp u otro medio).
 - `POST /api/v1/auth/register/options` acepta `{ enrollmentToken }` en vez de
   `displayName` y `walletAddress`: el passkey se asocia a la cuenta existente.
   El token se consume con actualización condicional al verificar.
@@ -119,10 +121,13 @@ por nombre o wallet en la Lambda. Si crece, se agrega un índice por wallet.
 6. [ ] Eventos de auditoría y protección de rutas (casos 8 y 10).
 7. [ ] Suite completa en verde, lint y typecheck limpios.
 
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | "Cambio de clave" | Restablecer el acceso con enlace de registro (2026-10-16) |
+| 2 | Entrega del enlace | Sin correo ni notificaciones: el panel muestra el enlace y el administrador lo copia y lo comparte a mano (WhatsApp u otro medio) |
+
 ## Decisiones pendientes
 
-1. **"Cambio de clave" para la demo.** Recomendación: **restablecer el acceso
-   con enlace de registro**, como está descrito. Alternativa: agregar una clave
-   de demo a los usuarios, que el administrador puede cambiar. No se recomienda:
-   agrega un segundo mecanismo de login más débil que habría que asegurar
-   (hash, límites de intentos) y que contradice el uso de passkeys.
+Ninguna.

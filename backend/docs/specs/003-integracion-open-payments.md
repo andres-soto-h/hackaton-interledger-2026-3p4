@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 8 tareas completadas. Spec en borrador, pendiente de aprobación. Depende del spec 001.
+0 / 8 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende del spec 001.
 
 ## Contexto
 
@@ -200,10 +200,15 @@ credenciales en la URL. Acepta `$host/path` (payment pointer) convirtiéndolo a
 7. [ ] Adapter del SDK con cliente autenticado, timeouts y reintentos: casos 9–13.
 8. [ ] Suite completa en verde, lint y typecheck limpios.
 
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Interceptor HTTP para los tests del adapter | msw (aprobado con el spec) |
+
 ## Decisiones pendientes
 
-1. **Interceptor HTTP para los tests del adapter.** Recomendación: **msw** (intercepta
-   `fetch` sin tocar el SDK).
+Ninguna.
 
 ## Notas
 

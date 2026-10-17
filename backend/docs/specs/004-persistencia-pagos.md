@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec en borrador, pendiente de aprobación. Depende del spec 001.
+0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende del spec 001.
 
 ## Contexto
 
@@ -125,12 +125,11 @@ con `pnpm test:dynamo` (requiere Docker).
 | # | Tema | Decisión |
 |---|---|---|
 | 1 | Dónde viven las transacciones | Open Payments es la fuente de verdad; DynamoDB guarda el estado del flujo y una copia (índice) de lo que hizo la API, que se refresca al leer pagos no finales (2026-10-16) |
+| 2 | Pruebas contra DynamoDB | DynamoDB Local en Docker (aprobado con el spec) |
 
 ## Decisiones pendientes
 
-1. **Pruebas contra DynamoDB.** Recomendación: **DynamoDB Local en Docker**.
-   Alternativa sin Docker: solo la implementación en memoria en la suite normal
-   y DynamoDB probado al desplegar.
+Ninguna.
 
 ## Notas
 

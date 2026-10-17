@@ -5,17 +5,17 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 0/8 | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 0/14 · *pendiente autorizar desarrollo* | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 9/20 · *despliegue bloqueado por 001* | |
-| [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 0/7 | | | |
-| [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | | | |
-| [006 — Solicitar pago](specs/006-solicitar-pago.md) · 0/5 | | | |
-| [007 — Hacer pago y autorización](specs/007-pago-y-autorizacion.md) · 0/7 | | | |
-| [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | | |
-| [009 — Seguimiento del estado por el agente](specs/009-seguimiento-estado-agente.md) · 0/5 · *polling aprobado* | | | |
-| [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 0/9 | | | |
-| [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 0/9 | | | |
-| [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | | | |
-| [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | | |
+| | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 0/8 | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 0/14 | |
+| | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 0/7 | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 9/20 · *despliegue bloqueado por 001* | |
+| | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | | |
+| | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 0/5 | | |
+| | [007 — Hacer pago y autorización](specs/007-pago-y-autorizacion.md) · 0/7 · *revisión pendiente: autorización diaria* | | |
+| | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
+| | [009 — Seguimiento del estado por el agente](specs/009-seguimiento-estado-agente.md) · 0/5 · *revisión pendiente: autorización diaria* | | |
+| | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 0/9 · *dominio pendiente* | | |
+| | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 0/9 | | |
+| | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | | |
+| | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
 
 **Orden de desarrollo:** 001 → (003, 004) → 005 → 006 → 007 → 008 → 009 → 019 → 020 → 021 → 022.
 El 019 y el 020 solo dependen de 003–005; pueden adelantarse si la demo lo necesita.
@@ -54,3 +54,6 @@ El despliegue del 002 se puede hacer al terminar el 001.
 | 2026-10-16 | 020–022 | Panel de administración creado como borrador, dividido en tres specs; deuda técnica TD-005 |
 | 2026-10-16 | 002 | Agregadas tareas 17–20 de infraestructura requeridas por los specs 019–022 (se implementan cuando esos specs se aprueben) |
 | 2026-10-16 | 019–022 | Renumerados de 010–013 a 019–022 por la numeración global (el frontend usa 010–018) |
+| 2026-10-16 | 001 | Desarrollo aprobado → En desarrollo |
+| 2026-10-16 | 003–006, 008, 019–022 | Specs aprobados → Aprobado (con las recomendaciones de sus decisiones pendientes) |
+| 2026-10-16 | 007, 009 | Specs aprobados → Aprobado, con revisión pendiente por el cambio a autorización diaria preaprobada |

@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 9 tareas completadas. Spec en borrador, pendiente de aprobación. Depende de
+0 / 9 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
 los specs 003, 004 y 005. Requiere cambios de infraestructura en el spec 002.
 
 ## Contexto
@@ -153,15 +153,16 @@ configurado responde.
 8. [ ] Headers de seguridad del panel (caso 11).
 9. [ ] Suite completa en verde, lint y typecheck limpios.
 
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Estilos | Bootstrap 5 (solo CSS) por CDN con SRI (2026-10-16) |
+| 2 | Acceso del administrador | Clave en Secrets Manager (2026-10-16); passkeys para administradores en TD-005 |
+
 ## Decisiones pendientes
 
-1. **Estilos.** Recomendación: **Bootstrap 5 (solo CSS) por CDN con SRI**. Da
-   formularios y tablas presentables sin escribir CSS. Tailwind por CDN (Play
-   CDN) genera el CSS en el navegador, no está pensado para producción y
-   obliga a relajar la CSP; usarlo bien requiere un paso de build.
-2. **Acceso del administrador.** Recomendación: **una clave en Secrets Manager**
-   (rápido para la demo). Alternativa más segura: administradores con passkey
-   reutilizando el spec 019 (TD-005).
+Ninguna.
 
 ## Notas
 

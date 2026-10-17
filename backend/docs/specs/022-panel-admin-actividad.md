@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 6 tareas completadas. Spec en borrador, pendiente de aprobación. Depende de
+0 / 6 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
 los specs 008 y 020.
 
 ## Contexto
@@ -139,12 +139,15 @@ reanudar.
 5. [ ] Protección de rutas (caso 7) y prueba manual (caso 8).
 6. [ ] Suite completa en verde, lint y typecheck limpios.
 
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Fuente de la actividad en vivo | Registro de actividad propio en DynamoDB (2026-10-16) |
+
 ## Decisiones pendientes
 
-1. **Fuente de la actividad en vivo.** Recomendación: **registro de actividad
-   propio en DynamoDB**, como está descrito. Alternativa: consultar CloudWatch
-   (`FilterLogEvents`) desde el panel; muestra los logs técnicos tal cual, pero
-   con unos segundos de retraso, más ruido y sin funcionar en local.
+Ninguna.
 
 ## Notas
 

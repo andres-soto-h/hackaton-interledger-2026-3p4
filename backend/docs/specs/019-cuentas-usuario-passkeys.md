@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 9 tareas completadas. Spec en borrador, pendiente de aprobación. Depende de
+0 / 9 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
 los specs 001, 004 y 005. Requiere cambios de infraestructura en el spec 002.
 
 ## Contexto
@@ -222,16 +222,16 @@ adapter se prueba con respuestas de WebAuthn grabadas.
 | 2 | Sesión | JWT propio con secreto de firma en Secrets Manager (2026-10-16) |
 | 3 | Aprobación de pagos | Sigue siendo por pago en la wallet (2026-10-16) |
 | 4 | PIN | El del dispositivo; la app no tiene PIN propio |
+| 5 | Dónde guarda el frontend la sesión | En memoria y `sessionStorage` (2026-10-16) |
+| 6 | Plan B si no hay dominio | Volver a autenticación con PIN (menos segura, aceptable para la demo) |
 
 ## Decisiones pendientes
 
 1. **Dominio del frontend web (`WEBAUTHN_RP_ID`).** Los passkeys quedan atados a
    ese dominio: si cambia, todos dejan de servir. Hay que fijarlo antes de
-   registrar usuarios reales. En local se usa `localhost`.
-2. **Dónde guarda el frontend la sesión.** Recomendación: en memoria y
-   `sessionStorage` (se pierde al cerrar la pestaña; vuelve a iniciar con el
-   passkey). Una cookie `HttpOnly` sería más segura contra XSS, pero el frontend
-   y la API están en dominios distintos y complica CORS.
+   registrar usuarios reales. En local se usa `localhost`. Se evalúa usar un
+   dominio gratuito de AWS (CloudFront o Amplify); si no es viable, se vuelve a
+   un PIN (ver la nota en la decisión 6).
 
 ## Notas
 

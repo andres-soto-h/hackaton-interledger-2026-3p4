@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-16 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 14 tareas completadas. Spec aprobado con sus decisiones; pendiente la autorización para iniciar el desarrollo.
+0 / 14 tareas completadas. Desarrollo autorizado el 2026-10-16.
 
 ## Contexto
 

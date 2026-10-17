@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16, con revisión pendiente por la autorización diaria preaprobada |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 5 tareas completadas. Borrador para revisión; patrón de polling aprobado. Depende del spec 008.
+0 / 5 tareas completadas. Spec aprobado (polling); debe revisarse por el cambio a una autorización diaria preaprobada. Depende del spec 008.
 
 ## Contexto
 
