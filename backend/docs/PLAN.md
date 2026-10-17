@@ -44,7 +44,9 @@ backend/
 │   │   ├── auth/             ← grants interactivos y callback de Open Payments
 │   │   ├── payments/         ← hacer un pago (quote + outgoing payment)
 │   │   ├── payment-requests/ ← solicitar un pago (incoming payment)
-│   │   └── transactions/     ← consultar transacciones
+│   │   ├── transactions/     ← consultar transacciones
+│   │   ├── users/            ← cuentas con passkeys y sesión (spec 019)
+│   │   └── admin/            ← panel HTML: configuración, usuarios, actividad (specs 020–022)
 │   │       (cada módulo: *.routes.ts, *.controller.ts, *.service.ts, *.schemas.ts)
 │   ├── integrations/
 │   │   └── open-payments/    ← único lugar que conoce el SDK de Interledger

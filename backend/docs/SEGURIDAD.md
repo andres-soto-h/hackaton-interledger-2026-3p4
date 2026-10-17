@@ -16,6 +16,22 @@ Si este documento crece, se puede convertir en su propio spec.
 | Mecanismo más fuerte que la API key (OIDC de Google Cloud / JWT) | Deuda técnica TD-001 |
 | Una API key por consumidor (agente, frontend) para revocar y auditar por separado | Recomendación |
 
+## Cuentas de usuario y panel de administración
+
+| Medida | Dónde |
+|---|---|
+| Passkeys (WebAuthn) con verificación del usuario obligatoria; la API guarda solo llaves públicas | Spec 019 |
+| Challenge aleatorio, de un solo uso y con TTL de 5 min; origen y rpID exactos; contador verificado | Spec 019 |
+| JWT HS256 con algoritmo fijo, `iss`/`aud`/`exp`, secreto en Secrets Manager; la cuenta se verifica en cada petición | Spec 019 |
+| Reautenticación para borrar la cuenta; corte de sesiones al bloquear o restablecer | Specs 019 y 021 |
+| Wallet de la cuenta sin verificar | Deuda técnica TD-002 |
+| Panel con cookie `HttpOnly`, `Secure`, `SameSite=Strict`, CSRF, `Origin` verificado y bloqueo por intentos fallidos | Spec 020 |
+| HTML escapado por defecto, CSP estricta, CSS externo con SRI | Spec 020 |
+| Panel desactivable con `ADMIN_ENABLED=false`; ningún secreto visible ni editable | Spec 020 |
+| Configuración editable validada (anti-SSRF) y con historial de cambios | Spec 020 |
+| Clave de administrador compartida | Deuda técnica TD-005 |
+| Registro de actividad sin tokens, nonces ni llaves (campos permitidos por evento) | Specs 020 y 022 |
+
 ## Autorización y abuso
 
 | Medida | Dónde |
@@ -42,7 +58,7 @@ servicios internos, por ejemplo al endpoint de metadata de AWS.
 
 | Medida | Dónde |
 |---|---|
-| Solo `https`, host en `ALLOWED_WALLET_HOSTS`, sin `localhost`, IPs privadas, link-local (`169.254.0.0/16`) ni puertos no estándar; sin seguir redirecciones a otros hosts | Spec 003 |
+| Solo `https`, host del proveedor (`WALLET_PROVIDER_BASE_URL`) o en `ALLOWED_WALLET_HOSTS`, sin `localhost`, IPs privadas, link-local (`169.254.0.0/16`) ni puertos no estándar; sin seguir redirecciones a otros hosts | Spec 003 |
 | Ampliar `ALLOWED_WALLET_HOSTS` a los proveedores de wallet soportados al pasar a producción | Recomendación |
 
 ## Secretos y llaves

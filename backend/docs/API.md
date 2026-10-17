@@ -95,6 +95,10 @@ Los estados solo avanzan; `COMPLETED`, `FAILED`, `REJECTED` y `EXPIRED` son fina
 | `GET /api/v1/auth/callback` | 007 | Pública | Recibe la autorización del emisor y ejecuta el pago |
 | `GET /api/v1/payments/{paymentId}` | 008 | API key | Estado de un pago |
 | `GET /api/v1/transactions` | 008 | API key | Pagos y solicitudes de una wallet |
+| `POST /api/v1/auth/register/options` · `/verify` | 019 | Pública | Crear cuenta con passkey |
+| `POST /api/v1/auth/login/options` · `/verify` | 019 | Pública | Iniciar sesión con passkey |
+| `GET /api/v1/me` · `DELETE /api/v1/me` | 019 | Sesión de usuario | Ver o borrar la cuenta |
+| `/admin/*` | 020–022 | Sesión de administrador (cookie) | Panel de administración (HTML) |
 
 Contrato detallado: `backend/docs/openapi.yaml` (se construye con cada spec).
 
@@ -162,6 +166,8 @@ Formato: ULID con prefijo (ordenable por fecha, 80 bits aleatorios).
 
 ### Pagos entre monedas distintas
 
+Detalle e implementación en el spec 003 ([Soporte de distintas monedas](specs/003-integracion-open-payments.md#soporte-de-distintas-monedas)).
+
 ILP lo resuelve: el proveedor de la wallet del emisor y los conectores hacen la
 conversión, y el **quote** la refleja (`debitAmount` en la moneda del emisor,
 `receiveAmount` en la del receptor, con comisiones incluidas). La API no
@@ -210,11 +216,16 @@ Formato estándar (spec 001):
 | `VALIDATION_ERROR` | 400 | Body o query inválido | 005 |
 | `INVALID_JSON` | 400 | JSON mal formado | 001 |
 | `CALLBACK_INVALID` | 400 | Falta `interact_ref`/`hash` o el hash no coincide | 007 |
+| `PASSKEY_VERIFICATION_FAILED` | 400 | Firma, origen, rpID o contador del passkey inválidos | 019 |
+| `CHALLENGE_EXPIRED` | 400 | Challenge o enlace de registro vencido, usado o inexistente | 019, 021 |
 | `UNAUTHORIZED` | 401 | API key ausente o inválida | 001 |
+| `SESSION_INVALID` | 401 | Sesión ausente, inválida o vencida; cuenta borrada o bloqueada | 019 |
+| `REAUTH_REQUIRED` | 401 | Acción sensible con sesión de más de 5 minutos | 019 |
 | `NOT_FOUND` | 404 | Ruta inexistente | 001 |
 | `PAYMENT_NOT_FOUND` | 404 | `paymentId` inexistente | 007, 008 |
 | `IDEMPOTENCY_CONFLICT` | 409 | Misma `Idempotency-Key` con otro body | 005 |
 | `CALLBACK_ALREADY_USED` | 409 | El pago ya salió de `PENDING_AUTHORIZATION` | 007 |
+| `WALLET_ALREADY_REGISTERED` | 409 | La wallet ya tiene una cuenta | 019 |
 | `AUTHORIZATION_EXPIRED` | 410 | Autorización o quote vencidos | 007 |
 | `PAYLOAD_TOO_LARGE` | 413 | Body mayor a 16 kb | 005 |
 | `UNSUPPORTED_MEDIA_TYPE` | 415 | Content-Type distinto de JSON | 005 |
@@ -229,6 +240,7 @@ Formato estándar (spec 001):
 | `GRANT_LIMITS_MISMATCH` | 502 | El límite concedido no cubre el quote | 007 |
 | `OPEN_PAYMENTS_ERROR` | 502 | Error de Open Payments no clasificado | 003 |
 | `OPEN_PAYMENTS_UNAVAILABLE` | 503 | La wallet o la red no responden | 003 |
+| `PAYMENTS_DISABLED` | 503 | Pagos desactivados desde el panel | 020 |
 | `OPEN_PAYMENTS_TIMEOUT` | 504 | Se superó el timeout | 003 |
 | `INTERNAL_ERROR` | 500 | Cualquier otro error | 001 |
 
@@ -241,10 +253,18 @@ Además de la del spec 001:
 | Variable | Por defecto | Spec | Descripción |
 |---|---|---|---|
 | `OPEN_PAYMENTS_TIMEOUT_MS` | `8000` | 003 | Timeout por llamada |
-| `ALLOWED_WALLET_HOSTS` | `ilp.interledger-test.dev` | 003 | Hosts de wallet permitidos |
-| `MAX_PAYMENT_AMOUNTS` | `USD:1000` | 003 | Máximo por pago por moneda del emisor |
+| `WALLET_PROVIDER_BASE_URL` | `https://ilp.interledger-test.dev` | 003 | URL raíz del proveedor de wallets; su host siempre está permitido. Editable desde el panel (spec 020) |
+| `ALLOWED_WALLET_HOSTS` | vacío | 003 | Hosts de wallet adicionales. Editable desde el panel (spec 020) |
+| `MAX_PAYMENT_AMOUNTS` | `USD:1000` | 003 | Máximo por pago por moneda del emisor. Editable desde el panel (spec 020) |
 | `PAYMENTS_TABLE_NAME` | — | 004 | Tabla DynamoDB (solo Lambda) |
 | `CORS_ALLOWED_ORIGINS` | vacío | 005 | Orígenes permitidos (vacío = CORS deshabilitado) |
 | `API_BASE_URL` | — (obligatoria) | 007 | URL pública de la API; base del `finish.uri` |
 | `FRONTEND_RESULT_URL` | — | 007 | Página de resultado; sin valor se muestra el HTML provisional |
-| `PAYMENT_AUTH_TTL_SECONDS` | `600` | 007 | Tiempo máximo para autorizar un pago |
+| `PAYMENT_AUTH_TTL_SECONDS` | `600` | 007 | Tiempo máximo para autorizar un pago. Editable desde el panel (spec 020) |
+| `SESSION_SECRET_ARN` | — | 019 | Secreto de firma de sesiones (en local, `SESSION_SECRET`) |
+| `SESSION_TTL_SECONDS` | `3600` | 019 | Duración de la sesión de usuario |
+| `WEBAUTHN_RP_ID` | `localhost` | 019 | Dominio del frontend al que quedan atados los passkeys |
+| `WEBAUTHN_ORIGINS` | `http://localhost:8081` | 019 | Orígenes exactos desde los que se aceptan passkeys |
+| `ADMIN_ENABLED` | `true` en `dev` | 020 | Activa el panel `/admin` |
+| `ADMIN_PASSWORD_SECRET_ARN` | — | 020 | Clave del administrador (en local, `ADMIN_PASSWORD`) |
+| `ADMIN_SESSION_TTL_SECONDS` | `28800` | 020 | Duración de la sesión del administrador |
