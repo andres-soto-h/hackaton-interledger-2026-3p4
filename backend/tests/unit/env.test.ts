@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ConfigError, loadConfig } from '../../src/config/env.js'
+import { openPaymentsTestConfig as openPaymentsDefaults } from '../helpers/app.js'
 
 describe('loadConfig', () => {
   // Caso 10
@@ -7,6 +8,7 @@ describe('loadConfig', () => {
     const config = loadConfig({ NODE_ENV: 'development', API_KEY: 'local-key' })
 
     expect(config).toEqual({
+      ...openPaymentsDefaults,
       runtime: 'local',
       nodeEnv: 'development',
       logLevel: 'info',
@@ -26,6 +28,7 @@ describe('loadConfig', () => {
     })
 
     expect(config).toEqual({
+      ...openPaymentsDefaults,
       runtime: 'local',
       nodeEnv: 'test',
       logLevel: 'debug',
@@ -43,6 +46,7 @@ describe('loadConfig', () => {
     })
 
     expect(config).toEqual({
+      ...openPaymentsDefaults,
       runtime: 'lambda',
       nodeEnv: 'production',
       logLevel: 'info',
@@ -76,5 +80,62 @@ describe('loadConfig', () => {
     expect(() =>
       loadConfig({ NODE_ENV: 'staging', PORT: 'abc', LOG_LEVEL: 'loud', API_KEY: 'k' })
     ).toThrow(/Invalid environment variables: NODE_ENV, PORT, LOG_LEVEL/)
+  })
+
+  describe('configuración de Open Payments (spec 003)', () => {
+    it('lee timeout, proveedor de wallets, hosts permitidos y límites por moneda', () => {
+      const config = loadConfig({
+        API_KEY: 'k',
+        OPEN_PAYMENTS_TIMEOUT_MS: '5000',
+        WALLET_PROVIDER_BASE_URL: 'https://wallet.example/',
+        ALLOWED_WALLET_HOSTS: ' pay.example , other.example ',
+        MAX_PAYMENT_AMOUNTS: 'USD:1000, MXN:20000.50'
+      })
+
+      expect(config).toMatchObject({
+        openPaymentsTimeoutMs: 5000,
+        walletProviderBaseUrl: 'https://wallet.example',
+        allowedWalletHosts: ['pay.example', 'other.example'],
+        maxPaymentAmounts: { USD: '1000', MXN: '20000.50' }
+      })
+    })
+
+    it('aplica la misma configuración en Lambda', () => {
+      const config = loadConfig({
+        AWS_LAMBDA_FUNCTION_NAME: 'api',
+        API_KEY_SECRET_ARN: 'arn:aws:secretsmanager:us-east-1:1:secret:api-key',
+        OPEN_PAYMENTS_SECRET_ARN: 'arn:aws:secretsmanager:us-east-1:1:secret:op',
+        MAX_PAYMENT_AMOUNTS: 'EUR:800'
+      })
+
+      expect(config).toMatchObject({
+        runtime: 'lambda',
+        openPaymentsTimeoutMs: 8000,
+        walletProviderBaseUrl: 'https://ilp.interledger-test.dev',
+        allowedWalletHosts: [],
+        maxPaymentAmounts: { EUR: '800' }
+      })
+    })
+
+    it.each([
+      ['OPEN_PAYMENTS_TIMEOUT_MS', '0'],
+      ['OPEN_PAYMENTS_TIMEOUT_MS', 'abc'],
+      ['WALLET_PROVIDER_BASE_URL', 'http://wallet.example'],
+      ['WALLET_PROVIDER_BASE_URL', 'not a url'],
+      ['MAX_PAYMENT_AMOUNTS', 'USD'],
+      ['MAX_PAYMENT_AMOUNTS', 'USD:abc'],
+      ['MAX_PAYMENT_AMOUNTS', 'USD:0'],
+      ['MAX_PAYMENT_AMOUNTS', 'usd:100'],
+      ['ALLOWED_WALLET_HOSTS', 'https://pay.example']
+    ])('rechaza %s=%s como inválida', (name, value) => {
+      try {
+        loadConfig({ API_KEY: 'k', [name]: value })
+        expect.unreachable()
+      } catch (error) {
+        expect(error).toBeInstanceOf(ConfigError)
+        expect((error as ConfigError).invalid).toEqual([name])
+        expect((error as Error).message).not.toContain(value)
+      }
+    })
   })
 })

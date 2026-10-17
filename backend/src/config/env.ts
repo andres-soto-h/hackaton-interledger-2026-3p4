@@ -9,6 +9,10 @@ export type LogLevel = (typeof logLevels)[number]
 interface BaseConfig {
   nodeEnv: NodeEnv
   logLevel: LogLevel
+  openPaymentsTimeoutMs: number
+  walletProviderBaseUrl: string
+  allowedWalletHosts: string[]
+  maxPaymentAmounts: Record<string, string>
 }
 
 export interface LocalConfig extends BaseConfig {
@@ -48,20 +52,87 @@ export class ConfigError extends Error {
 
 const logLevel = z.enum(logLevels).default('info')
 
+// Open Payments configuration (spec 003). Same variables in local and Lambda.
+const openPaymentsTimeoutMs = z.coerce.number().int().positive().default(8000)
+
+const walletProviderBaseUrl = z
+  .url({ protocol: /^https$/ })
+  .default('https://ilp.interledger-test.dev')
+  .transform((url) => url.replace(/\/+$/, ''))
+
+const allowedWalletHosts = z
+  .string()
+  .default('')
+  .refine(
+    (raw) =>
+      raw
+        .split(',')
+        .map((host) => host.trim())
+        .filter((host) => host.length > 0)
+        .every((host) => !host.includes('://')),
+    { message: 'Wallet hosts must not include a scheme' }
+  )
+  .transform((raw) =>
+    raw
+      .split(',')
+      .map((host) => host.trim())
+      .filter((host) => host.length > 0)
+  )
+
+const amountEntryPattern = /^([A-Z]{3}):(\d+(?:\.\d+)?)$/
+
+const maxPaymentAmounts = z
+  .string()
+  .default('USD:1000')
+  .refine(
+    (raw) =>
+      raw
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0)
+        .every((entry) => {
+          const match = amountEntryPattern.exec(entry)
+          const amount = match?.[2]
+          return match !== null && amount !== undefined && /[1-9]/.test(amount)
+        }),
+    { message: 'Amounts must be positive decimal values keyed by currency' }
+  )
+  .transform((raw): Record<string, string> => {
+    const record: Record<string, string> = {}
+    for (const entry of raw
+      .split(',')
+      .map((e) => e.trim())
+      .filter((e) => e.length > 0)) {
+      const match = amountEntryPattern.exec(entry)
+      const code = match?.[1]
+      const amount = match?.[2]
+      if (code !== undefined && amount !== undefined) record[code] = amount
+    }
+    return record
+  })
+
 // Keys follow the order of the spec's variable table, so errors list them in that order.
 const localSchema = z.object({
   NODE_ENV: z.enum(nodeEnvs).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   LOG_LEVEL: logLevel,
   API_KEY: z.string(),
-  OPEN_PAYMENTS_KEYS_FILE: z.string().default('./keys/open-payments.json')
+  OPEN_PAYMENTS_KEYS_FILE: z.string().default('./keys/open-payments.json'),
+  OPEN_PAYMENTS_TIMEOUT_MS: openPaymentsTimeoutMs,
+  WALLET_PROVIDER_BASE_URL: walletProviderBaseUrl,
+  ALLOWED_WALLET_HOSTS: allowedWalletHosts,
+  MAX_PAYMENT_AMOUNTS: maxPaymentAmounts
 })
 
 const lambdaSchema = z.object({
   NODE_ENV: z.enum(nodeEnvs).default('production'),
   LOG_LEVEL: logLevel,
   API_KEY_SECRET_ARN: z.string(),
-  OPEN_PAYMENTS_SECRET_ARN: z.string()
+  OPEN_PAYMENTS_SECRET_ARN: z.string(),
+  OPEN_PAYMENTS_TIMEOUT_MS: openPaymentsTimeoutMs,
+  WALLET_PROVIDER_BASE_URL: walletProviderBaseUrl,
+  ALLOWED_WALLET_HOSTS: allowedWalletHosts,
+  MAX_PAYMENT_AMOUNTS: maxPaymentAmounts
 })
 
 /** AWS defines AWS_LAMBDA_FUNCTION_NAME in every Lambda execution environment. */
@@ -84,7 +155,11 @@ export function loadConfig(env: Env = process.env): Config {
       nodeEnv: data.NODE_ENV,
       logLevel: data.LOG_LEVEL,
       apiKeySecretArn: data.API_KEY_SECRET_ARN,
-      openPaymentsSecretArn: data.OPEN_PAYMENTS_SECRET_ARN
+      openPaymentsSecretArn: data.OPEN_PAYMENTS_SECRET_ARN,
+      openPaymentsTimeoutMs: data.OPEN_PAYMENTS_TIMEOUT_MS,
+      walletProviderBaseUrl: data.WALLET_PROVIDER_BASE_URL,
+      allowedWalletHosts: data.ALLOWED_WALLET_HOSTS,
+      maxPaymentAmounts: data.MAX_PAYMENT_AMOUNTS
     }
   }
 
@@ -95,7 +170,11 @@ export function loadConfig(env: Env = process.env): Config {
     logLevel: data.LOG_LEVEL,
     port: data.PORT,
     apiKey: data.API_KEY,
-    openPaymentsKeysFile: data.OPEN_PAYMENTS_KEYS_FILE
+    openPaymentsKeysFile: data.OPEN_PAYMENTS_KEYS_FILE,
+    openPaymentsTimeoutMs: data.OPEN_PAYMENTS_TIMEOUT_MS,
+    walletProviderBaseUrl: data.WALLET_PROVIDER_BASE_URL,
+    allowedWalletHosts: data.ALLOWED_WALLET_HOSTS,
+    maxPaymentAmounts: data.MAX_PAYMENT_AMOUNTS
   }
 }
 

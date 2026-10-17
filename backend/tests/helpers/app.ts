@@ -7,7 +7,16 @@ import { createLogger } from '../../src/shared/logger.js'
 /** Fake values: tests never touch real files, keys or AWS. */
 export const TEST_API_KEY = 'test-api-key'
 
+/** Open Payments configuration with the documented defaults (spec 003). */
+export const openPaymentsTestConfig = {
+  openPaymentsTimeoutMs: 8000,
+  walletProviderBaseUrl: 'https://ilp.interledger-test.dev',
+  allowedWalletHosts: [] as string[],
+  maxPaymentAmounts: { USD: '1000' } as Record<string, string>
+}
+
 export const testConfig: LocalConfig = {
+  ...openPaymentsTestConfig,
   runtime: 'local',
   nodeEnv: 'test',
   logLevel: 'silent',
