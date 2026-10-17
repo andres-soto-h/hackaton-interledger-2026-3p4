@@ -46,7 +46,7 @@ export function buildWalletLinksContext(
   gateway.addWallet(wallet('shop', 'USD'))
   const sessions = createSessionService({
     signingKey: SESSION_KEY,
-    ttlSeconds: 3600,
+    ttlSeconds: 24 * 3600, // long enough for tests that cross the Bogotá midnight
     now
   })
   const cipher = createTokenCipher(TOKEN_SECRET)

@@ -34,8 +34,7 @@ describe('rutas de cuentas y la API key', () => {
     ['put', '/api/v1/me'],
     ['get', '/api/v1/auth/login/options'],
     ['post', '/api/v1/auth/other'],
-    ['post', '/api/v1/auth/register/options/extra'],
-    ['get', '/api/v1/me/wallet-link']
+    ['post', '/api/v1/auth/register/options/extra']
   ] as const)('%s %s sigue exigiendo la API key', async (method, path) => {
     const res = await request(ctx.app)[method](path)
     expect(res.status).toBe(401)

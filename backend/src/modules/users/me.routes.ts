@@ -7,12 +7,15 @@ import { createUsersService } from './users.service.js'
 
 export function createMeRouter({
   users,
-  sessions
+  sessions,
+  beforeDeleteAccount
 }: {
   users: UsersRepository
   sessions: SessionService
+  /** Runs before the account and its credentials are deleted (spec 023). */
+  beforeDeleteAccount?: (userId: string) => Promise<void>
 }): Router {
-  const service = createUsersService(users)
+  const service = createUsersService(users, beforeDeleteAccount)
   const controller = createMeController(service)
   const router = Router()
 

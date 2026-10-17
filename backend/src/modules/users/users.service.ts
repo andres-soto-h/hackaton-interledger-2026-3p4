@@ -14,7 +14,10 @@ export interface UsersService {
 }
 
 /** Account operations behind `GET/DELETE /api/v1/me`. */
-export function createUsersService(users: UsersRepository): UsersService {
+export function createUsersService(
+  users: UsersRepository,
+  beforeDeleteAccount?: (userId: string) => Promise<void>
+): UsersService {
   return {
     toPublicUser(user) {
       return {
@@ -25,8 +28,11 @@ export function createUsersService(users: UsersRepository): UsersService {
       }
     },
 
-    deleteAccount(userId) {
-      return users.deleteUserAndCredentials(userId)
+    async deleteAccount(userId) {
+      if (beforeDeleteAccount !== undefined) {
+        await beforeDeleteAccount(userId)
+      }
+      await users.deleteUserAndCredentials(userId)
     }
   }
 }

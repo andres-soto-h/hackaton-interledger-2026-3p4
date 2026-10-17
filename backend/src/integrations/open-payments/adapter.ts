@@ -33,6 +33,14 @@ interface SdkAmount {
   assetScale: number
 }
 
+interface SdkGrantAccess {
+  type?: string
+  limits?: {
+    debitAmount?: SdkAmount
+    interval?: string
+  }
+}
+
 export interface CreateOpenPaymentsGatewayOptions {
   walletAddressUrl: string
   keyId: string
@@ -116,13 +124,32 @@ const mapGrantResult = (token: {
   value: string
   manage: string
   expires_in?: number
-}): GrantResult => ({
-  accessToken: token.value,
-  manageUrl: token.manage,
-  ...(token.expires_in !== undefined
-    ? { expiresAt: new Date(Date.now() + token.expires_in * 1000) }
-    : {})
-})
+  access?: SdkGrantAccess[]
+}): GrantResult => {
+  const result: GrantResult = {
+    accessToken: token.value,
+    manageUrl: token.manage,
+    ...(token.expires_in !== undefined
+      ? { expiresAt: new Date(Date.now() + token.expires_in * 1000) }
+      : {})
+  }
+  const limits = grantedLimitsFromAccess(token.access)
+  if (limits !== undefined) result.grantedLimits = limits
+  return result
+}
+
+const grantedLimitsFromAccess = (
+  access: SdkGrantAccess[] | undefined
+): { debitAmount: Amount; interval: string } | undefined => {
+  if (access === undefined) return undefined
+  const outgoing = access.find((entry) => entry.type === 'outgoing-payment')
+  const limits = outgoing?.limits
+  if (limits?.debitAmount === undefined || limits.interval === undefined) return undefined
+  return {
+    debitAmount: toAmount(limits.debitAmount),
+    interval: limits.interval
+  }
+}
 
 // ky (the SDK's HTTP client) already retries transient network errors for GET
 // requests up to 2 times. The adapter only adds its own retries for timeouts,
@@ -343,7 +370,7 @@ export async function createOpenPaymentsGateway(
           { interact_ref: input.interactRef }
         )
         if (!isFinalizedGrantWithAccessToken(grant)) {
-          throw new AppError(502, 'OPEN_PAYMENTS_ERROR', 'Open Payments error')
+          throw new AppError(409, 'GRANT_NOT_FINALIZED', 'Grant is not finalized yet')
         }
         return mapGrantResult(grant.access_token)
       })

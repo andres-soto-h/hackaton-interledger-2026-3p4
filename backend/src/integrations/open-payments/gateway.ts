@@ -39,6 +39,7 @@ export interface GrantResult {
   accessToken: string
   manageUrl: string
   expiresAt?: Date
+  grantedLimits?: { debitAmount: Amount; interval: string }
 }
 
 export interface OutgoingPayment {
