@@ -123,10 +123,16 @@ con el `requestId` en letra pequeña para soporte.
 5. [ ] Proponer el contrato del directorio al backend.
 6. [ ] Suite completa en verde, lint y typecheck limpios.
 
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Alta de comercios | Lista fija ya creada en una base de datos en Google Cloud; el backend la expone en `GET /merchants` (2026-10-16) |
+| 2 | Referencia del servicio | Se envía en `description` (2026-10-16) |
+
 ## Decisiones pendientes
 
-1. **Quién da de alta los comercios del directorio:** recomendación para el
-   hackatón: una lista fija en el backend (seed) con wallets de prueba.
-2. **Referencia del servicio:** se envía en `description`. ¿El backend necesita
-   un campo propio (`reference`) para el comercio? Recomendación: `description`
-   por ahora.
+1. **Body para pagar a un comercio del directorio:** el backend 007 define
+   `p2m` con `incomingPaymentUrl`. Este spec envía `receiverWalletAddress` +
+   `amount` (el usuario escribe el valor de la factura). Hay que alinear el
+   contrato con el backend: aceptar esta variante para `p2m` o enviar `p2p`.

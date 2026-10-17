@@ -24,8 +24,8 @@ pago. Los datos vienen de `GET /api/v1/transactions` y
 
 **Incluye**
 - Inicio: saludo con el nombre, botón al agente ("Toque y dígame qué pagar"), botón "Pagar un servicio", últimas 5 transacciones y enlace "Ver todas".
-- Lista de transacciones con paginación por cursor (scroll infinito), filtro por estado (todas, en curso, exitosas, no realizadas) y *pull to refresh*.
-- Detalle de una transacción: comercio, montos (débito, recibido), estado, fecha, descripción, ID del pago como comprobante.
+- Lista de transacciones con paginación por cursor (scroll infinito), filtro por estado (un estado a la vez) y *pull to refresh*.
+- Detalle de una transacción: comercio, montos (recibido, comisión, total), estado, fecha, descripción, ID del pago como comprobante.
 - Estados vacío, cargando y error con reintento.
 
 **No incluye**
@@ -60,14 +60,16 @@ usePayment(paymentId)                       // GET /payments/{id}, compartido co
 
 - Contrato del [backend 008](../../../backend/docs/specs/008-consulta-pagos-transacciones.md#diseño):
   `GET /transactions?direction=outgoing&kind=payment&status=&limit=&cursor=` →
-  `{ items, nextCursor }`. La wallet sale del token (pendiente en el backend;
-  ver [PLAN.md](../PLAN.md#dependencias-con-el-backend)).
-- Filtros de la UI → estados: "En curso" = `PENDING_AUTHORIZATION`,
-  `PROCESSING`; "Exitosas" = `COMPLETED`; "No realizadas" = `FAILED`,
-  `REJECTED`, `EXPIRED`. Si el backend solo acepta un `status`, "En curso" y
-  "No realizadas" filtran en el cliente (decisión pendiente 1).
-- Nombre del comercio: se cruza `receiverWalletAddress` con el directorio
-  (spec 005, cacheado); si no está, se muestra el host y la ruta de la wallet.
+  `{ items, nextCursor }`. La wallet sale de la sesión.
+- **Cada página trae todos los datos de cada transacción** (nombre del
+  comercio en `counterparty.name`, montos, comisión, estado, descripción): la
+  lista no hace una petición por elemento. La siguiente página se pide al
+  llegar al final (*lazy loading*) con `nextCursor`; `null` = no hay más.
+- Filtro de un solo estado (`status`): "Todas" (sin `status`), "Exitosas"
+  (`COMPLETED`), "En proceso" (`PROCESSING`), "Fallidas" (`FAILED`). Canceladas
+  y vencidas solo aparecen en "Todas".
+- Nombre: `counterparty.name`; si es `null`, se muestra el host y la ruta de la
+  wallet.
 
 ### Componentes
 
@@ -78,11 +80,11 @@ usePayment(paymentId)                       // GET /payments/{id}, compartido co
 | # | Tipo | Caso | Resultado esperado |
 |---|---|---|---|
 | 1 | unit | Fecha relativa (hoy, ayer, otra fecha) en `es-CO` | Textos esperados |
-| 2 | unit | Mapeo filtro de la UI → query / filtro en cliente | Estados correctos por filtro |
-| 3 | component | `TransactionItem` por estado; comercio conocido y desconocido | Nombre, monto, fecha y badge; etiqueta accesible completa |
+| 2 | unit | Mapeo filtro de la UI → `status` del query | Un estado por filtro; "Todas" sin `status` |
+| 3 | component | `TransactionItem` por estado; `counterparty.name` con valor y `null` | Nombre, monto, fecha y badge; etiqueta accesible completa |
 | 4 | integration | Inicio con transacciones | Saludo con nombre; 5 elementos; "Ver todas" navega a la lista |
 | 5 | integration | Inicio y lista sin transacciones | `EmptyState` con "Pagar un servicio" |
-| 6 | integration | Lista con 2 páginas | Al llegar al final pide `cursor`; sin duplicados |
+| 6 | integration | Lista con 2 páginas | Al llegar al final pide `cursor`; sin duplicados; sin peticiones por elemento |
 | 7 | integration | Cambio de filtro | Nueva petición con `status`; lista reiniciada |
 | 8 | integration | *Pull to refresh* | Vuelve a pedir la primera página |
 | 9 | integration | Detalle de pago `PROCESSING` → `COMPLETED` | Se actualiza solo; deja de consultar al ser final |
@@ -97,10 +99,9 @@ usePayment(paymentId)                       // GET /payments/{id}, compartido co
 5. [ ] Casos 6–10 en rojo → lista y detalle.
 6. [ ] Suite completa en verde, lint y typecheck limpios.
 
-## Decisiones pendientes
+## Decisiones
 
-1. **Filtro por varios estados:** ¿el backend acepta `status` múltiple
-   (`status=FAILED,REJECTED`)? Recomendación: sí, es un cambio pequeño en el backend 008.
-2. **Nombre del comercio en la transacción:** cruzarlo en el cliente con el
-   directorio o que el backend lo devuelva. Recomendación: el backend
-   (`receiverName`), cuando exista el directorio.
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Filtro por varios estados | No: un solo `status` por consulta (2026-10-16) |
+| 2 | Nombre del comercio | Lo devuelve el backend, con todos los datos de la transacción en lotes paginados para *lazy loading* (backend 008, 2026-10-16) |
