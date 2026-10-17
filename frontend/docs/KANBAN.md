@@ -33,3 +33,4 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-16 | — | Plan del frontend y sistema de diseño creados como borrador a partir de los mockups |
 | 2026-10-16 | 001–009 | Creados como borrador |
 | 2026-10-16 | 001–009 | Renumerados desde 001 (antes 010–018; numeración propia del frontend). Sesión pasa a 002 y registro a 003 para que el orden de desarrollo sea el numérico |
+| 2026-10-16 | — | Plan del frontend aprobado con sus decisiones (stack, comisión, carriles independientes, retorno en Android, mockups fuera del repo) |

@@ -17,7 +17,7 @@
 Antes de construir pantallas hace falta el proyecto base: Expo con
 TypeScript, navegación, pruebas, el sistema de diseño de
 [DISENO.md](../DISENO.md), el cliente HTTP y la API simulada. Todos los
-specs siguientes se apoyan en esto. Decisiones en [PLAN.md](../PLAN.md#decisiones-propuestas).
+specs siguientes se apoyan en esto. Decisiones en [PLAN.md](../PLAN.md#decisiones).
 
 ## Alcance
 
@@ -113,8 +113,7 @@ La de [PLAN.md](../PLAN.md#estructura-del-frontend).
 
 ## Decisiones pendientes
 
-1. Las de [PLAN.md](../PLAN.md#decisiones-pendientes) (Expo, Jest, MSW, TanStack Query).
-2. **Íconos:** recomendación `@expo/vector-icons` (incluido en Expo) en vez de
+1. **Íconos:** recomendación `@expo/vector-icons` (incluido en Expo) en vez de
    los SVG de los mockups.
 
 ## Notas

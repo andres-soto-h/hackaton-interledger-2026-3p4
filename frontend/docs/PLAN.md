@@ -1,6 +1,6 @@
 # Plan inicial — App TuTranqui (frontend)
 
-> Estado: **Borrador** (2026-10-16) · Etapa actual: **planeación** (todavía no hay código)
+> Estado: **Aprobado** (2026-10-16) · Etapa actual: **planeación** (todavía no hay código)
 > Avance en [KANBAN.md](KANBAN.md) · Sistema de diseño en [DISENO.md](DISENO.md) ·
 > API en [backend/docs/API.md](../../backend/docs/API.md)
 
@@ -10,15 +10,15 @@ También puede pedirle los pagos a un agente de IA por chat o por voz; el agente
 prepara el pago con sus tools, pero **nunca lo aprueba**: la aprobación siempre
 la hace el usuario.
 
-Los mockups de referencia están en
-[`frontend/TuTranqui — Mockups finales con comisión.html`](../TuTranqui%20—%20Mockups%20finales%20con%20comisión.html)
-(19 pantallas, 390 × 844). Son un ejemplo: se toma de ellos el lenguaje
+Los mockups de referencia están en el archivo
+`TuTranqui — Mockups finales con comisión.html` (19 pantallas, 390 × 844), que
+se comparte fuera del repo (está en `frontend/.gitignore`). Son un ejemplo: se toma de ellos el lenguaje
 visual, el tono y la estructura de las pantallas, no todos sus flujos
 (ver [Diferencias con los mockups](#diferencias-con-los-mockups)).
 
-## Decisiones propuestas
+## Decisiones
 
-| Tema | Propuesta | Por qué |
+| Tema | Decisión | Por qué |
 |---|---|---|
 | Framework | **React Native con Expo** (SDK estable más reciente al iniciar, fijada en `package.json`) | Un solo código para web (objetivo inicial) y Android; Expo trae build web, navegación y módulos nativos sin configurar Gradle a mano |
 | Navegación | **Expo Router** (rutas por archivos) | Las rutas son URLs en web: necesario para volver de la wallet a `/pagos/resultado?paymentId=…` |
@@ -206,20 +206,14 @@ Tipos de prueba en los specs del frontend:
 | integration | Una pantalla completa contra la API simulada | RNTL + MSW |
 | manual | Lo que no se automatiza en el hackatón (Android físico, voz real) | Checklist en el spec |
 
-## Decisiones pendientes
+## Decisiones del plan
 
-1. **Aprobación del plan** y de las decisiones propuestas (Expo, Jest en vez de
-   Vitest, MSW, TanStack Query).
-2. **Comisión TuTranqui:** ¿se cobra (como en los mockups) o solo se muestran
-   las comisiones del quote? Si se cobra, requiere un spec de backend.
-3. **Un spec en desarrollo por carril:** la regla dice que no se inicia otro
-   spec antes de terminar el actual. Con backend y frontend en paralelo se
-   propone permitir **uno en desarrollo por carril** (backend / frontend).
-4. **Volver de la wallet en Android:** el backend redirige a
-   `FRONTEND_RESULT_URL` (una URL web). Opciones: (a) en Android abrir la
-   wallet con `expo-web-browser` y, al cerrarse, ir al resultado y consultar el
-   estado por polling; (b) que el backend acepte una lista de URLs de retorno
-   permitidas, incluido el deep link `tutranqui://`. Recomendación: **(a)** para
-   el hackatón, no cambia el backend.
-5. **Mockups en el repo:** el HTML pesa 5 MB. ¿Se versiona (p. ej. en
-   `frontend/docs/mockups/`) o se deja fuera del repo?
+Resueltas el 2026-10-16 al aprobar el plan:
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Stack | Aprobado: Expo, Jest (`jest-expo`) en vez de Vitest, MSW, TanStack Query |
+| 2 | Comisión TuTranqui | Se cobra. La configura un spec del backend; el front la muestra cuando la API la devuelva |
+| 3 | Backend y frontend | Se trabajan de forma independiente. Los commits del frontend solo tocan archivos de `frontend/`. Mientras el backend no tenga los endpoints clave, el front se prueba contra MSW; la integración real se hace cuando ambos se encuentren |
+| 4 | Volver de la wallet en Android | Opción (a): abrir la wallet con `expo-web-browser` y, al cerrarse, ir al resultado y consultar el estado por polling. No cambia el backend |
+| 5 | Mockups en el repo | No se versionan; quedan en `frontend/.gitignore` |

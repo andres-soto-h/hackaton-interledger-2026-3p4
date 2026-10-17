@@ -77,7 +77,7 @@ con implementación por plataforma:
 - **Android:** `WebBrowser.openAuthSessionAsync(url, <FRONTEND_RESULT_URL>)`;
   al cerrarse (por redirect o porque el usuario volvió), navega a
   `/pagos/resultado?paymentId=…` y el 007 consulta el estado por polling
-  (decisión pendiente 4 del [PLAN](../PLAN.md#decisiones-pendientes)).
+  (decisión 4 del [PLAN](../PLAN.md#decisiones-del-plan)).
 - Rechaza URLs que no sean `https`.
 
 ## Casos de prueba
