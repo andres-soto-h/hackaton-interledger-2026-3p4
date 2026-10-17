@@ -121,6 +121,8 @@ Vuelta: FRONTEND_RESULT_URL?linkId=…&status=…
 | 1 | Autenticación | Passkey; la app no tiene PIN propio (2026-10-16) |
 | 2 | Monedas | Multimoneda: se acepta cualquier moneda con monto diario configurado en el backend; se muestra con su código (2026-10-16) |
 | 3 | Aprobación de pagos | Una sola vez al vincular la wallet, con monto diario (backend 023); cada pago se confirma con el passkey (2026-10-16) |
+| 4 | Correo | No se pide: el backend 019 no lo requiere y el ingreso es con passkey. Si más adelante hace falta, se agrega en backend 019 y en este spec a la vez (2026-10-17) |
+| 5 | Passkeys en Android | Solo desde Chrome en esta fase; los passkeys en app nativa son deuda técnica del backend (TD-003) (2026-10-17) |
 
 ## Notas
 

@@ -153,13 +153,14 @@ Endpoints especificados en el backend:
 | `POST /api/v1/payments/{id}/confirm/options` · `/confirm` · `/cancel` | 007 | 006 |
 | `GET /api/v1/payments/{id}` (`isFinal`, `Retry-After`) | 008, 009 | 006, 007 |
 | `GET /api/v1/transactions` (lotes paginados con todos los datos) | 008 | 004 |
-| Comisión en el quote y en los pagos | 024 | 006, 007 |
+| Comisión en el quote y en los pagos (cobro único: backend 025, Borrador) | 024 | 006, 007 |
+| `p2m` con `receiverWalletAddress` + `amount`, solo COP | 026 (Borrador) | 005 |
 
 Endpoints que el front necesita y **todavía no tienen spec en el backend**:
 
 | Necesidad | Propuesta de contrato | Lo usa |
 |---|---|---|
-| Directorio de comercios | `GET /api/v1/merchants?query=&category=` → `{ items: [{ id, name, category, walletAddress, assetCode, assetScale, logoUrl, referenceLabel }] }` (lista fija en Google Cloud) | 005 |
+| Directorio de comercios | `GET /api/v1/merchants?query=&category=` → `{ items: [{ id, name, category, walletAddress, assetCode, assetScale, logoUrl, referenceLabel }] }` (lista fija en Google Cloud). **El front usa una lista simulada; conectarla al backend es un pendiente de este** | 005 |
 | Validación de la wallet de un comercio | `GET /api/v1/wallets/verify?walletAddress=` → `{ exists, publicName, assetCode, assetScale }` | 005 |
 | Agente | `POST /api/v1/agent/messages` `{ conversationId?, text }` → `{ conversationId, reply, actions: [...] }` (ver spec 008; puede cambiar con el SDK de Gemini) | 008, 009 |
 
@@ -231,3 +232,5 @@ Resueltas el 2026-10-16:
 | 5 | Mockups en el repo | No se versionan; quedan en `frontend/.gitignore` |
 | 6 | Autenticación | Passkeys, sin PIN de la app (backend 019) |
 | 7 | Aprobación de pagos | Una sola vez al vincular la wallet, con monto diario (backend 023); cada pago se confirma en la app con el passkey. Si la prueba del spec 006 (tarea 1) falla, se cambia front y back |
+| 8 | Pagos a comercios | Solo en COP; body `p2m` con `receiverWalletAddress` + `amount` (backend 026). Directorio simulado en el front hasta conectar el backend con Google Cloud (2026-10-17) |
+| 9 | Correo | No se pide en el registro (backend 019 no lo usa) (2026-10-17) |

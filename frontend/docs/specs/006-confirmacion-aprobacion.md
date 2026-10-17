@@ -121,3 +121,4 @@ Respuesta de `POST /payments` (backend 007):
 | 1 | Aprobación | Una sola vez al vincular la wallet; cada pago se confirma en la app con el passkey (2026-10-16) |
 | 2 | Comisión | La devuelve la API en `quote.fee` (backend 024) |
 | 3 | Cancelar | `POST /payments/{id}/cancel` al tocar "No pagar" |
+| 4 | Un solo cobro | El responsable decidió un único débito por el total (backend [025](../../../backend/docs/specs/025-cobro-unico-comision.md), Borrador). La pantalla no cambia: sigue mostrando comisión y total de `quote`; el usuario ve un solo cargo en su wallet (2026-10-17) |
