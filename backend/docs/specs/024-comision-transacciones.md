@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | 2026-10-17 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-0 / 7 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/024`. La decisión pendiente del orden de cobro / un solo cobro se resuelve con el valor por defecto del spec y queda registrada en [PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md). Depende de
+7 / 7 tareas completadas e integradas y cableadas en `develop-andres` (1051 tests, más 105 contra DynamoDB Local, typecheck y lint en verde). La decisión pendiente del orden de cobro / un solo cobro se resuelve con el valor por defecto del spec y queda registrada en [PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md). Depende de
 los specs 007, 020 y 023.
 
 ## Contexto
@@ -125,13 +125,13 @@ Campos nuevos: `feePercentage`, `fee`, `totalDebit`, `feeStatus`,
 
 ## Tareas
 
-1. [ ] `calculateFee` y validación del porcentaje: casos 1–2.
-2. [ ] Configuración `feePercentage` en `SettingsProvider` y en el panel (caso 10).
-3. [ ] Comisión en la cotización (casos 3 y 8).
-4. [ ] Cobro con segundo outgoing payment y reserva del total (casos 4–6 y 9).
-5. [ ] Reintento al refrescar y estado `feeStatus` (caso 7).
-6. [ ] Resumen de comisiones en el panel; contrato en `openapi.yaml`.
-7. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] `calculateFee` y validación del porcentaje: casos 1–2.
+2. [x] Configuración `feePercentage` en `SettingsProvider` y en el panel (caso 10).
+3. [x] Comisión en la cotización (casos 3 y 8).
+4. [x] Cobro con segundo outgoing payment y reserva del total (casos 4–6 y 9).
+5. [x] Reintento al refrescar y estado `feeStatus` (caso 7).
+6. [x] Resumen de comisiones en el panel; contrato en `openapi.yaml`.
+7. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 

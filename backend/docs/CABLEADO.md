@@ -1,6 +1,6 @@
 # Cableado del backend (composition root)
 
-> Actualizado: 2026-10-17 · Cómo se arma la app a partir de los módulos ya integrados.
+> Actualizado: 2026-10-17 (024 y 008 cableados) · Cómo se arma la app a partir de los módulos ya integrados.
 > Variables nuevas del IaC en [specs/002](specs/002-infraestructura-aws-lambda.md).
 
 `createApp` (middlewares transversales, spec 005) recibe una lista de routers.
@@ -23,11 +23,17 @@
 | admin (020, 021) | `/admin/*` | Sesión del panel (cookie + CSRF), sin API key. `ADMIN_ENABLED=false` lo desmonta |
 | dev (019) | `/dev/passkeys*` | **Solo runtime local**; nunca en Lambda |
 
+| payment status (008) | `GET /api/v1/payments/{id}` | Sesión del usuario; refresca contra Open Payments y reintenta la comisión fallida (024) |
+| transactions (008) | `GET /api/v1/transactions` | Sesión del usuario; el directorio de comercios está vacío (la contraparte muestra su wallet) |
 | payments (007) | `POST /api/v1/payments`, `…/{id}/confirm/options`, `…/{id}/confirm`, `…/{id}/cancel` | Sesión del usuario (no API key); idempotencia, `paymentsEnabled` del panel, passkey y vinculación del 023 |
 
-`FeeCalculator`/`FeeCollector` están cableados con las implementaciones por defecto (sin
-comisión) hasta que el spec 024 las reemplace en `createComposition`. `extraRouters` sigue
-disponible como punto de extensión para specs futuros.
+**Comisión (024).** `createFeeCalculator` lee `feePercentage` de la configuración editable
+(`SettingsProvider.getEditable()`, así que el cambio desde el panel aplica a las cotizaciones
+nuevas) y `createFeeCollector` cobra con un segundo outgoing payment a la wallet de la
+plataforma (`secrets.openPayments.walletAddressUrl`). El resumen del inicio del panel
+(`createFeeSummaryProvider`) usa `PaymentsRepository.listAllPayments()`: en DynamoDB es un
+`Scan` filtrado por el prefijo `pay_` (aceptable con poco volumen; si crece, pasar a un contador).
+`extraRouters` sigue disponible como punto de extensión para specs futuros.
 
 ## Variables de entorno
 

@@ -10,7 +10,7 @@
 
 ## Estado
 
-0 / 6 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/008`; se arranca con los campos de comisión ya presentes en `Payment` mientras el 024 termina. La ejecución manual del caso 12 (red de prueba real) es un pendiente del responsable. Ajustado el 2026-10-16 por el monto diario preaprobado
+5 / 6 tareas completadas e integradas y cableadas en `develop-andres` (1051 tests, más 105 contra DynamoDB Local, typecheck y lint en verde). **Solo falta la ejecución manual del caso 12** (flujo completo contra la red de prueba real con `pnpm test:e2e`, tarea 5), que es una acción del responsable ([PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md)); el script ya existe y se salta limpio sin credenciales. Ajustado el 2026-10-16 por el monto diario preaprobado
 (spec 023) y la comisión (spec 024); Cambios aprobados el 2026-10-16. Depende de
 los specs 007, 023 y 024.
 
@@ -152,12 +152,12 @@ límite de concurrencia para no exceder el tiempo de API Gateway).
 
 ## Tareas
 
-1. [ ] `PaymentsService.getStatus`: casos 1–7 en rojo → implementación.
-2. [ ] Ruta `GET /payments/{id}`.
-3. [ ] `TransactionsService.list` y ruta: casos 8–11 y 13.
-4. [ ] Contrato en `openapi.yaml`.
-5. [ ] Script `pnpm test:e2e` y ejecución manual del caso 12.
-6. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] `PaymentsService.getStatus`: casos 1–7 en rojo → implementación.
+2. [x] Ruta `GET /payments/{id}`.
+3. [x] `TransactionsService.list` y ruta: casos 8–11 y 13.
+4. [x] Contrato en `openapi.yaml`.
+5. [~] Script `pnpm test:e2e` y ejecución manual del caso 12.
+6. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes
 

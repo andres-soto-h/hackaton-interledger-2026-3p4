@@ -9,21 +9,23 @@
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
 | | | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 5/5 |
+| | | | [024 — Comisión por transacción](specs/024-comision-transacciones.md) · 7/7 |
 | | | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 9/9 |
 | | | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 7/7 |
 | | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 9/9 |
 | | | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 9/9 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
-| | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | |
+| | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 5/6 · *solo falta la ejecución manual del caso 12 (pendiente del responsable)* | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
 | | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 9/10 · *solo falta el spike en red real (pendiente del responsable)* · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
-| | | [024 — Comisión por transacción](specs/024-comision-transacciones.md) · 0/7 · *decisión pendiente: orden / un solo cobro* | |
 
 **Orden de desarrollo:** 001 → (003, 004) → 005 → 019 → 023 → 006 → 007 → 024 →
 008 → 009 → 020 → 021 → 022. Las cuentas (019) y la vinculación (023) van antes
 de los pagos porque ahora todo pago requiere sesión y wallet vinculada.
 El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría del backend (y requiere reparar el bootstrap de CDK, tarea 22).
+
+**Regla:** los specs cuyo único pendiente es una acción manual del responsable no cuentan para el límite de 3 en paralelo, igual que el 002 pausado.
 
 ## Backlog (specs por escribir)
 
@@ -102,3 +104,5 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 024 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 007 | Cableado en la composición y contrato OpenAPI; 932 tests en verde → Hecho |
 | 2026-10-17 | 008 | Desarrollo aprobado → En desarrollo |
+| 2026-10-17 | 024 | Integrado y cableado en `develop-andres`; 1051 tests en verde → Hecho |
+| 2026-10-17 | 008 | Integrado y cableado (estado de pago y transacciones); 5/6, falta el caso 12 manual (pendiente del responsable) |
