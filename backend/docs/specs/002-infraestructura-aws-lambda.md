@@ -10,10 +10,9 @@
 
 ## Estado
 
-13 / 22 tareas completadas. Plantilla IaC en `backend/infra/`: 17/17 tests en
-verde y typecheck limpio. Tareas 13–16 (tabla de pagos con índices, throttling,
-configuración y alarmas) hechas en la rama `spec/002`, pendientes de integrar.
-Pendiente: tareas 17–21 (specs 019–024), reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
+18 / 22 tareas completadas. Plantilla IaC en `backend/infra/`: 22/22 tests en
+verde y typecheck limpio. Tareas 13–21 hechas en la rama `spec/002`, pendientes
+de integrar. Pendiente: reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
 El despliegue está bloqueado por la tarea 22: reparar el bootstrap de CDK de la cuenta, pendiente de autorización.
 **Por ahora solo se trabaja la plantilla IaC (sin desplegar). No se despliega hasta tener la mayoría del código del backend** (decisión 9).
 
@@ -215,11 +214,11 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 
 *Requeridas por los specs 019–024; se implementan cuando esos specs se aprueben:*
 
-17. [ ] Secreto `session-signing-key` (caso 16, spec 019).
-18. [ ] Índices `byType` y `byUser` (caso 17, spec 019).
-19. [ ] Configuración de passkeys y proveedor de wallets en la Lambda (caso 18, specs 003 y 019).
-20. [ ] Secreto `admin-password`, índice `byPayment` y `ADMIN_ENABLED` (casos 16–18, specs 020 y 022).
-21. [ ] Secreto `token-encryption-key` y configuración del monto diario y la comisión (casos 16 y 18, specs 023 y 024).
+17. [x] Secreto `session-signing-key` (caso 16, spec 019).
+18. [x] Índices `byType` y `byUser` (caso 17, spec 019).
+19. [x] Configuración de passkeys y proveedor de wallets en la Lambda (caso 18, specs 003 y 019).
+20. [x] Secreto `admin-password`, índice `byPayment` y `ADMIN_ENABLED` (casos 16–18, specs 020 y 022).
+21. [x] Secreto `token-encryption-key` y configuración del monto diario y la comisión (casos 16 y 18, specs 023 y 024).
 
 *Preparación de la cuenta de AWS (bloquea la tarea 11):*
 

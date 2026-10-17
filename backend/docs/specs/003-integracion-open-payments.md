@@ -10,7 +10,7 @@
 
 ## Estado
 
-0 / 8 tareas completadas. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 004 (worker de DeepSeek, rama `spec/003`). Ajustado el 2026-10-16 por el monto diario
+5 / 8 tareas completadas (configuración, llave privada, montos, anti-SSRF, puerto + fake y `toApiError`; 150 tests en verde en la rama `spec/003`, pendiente de integrar). Siguen fixtures, adapter del SDK y suite completa. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 004 (worker de DeepSeek, rama `spec/003`). Ajustado el 2026-10-16 por el monto diario
 preaprobado (spec 023); Cambios aprobados el 2026-10-16. Depende del spec 001.
 
 **Qué cambió respecto a la versión aprobada:** el grant de outgoing payment se
@@ -197,11 +197,11 @@ credenciales en la URL. Acepta `$host/path` (payment pointer) convirtiéndolo a
 
 ## Tareas
 
-1. [ ] Configuración nueva en `config/env.ts` y validación del secreto de Open Payments (caso 8).
-2. [ ] `shared/money` y soporte de distintas monedas: casos 1–4 y 16 en rojo → implementación.
-3. [ ] `SettingsProvider` (desde el entorno) y `assertSafeWalletUrl`: casos 5–6 y 15 → implementación.
-4. [ ] Puerto `OpenPaymentsGateway`, tipos propios y fake (caso 14).
-5. [ ] `toApiError`: caso 7 → implementación.
+1. [x] Configuración nueva en `config/env.ts` y validación del secreto de Open Payments (caso 8).
+2. [x] `shared/money` y soporte de distintas monedas: casos 1–4 y 16 en rojo → implementación.
+3. [x] `SettingsProvider` (desde el entorno) y `assertSafeWalletUrl`: casos 5–6 y 15 → implementación.
+4. [x] Puerto `OpenPaymentsGateway`, tipos propios y fake (caso 14).
+5. [x] `toApiError`: caso 7 → implementación.
 6. [ ] Fixtures HTTP de Open Payments a partir de respuestas reales de la red de prueba.
 7. [ ] Adapter del SDK con cliente autenticado, timeouts y reintentos: casos 9–13.
 8. [ ] Suite completa en verde, lint y typecheck limpios.

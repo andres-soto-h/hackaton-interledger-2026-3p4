@@ -24,11 +24,33 @@ Formato:
 
 | Spec | Rama | Worktree | Desde | Lote actual |
 |---|---|---|---|---|
-| 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 13–16 (índices, throttling, configuración, alarmas) |
+| 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
 | 003 | `spec/003` | `../<repo>-worktrees/spec-003` | 2026-10-16 | Tareas 1–5 (configuración, montos, anti-SSRF, puerto + fake, errores) |
-| 004 | `spec/004` | `../<repo>-worktrees/spec-004` | 2026-10-16 | Tareas 1–4 (tipos, IDs, puerto + contrato, memoria) |
+| 004 | `spec/004` | `../<repo>-worktrees/spec-004` | 2026-10-16 | Tareas 5–6 (DynamoDB + `pnpm test:dynamo`) |
 
 ## Decisiones
+
+### 2026-10-16 · Formato del secreto `token-encryption-key` (PENDIENTE de confirmar por el responsable)
+- Origen: spec 002 (orquestador)
+- Afecta: specs 002, 023 · `backend/infra/lib/backend-stack.ts`, cifrado de tokens
+- Decisión: Secrets Manager solo genera cadenas aleatorias de caracteres, no 32 bytes
+  en base64. La plantilla genera **64 caracteres alfanuméricos** y el spec 023 deriva
+  la llave AES-256 con `SHA-256(secreto)` (32 bytes). En local, `TOKEN_ENCRYPTION_KEY`
+  sigue la misma regla.
+- Acción para los demás: el 023 implementa la derivación; si el responsable prefiere
+  otra opción, se marca *Reemplazada*.
+
+### 2026-10-16 · Configuración opcional de la Lambda
+- Origen: spec 002 (orquestador)
+- Afecta: specs 002, 003, 019, 020, 023, 024
+- Decisión: las variables con valor por defecto en el backend (`WEBAUTHN_RP_ID`,
+  `WEBAUTHN_ORIGINS`, `WALLET_PROVIDER_BASE_URL`, `DAILY_SPEND_LIMITS`,
+  `DAILY_LIMIT_TIMEZONE`, `FEE_PERCENTAGE`, `ALLOWED_WALLET_HOSTS`,
+  `FRONTEND_RESULT_URL`) solo se pasan a la Lambda si se definen en las propiedades
+  del stack; el backend aplica sus defaults de API.md. `ADMIN_ENABLED` siempre se
+  pasa: `true` en `dev`, `false` en otros stages, salvo que la propiedad lo cambie.
+- Acción para los demás: al desplegar en `dev` hay que definir `webauthnRpId` y
+  `webauthnOrigins` (dominio de CloudFront, decisión 6 del spec 019).
 
 ### 2026-10-16 · Acceso de la Lambda a los índices de DynamoDB
 - Origen: spec 002 (propuesta del worker, aceptada por el orquestador)
