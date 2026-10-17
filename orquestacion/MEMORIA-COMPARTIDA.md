@@ -28,9 +28,16 @@ Formato:
 
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
 | 023 | `spec/023` | `../<repo>-worktrees/spec-023` | 2026-10-17 | Vinculación de wallet y monto diario (con fakes) |
-| 007 | `spec/007` | `../<repo>-worktrees/spec-007` | 2026-10-17 | Cotizar, confirmar y cancelar pagos |
+| 007 | `spec/007` | `../<repo>-worktrees/spec-007` | 2026-10-17 | Lote 1 integrado; falta cableado y OpenAPI (los hace el orquestador) |
+| 024 | `spec/024` | `../<repo>-worktrees/spec-024` | 2026-10-17 | Comisión por transacción |
 
 ## Decisiones
+
+### 2026-10-17 · Dueños de archivos del spec 024
+- Origen: orquestador
+- Afecta: specs 007 (integrado), 024, 008
+- Decisión: el **024** es dueño de `src/modules/fees/` (nuevo) y puede reemplazar las implementaciones por defecto de `FeeCalculator`/`FeeCollector` de `modules/payments/fee.ts` y su uso en `payments.service.ts` (cambios mínimos, sin romper los tests del 007). No edita app.ts/server.ts/lambda.ts/composition/config. El porcentaje viene de `EditableSettings.feePercentage` (spec 020) por el `SettingsProvider`. El cableado de la composición lo hace el orquestador.
+- Acción para los demás: el 008 consume los campos de comisión del pago.
 
 ### 2026-10-17 · Decisiones de diseño del 007 que afectan a otros specs
 - Origen: spec 007 (agente de tests)

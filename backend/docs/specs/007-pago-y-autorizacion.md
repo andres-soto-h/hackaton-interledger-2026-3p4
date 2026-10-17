@@ -10,7 +10,7 @@
 
 ## Estado
 
-0 / 9 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/007`. Reescrito el 2026-10-16 por la decisión de aprobar los
+7 / 9 tareas completadas (lote 1 integrado en `develop-andres`, 914 tests en verde; quedan el cableado en la composición, tarea 8 OpenAPI y 9). Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/007`. Reescrito el 2026-10-16 por la decisión de aprobar los
 pagos una sola vez, con un monto diario (spec 023). Cambios aprobados el 2026-10-16. Depende de los specs 003, 004, 005, 019 y 023.
 
 **Qué cambió respecto a la versión aprobada:**
@@ -236,13 +236,13 @@ Salen de este spec (pasan al 023): `CALLBACK_INVALID`, `CALLBACK_ALREADY_USED`,
 
 ## Tareas
 
-1. [ ] `PaymentsService.quote`: casos 1–8 y 15 en rojo → implementación.
-2. [ ] Ruta y controller `POST /payments` con idempotencia.
-3. [ ] Desafío de confirmación ligado al pago: casos 18–19 en rojo → implementación.
-4. [ ] `PaymentsService.confirm` con verificación del passkey: casos 9–13 y 17 en rojo → implementación.
-5. [ ] Rutas de opciones y confirmación con idempotencia.
-6. [ ] Cancelar: caso 14.
-7. [ ] Rutas protegidas por sesión (caso 16).
+1. [x] `PaymentsService.quote`: casos 1–8 y 15 en rojo → implementación.
+2. [x] Ruta y controller `POST /payments` con idempotencia.
+3. [x] Desafío de confirmación ligado al pago: casos 18–19 en rojo → implementación.
+4. [x] `PaymentsService.confirm` con verificación del passkey: casos 9–13 y 17 en rojo → implementación.
+5. [x] Rutas de opciones y confirmación con idempotencia.
+6. [x] Cancelar: caso 14.
+7. [x] Rutas protegidas por sesión (caso 16).
 8. [ ] Contrato en `openapi.yaml`.
 9. [ ] Suite completa en verde, lint y typecheck limpios.
 

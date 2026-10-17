@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
+0 / 7 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/024`. La decisión pendiente del orden de cobro / un solo cobro se resuelve con el valor por defecto del spec y queda registrada en [PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md). Depende de
 los specs 007, 020 y 023.
 
 ## Contexto
