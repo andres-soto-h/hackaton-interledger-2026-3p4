@@ -10,9 +10,13 @@
 
 ## Estado
 
-9 / 13 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
-en verde, typecheck y `cdk synth` correctos. Pendiente: reemplazo de llaves,
-despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)) y evaluación de JWT.
+9 / 16 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
+en verde, typecheck y `cdk synth` correctos. Pendiente: cambios aprobados el
+2026-10-16 (tabla de pagos con índices, throttling, configuración y alarmas),
+reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
+
+> 2026-10-16: aprobados los cambios que piden los specs de la API (003–009).
+> La evaluación de JWT pasó a deuda técnica ([TD-001](../DEUDA-TECNICA.md#td-001--autenticación-de-la-api-más-fuerte-que-la-api-key)).
 
 > Renumerado de 001 a 002 el 2026-10-16: el bootstrap de la API pasa a ser el 001.
 > El cargador de secretos y el middleware de API key se movieron al spec 001.
@@ -40,8 +44,12 @@ guardarse en un servicio de secretos, nunca en el código ni en la imagen de la 
 - API Gateway (HTTP API) que expone los endpoints públicamente, incluido el
   callback de grants de Open Payments.
 - Autenticación de la API por API key en el header `x-api-key`.
-- Tabla persistente para el estado de grants pendientes (entre `POST /payments`
-  y `GET /auth/callback`), porque Lambda no conserva memoria entre invocaciones.
+- Tabla de pagos con el diseño del spec [004](004-persistencia-pagos.md): estado
+  del flujo de autorización (Lambda no conserva memoria entre invocaciones),
+  índice de pagos y solicitudes por wallet, y registros de idempotencia.
+- Throttling de API Gateway.
+- Configuración de la Lambda que piden los specs de la API.
+- Alarmas de CloudWatch de [SEGURIDAD.md](../SEGURIDAD.md#monitoreo).
 - Almacenamiento seguro de las llaves privadas y de la API key, y su lectura
   desde la Lambda.
 - Permisos IAM de mínimo privilegio.
@@ -54,7 +62,7 @@ guardarse en un servicio de secretos, nunca en el código ni en la imagen de la 
 - Dominio propio / certificados.
 - Infraestructura del frontend y de `agent`.
 - Múltiples entornos (se despliega un solo entorno `dev` para el hackatón).
-- Mecanismo de autenticación definitivo (JWT u otro): solo se evalúa (tarea 15).
+- Autenticación más fuerte que la API key: deuda técnica TD-001.
 
 ## Criterios de aceptación
 
@@ -95,8 +103,8 @@ Wallet (redirect)    ──HTTPS──────────────▶   
                              │            │             │
                              ▼            ▼             ▼
                      Secrets Manager   DynamoDB     CloudWatch Logs
-                     (llaves OP,       (grants
-                      API key)          pendientes, TTL)
+                     (llaves OP,       (pagos,        + alarmas
+                      API key)          índices, TTL)
                              │
                              ▼
                    Open Payments (Interledger test network)
@@ -106,15 +114,19 @@ Wallet (redirect)    ──HTTPS──────────────▶   
 |---|---|---|
 | Lambda | Ejecuta la API | Runtime Node.js 22; el código se pasa como propiedad del stack |
 | API Gateway HTTP API | Expone la API | Ruta proxy `ANY /{proxy+}`; su URL es el `finish.uri` del grant |
-| DynamoDB | Estado de grants pendientes | On-demand; TTL en el atributo `expiresAt` |
-| Secret `open-payments` | Llaves privadas y key IDs de los comercios | JSON; el valor se carga a mano, nunca en la plantilla |
+| DynamoDB | Pagos, solicitudes e idempotencia | On-demand; TTL en `expiresAt`; índices `bySender` (`senderWalletAddress` + `createdAt`) y `byReceiver` (`receiverWalletAddress` + `createdAt`) |
+| Throttling | Limitar abuso | Stage por defecto de la HTTP API: rate 10 req/s, burst 20 (configurables) |
+| Alarmas CloudWatch | Detectar fallas y abuso | `5xx` de la API, picos de `401` y de `CALLBACK_INVALID` (métricas desde los logs) |
+| Secret `open-payments` | Wallet address, key ID y llave privada del cliente (wallet de la plataforma) | JSON; el valor se carga a mano, nunca en la plantilla |
 | Secret `api-key` | API key de los clientes de la API | Generado por AWS al crear el stack |
 | IAM Role | Permisos de la Lambda | Solo `GetSecretValue` de sus dos secretos, CRUD en su tabla, escribir sus logs |
 | CloudWatch Log Group | Logs de la Lambda | Retención de 14 días |
 
-**Variables de entorno de la Lambda (sin secretos):** ARN de cada secreto,
-nombre de la tabla. La URL pública de la API y las URLs de wallets se definen en
-el spec [001](001-bootstrap-api.md).
+**Variables de entorno de la Lambda (sin secretos):** `OPEN_PAYMENTS_SECRET_ARN`,
+`API_KEY_SECRET_ARN`, `PAYMENTS_TABLE_NAME`, y como propiedades del stack
+`ALLOWED_WALLET_HOSTS`, `MAX_PAYMENT_AMOUNTS` y
+`FRONTEND_RESULT_URL` (opcional). `API_BASE_URL` no se pasa: crearía una
+dependencia circular entre la Lambda y la API (ver decisión pendiente del spec 007).
 
 ### Autenticación por API key
 
@@ -165,6 +177,10 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 | 9 | IaC | Tabla, secretos y log group se eliminan al destruir el stack | `DeletionPolicy: Delete` |
 | 10 | Manual | `GET /health` sobre la URL desplegada | `200` |
 | 11 | Manual | Endpoint protegido desplegado sin API key / con API key | `401` / respuesta normal |
+| 12 | IaC | La tabla tiene los índices `bySender` y `byReceiver` con `createdAt` como sort key | Índices presentes |
+| 13 | IaC | El stage de la HTTP API tiene throttling configurado | `ThrottlingRateLimit` y `ThrottlingBurstLimit` |
+| 14 | IaC | La Lambda recibe `PAYMENTS_TABLE_NAME` y la configuración de Open Payments | Variables presentes; sin `GRANTS_TABLE_NAME` |
+| 15 | IaC | Existen las alarmas de `5xx`, `401` y `CALLBACK_INVALID` | Alarmas y filtros de métricas presentes |
 
 ## Tareas
 
@@ -177,10 +193,15 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 7. [x] Definir los secretos e IAM de mínimo privilegio hasta pasar los tests 4, 6 y 8.
 8. [x] Definir log group con retención hasta pasar el test 7.
 9. [x] Documentar dónde y cómo se guardan las llaves privadas en el despliegue (formato del secreto, carga, rotación) en el README.
-10. [ ] **Reemplazar las llaves privadas de la wallet personal por las de comercios ficticios** (crear wallets de prueba, generar llaves, registrarlas y cargarlas en el secreto).
+10. [ ] **Reemplazar las llaves de la wallet personal por las de una wallet de la plataforma** (crear la wallet `tranqui-app` en la red de prueba, sin fondos; generar sus llaves y cargarlas en el secreto). Las wallets de comercios de prueba solo se crean para recibir pagos; no necesitan llaves.
 11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de credenciales de AWS.*
 12. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 11).*
-13. [ ] **Evaluar un mecanismo de autenticación más seguro que la API key (p. ej. JWT)** y proponerlo como spec.
+13. [ ] Tabla de pagos: índices y renombre a `PAYMENTS_TABLE_NAME` (casos 12 y 14).
+14. [ ] Throttling de API Gateway (caso 13).
+15. [ ] Configuración de la Lambda para los specs de la API (caso 14).
+16. [ ] Alarmas de CloudWatch (caso 15).
+
+~~Evaluar un mecanismo de autenticación más seguro que la API key~~ → deuda técnica TD-001.
 
 ## Decisiones
 
