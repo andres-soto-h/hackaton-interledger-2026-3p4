@@ -169,16 +169,12 @@ describe('FakeOpenPaymentsGateway', () => {
     it('pide el grant interactivo y lo continúa', async () => {
       const { pending, grant } = await linkGrant()
 
-      expect(pending).toMatchObject({
-        interactRedirectUrl: expect.stringMatching(/^https:\/\//),
-        continueUri: expect.stringMatching(/^https:\/\//),
-        continueToken: expect.any(String),
-        finishNonce: expect.any(String)
-      })
-      expect(grant).toMatchObject({
-        accessToken: expect.any(String),
-        manageUrl: expect.stringMatching(/^https:\/\//)
-      })
+      expect(pending.interactRedirectUrl).toMatch(/^https:\/\//)
+      expect(pending.continueUri).toMatch(/^https:\/\//)
+      expect(pending.continueToken).toEqual(expect.any(String))
+      expect(pending.finishNonce).toEqual(expect.any(String))
+      expect(grant.accessToken).toEqual(expect.any(String))
+      expect(grant.manageUrl).toMatch(/^https:\/\//)
     })
 
     it('rechaza continuar un grant con un token desconocido', async () => {
