@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 10 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
+0 / 10 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); se desarrolla en la rama `spec/023`. La tarea 1 (spike en la red de prueba) queda como pendiente del responsable en [PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md); el resto se desarrolla con fakes. Depende de
 los specs 003, 004, 005 y 019. Requiere cambios de infraestructura en el spec 002.
 
 ## Contexto

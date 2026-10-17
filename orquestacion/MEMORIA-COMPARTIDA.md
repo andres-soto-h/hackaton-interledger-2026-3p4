@@ -25,10 +25,11 @@ Formato:
 | Spec | Rama | Worktree | Desde | Lote actual |
 |---|---|---|---|---|
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
-| 019 | `spec/019` | `../<repo>-worktrees/spec-019` | 2026-10-17 | Cuentas, passkeys y sesiones |
+| 019 | `spec/019` | `../<repo>-worktrees/spec-019` | 2026-10-17 | Lote 2: repositorio DynamoDB, adapter SimpleWebAuthn, OpenAPI, página de prueba |
 | 020 | `spec/020` | `../<repo>-worktrees/spec-020` | 2026-10-17 | Panel admin: base, configuración y `ActivityLog` |
 
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
+| 023 | `spec/023` | `../<repo>-worktrees/spec-023` | 2026-10-17 | Vinculación de wallet y monto diario (con fakes) |
 
 ## Decisiones
 
