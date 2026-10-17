@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: Tranqui API — Solicitar pago
+  version: 1.0.0
+  description: |
+    `POST /api/v1/payment-requests` (spec 006). Crea un *incoming payment* en la
+    wallet del receptor y devuelve su link de cobro.
+paths:
+  /api/v1/payment-requests:
+    post:
+      summary: Solicitar pago
+      operationId: createPaymentRequest
+      tags:
+        - Payment Requests
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequestBody'
+      responses:
+        '201':
+          description: Solicitud creada; el link de cobro está en `incomingPaymentUrl`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequest'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          description: No se pudo crear la solicitud.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                assetMismatch:
+                  value:
+                    error:
+                      code: ASSET_MISMATCH
+                      message: Asset code does not match the wallet
+                walletNotFound:
+                  value:
+                    error:
+                      code: WALLET_NOT_FOUND
+                      message: Wallet address not found
+                walletNotAllowed:
+                  value:
+                    error:
+                      code: WALLET_NOT_ALLOWED
+                      message: Wallet address is not allowed
+        '502':
+          $ref: '#/components/responses/OpenPaymentsError'
+        '503':
+          $ref: '#/components/responses/OpenPaymentsUnavailable'
+        '504':
+          $ref: '#/components/responses/OpenPaymentsTimeout'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Clave de idempotencia opcional (spec 005).
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 64
+  schemas:
+    Amount:
+      type: object
+      required:
+        - value
+        - assetCode
+      properties:
+        value:
+          type: string
+          description: Monto decimal en string (sin exponentes).
+          example: '10.50'
+        assetCode:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: USD
+    CreatePaymentRequestBody:
+      type: object
+      required:
+        - type
+        - receiverWalletAddress
+      properties:
+        type:
+          type: string
+          enum:
+            - p2p
+            - p2m
+        receiverWalletAddress:
+          type: string
+          maxLength: 2048
+          description: Payment pointer (`$host/path`) o URL `https` de la wallet.
+        amount:
+          $ref: '#/components/schemas/Amount'
+          description: Opcional; su moneda debe coincidir con la de la wallet.
+        description:
+          type: string
+          maxLength: 140
+        expiresInSeconds:
+          type: integer
+          minimum: 60
+          maximum: 86400
+          default: 900
+    PaymentRequest:
+      type: object
+      required:
+        - id
+        - type
+        - incomingPaymentUrl
+        - receiverWalletAddress
+        - receivedAmount
+        - status
+        - expiresAt
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: pr_01J...
+        type:
+          type: string
+          enum:
+            - p2p
+            - p2m
+        incomingPaymentUrl:
+          type: string
+        receiverWalletAddress:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Amount'
+        receivedAmount:
+          $ref: '#/components/schemas/Amount'
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING
+            - COMPLETED
+            - EXPIRED
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                  message:
+                    type: string
+  responses:
+    ValidationError:
+      description: Cuerpo inválido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: Invalid request
+    Unauthorized:
+      description: API key inválida o ausente.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: Invalid or missing API key
+    IdempotencyConflict:
+      description: Conflicto de idempotencia.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: IDEMPOTENCY_CONFLICT
+              message: Idempotency conflict
+    OpenPaymentsError:
+      description: Error de Open Payments.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: OPEN_PAYMENTS_ERROR
+              message: Open Payments error
+    OpenPaymentsUnavailable:
+      description: Open Payments no disponible.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: OPEN_PAYMENTS_UNAVAILABLE
+              message: Open Payments is unavailable
+    OpenPaymentsTimeout:
+      description: Timeout de Open Payments.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: OPEN_PAYMENTS_TIMEOUT
+              message: Open Payments request timed out

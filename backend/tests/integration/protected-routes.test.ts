@@ -14,7 +14,8 @@ const PROTECTED_ROUTES: [
 ][] = [
   ['get', '/api/v1/anything'],
   ['post', '/api/v1/anything'],
-  ['delete', '/api/v1/anything']
+  ['delete', '/api/v1/anything'],
+  ['post', '/api/v1/payment-requests']
 ]
 
 const PUBLIC_ROUTES: [method: 'get', path: string][] = [['get', '/health']]

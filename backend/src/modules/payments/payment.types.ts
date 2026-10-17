@@ -58,7 +58,7 @@ export interface PaymentRequest {
   type: PaymentType
   receiverWalletAddress: string
   incomingPaymentUrl: string
-  amount: Amount
+  amount?: Amount
   description?: string
   status: PaymentRequestStatus
   expiresAt: string
