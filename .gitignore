@@ -66,3 +66,7 @@ backend/keys/*
 !backend/keys/.gitkeep
 *.key
 *.pem
+
+# Orquestación con workers de DeepSeek (orquestacion/README.md)
+.orquestacion/
+orquestacion/runs/
