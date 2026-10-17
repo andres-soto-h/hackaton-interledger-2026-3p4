@@ -16,8 +16,8 @@
 | | | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 9/9 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
 | | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 5/6 · *solo falta la ejecución manual del caso 12 (pendiente del responsable)* | |
-| | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
-| | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
+| | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | |
+| | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | |
 | | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 9/10 · *solo falta el spike en red real (pendiente del responsable)* · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
 
 **Orden de desarrollo:** 001 → (003, 004) → 005 → 019 → 023 → 006 → 007 → 024 →
@@ -106,3 +106,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 008 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 024 | Integrado y cableado en `develop-andres`; 1051 tests en verde → Hecho |
 | 2026-10-17 | 008 | Integrado y cableado (estado de pago y transacciones); 5/6, falta el caso 12 manual (pendiente del responsable) |
+| 2026-10-17 | 009, 022 | Desarrollo aprobado → En desarrollo |
