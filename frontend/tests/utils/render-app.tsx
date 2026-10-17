@@ -16,6 +16,8 @@ type Options = {
   passkeys?: FakePasskeys;
   /** Rutas extra de la feature que se prueba (se suman a las de auth). */
   screens?: Screens;
+  /** Precarga la caché de TanStack Query antes de montar las rutas. */
+  seed?: (queryClient: QueryClient) => void;
 };
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -33,18 +35,20 @@ const baseScreens = (): Screens => ({
   '(app)/pagos/index': require('../../app/(app)/pagos/index').default,
   '(app)/pagos/[merchantId]/datos': require('../../app/(app)/pagos/[merchantId]/datos').default,
   '(app)/pagos/[merchantId]/validacion': require('../../app/(app)/pagos/[merchantId]/validacion').default,
+  '(app)/pagos/confirmar/[paymentId]': require('../../app/(app)/pagos/confirmar/[paymentId]').default,
   '(app)/cuenta': require('../../app/(app)/cuenta').default,
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 /** Monta las rutas reales de `app/` con los providers de prueba y el router en memoria. */
-export async function renderApp({ initialUrl, session = null, passkeys, screens }: Options) {
+export async function renderApp({ initialUrl, session = null, passkeys, screens, seed }: Options) {
   const store = createMemorySessionStore();
   if (session) await store.save(session);
   const fakePasskeys = passkeys ?? createFakePasskeys();
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false } },
   });
+  seed?.(queryClient);
   const Root = () => (
     <QueryClientProvider client={queryClient}>
       <SessionProvider store={store}>

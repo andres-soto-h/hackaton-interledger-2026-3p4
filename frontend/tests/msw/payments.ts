@@ -25,3 +25,13 @@ export const paymentHandlers = [
   }),
   http.post(`${API}/payments`, () => HttpResponse.json(quoteResponse(), { status: 201 })),
 ];
+
+export const confirmHandlers = [
+  http.post(`${API}/payments/:id/confirm/options`, () =>
+    HttpResponse.json({ challengeId: 'chl_pay', challenge: 'c', userVerification: 'required' }),
+  ),
+  http.post(`${API}/payments/:id/confirm`, ({ params }) =>
+    HttpResponse.json({ paymentId: String(params.id), status: 'PROCESSING' }, { status: 202 }),
+  ),
+  http.post(`${API}/payments/:id/cancel`, () => new HttpResponse(null, { status: 204 })),
+];
