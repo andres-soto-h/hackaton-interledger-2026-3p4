@@ -33,6 +33,12 @@ Formato:
 
 ## Decisiones
 
+### 2026-10-17 · Decisiones del 024 que afectan a 008, 009 y 022
+- Origen: spec 024 (agente de tests)
+- Afecta: specs 007 (integrado), 008, 009, 020, 022, 024
+- Decisión: `FeeCalculator.calculate(debit, assetScale)`; `FeeCollector.refresh(payment): Promise<Payment>` (si la comisión está `PROCESSING` pasa a `COLLECTED`/`FAILED`; si está `FAILED` reintenta una vez, campo `feeAttempts`). `feeStatus`: `PENDING` al cotizar con comisión > 0; `NONE` con comisión 0 o si el pago principal falla. `confirm` espera (`await`) el cobro de la comisión. Si la comisión falla se libera solo su parte de la reserva diaria. Resumen de comisiones del panel: puerto `FeeSummaryProvider` (adaptador DynamoDB y cableado pendientes del orquestador).
+- Acción para los demás: el **008** llama a `feeCollector.refresh` al consultar el estado de un pago (sin reordenar `payments.service.ts`; el 024 modifica `fee.ts`, `payments.service.ts`, `payment.types.ts` y `admin.routes.ts`). El 009/022 usan `feeStatus`.
+
 ### 2026-10-17 · Dueños de archivos del spec 008
 - Origen: orquestador
 - Afecta: specs 008, 024, 009, 022
