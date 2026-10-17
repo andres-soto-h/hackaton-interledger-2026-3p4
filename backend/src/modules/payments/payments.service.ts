@@ -420,6 +420,7 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
     const credentials = await users.listCredentials(user.id)
     options.allowCredentials = credentials.map((credential) => ({
       id: credential.id,
+      type: 'public-key',
       ...(credential.transports !== undefined
         ? { transports: credential.transports }
         : {})
