@@ -5,9 +5,9 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 9/22 · *despliegue bloqueado: reparar bootstrap de CDK (tarea 22, pendiente de autorización)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
-| | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 0/8 | |
-| | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 0/7 | |
+| | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 18/22 · *despliegue bloqueado: reparar bootstrap de CDK (tarea 22, pendiente de autorización)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
+| | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 5/8 | |
+| | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 6/7 | |
 | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 0/5 | | |
 | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 0/9 | | |
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
@@ -71,3 +71,8 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-16 | 002 | Agregada tarea 22: reparar el bootstrap de CDK de la cuenta `340464868186` con `tranqui-cfn-exec-policy` (bloquea el despliegue, pendiente de autorización); usuario `tranqui-deployer` creado; riesgo de `iam:PutRolePolicy` aceptado y anotado en SEGURIDAD |
 | 2026-10-16 | 002 | Decisión: solo plantilla IaC sin desplegar; el despliegue en `dev` espera a que esté la mayoría del backend |
 | 2026-10-16 | 003, 004 | Desarrollo aprobado → En desarrollo; en paralelo con el 002 (plantilla IaC) usando workers de DeepSeek |
+| 2026-10-16 | 002 | Tareas 13–16 hechas en `spec/002` (índices, throttling, configuración, alarmas); test del caso 5 corregido para permitir los índices |
+| 2026-10-16 | 004 | Tareas 1–4 hechas en `spec/004` (tipos, IDs ULID, contrato, repositorio en memoria); pruebas con DynamoDB Local vía Colima + nerdctl en lugar de Docker |
+| 2026-10-16 | 002 | Tareas 17–21 hechas en `spec/002` (secretos generados, índices de usuarios y eventos, configuración de passkeys, panel, monto diario y comisión) |
+| 2026-10-16 | 003 | Tareas 1–5 hechas en `spec/003` (configuración, montos, anti-SSRF, puerto + fake, `toApiError`) |
+| 2026-10-16 | 004 | Tareas 5–6 hechas en `spec/004` (repositorio DynamoDB, `pnpm test:dynamo` con DynamoDB Local) |
