@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+5 / 7 tareas completadas (262 tests en verde, lint y typecheck limpios). **Faltan las tareas 1 y 6**, ambas manuales contra la red de prueba y pendientes del responsable. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 > 2026-10-16: el usuario **ya no aprueba cada pago en su wallet**. Aprueba una
 > sola vez al vincular la wallet en el registro (spec 003, backend 023) y cada
@@ -106,13 +106,13 @@ Respuesta de `POST /payments` (backend 007):
 
 ## Tareas
 
-1. [ ] **Confirmar que el pago sin autorización desde la wallet funciona**: con una wallet vinculada (grant con monto diario, backend 023), hacer varios pagos desde la app sin abrir la wallet y verificar que llegan a `COMPLETED` (caso 10). Si no funciona, avisar para cambiar el front y el back.
-2. [ ] Handlers MSW de `POST /payments`, `/payments/{id}/confirm/options`, `/confirm` y `/cancel`.
-3. [ ] Casos 1–2 en rojo → desglose y texto hablado.
-4. [ ] Casos 3–4 en rojo → `confirmPayment` y cuenta regresiva.
-5. [ ] Casos 5–9 en rojo → pantalla de confirmación.
-6. [ ] Verificación manual (caso 10) en web.
-7. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [~] **Confirmar que el pago sin autorización desde la wallet funciona**: con una wallet vinculada (grant con monto diario, backend 023), hacer varios pagos desde la app sin abrir la wallet y verificar que llegan a `COMPLETED` (caso 10). Si no funciona, avisar para cambiar el front y el back.
+2. [x] Handlers MSW de `POST /payments`, `/payments/{id}/confirm/options`, `/confirm` y `/cancel`.
+3. [x] Casos 1–2 en rojo → desglose y texto hablado.
+4. [x] Casos 3–4 en rojo → `confirmPayment` y cuenta regresiva.
+5. [x] Casos 5–9 en rojo → pantalla de confirmación.
+6. [~] Verificación manual (caso 10) en web: pendiente.
+7. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
@@ -121,4 +121,16 @@ Respuesta de `POST /payments` (backend 007):
 | 1 | Aprobación | Una sola vez al vincular la wallet; cada pago se confirma en la app con el passkey (2026-10-16) |
 | 2 | Comisión | La devuelve la API en `quote.fee` (backend 024) |
 | 3 | Cancelar | `POST /payments/{id}/cancel` al tocar "No pagar" |
-| 4 | Un solo cobro | El responsable decidió un único débito por el total (backend [025](../../../backend/docs/specs/025-cobro-unico-comision.md), Borrador). La pantalla no cambia: sigue mostrando comisión y total de `quote`; el usuario ve un solo cargo en su wallet (2026-10-17) |
+| 4 | Comisión en el cobro | La comisión se cobra como un segundo outgoing payment (backend [024](../../../backend/docs/specs/024-comision-transacciones.md)); la app muestra comisión y total de `quote` como un solo cargo (2026-10-17) |
+
+## Notas de la implementación
+
+- Si se abre la confirmación sin la caché del 005 (p. ej. recargando la página), se usa `GET /payments/{id}`; esa respuesta
+  no trae `confirmBy` ni el disponible del día, así que en ese caso no hay cuenta regresiva ni la fila "Le queda hoy".
+- `DAILY_LIMIT_EXCEEDED` consulta `GET /me/allowance` para decir cuánto le queda hoy.
+- "Repítamelo" y la lectura al entrar usan `AccessibilityInfo.announceForAccessibility`; la voz del spec 009 reutiliza `buildSpokenSummary`.
+- Cada intento de confirmar usa un `Idempotency-Key` nuevo (cambia el desafío); el doble pago lo impide la API (backend 007, paso 4).
+
+## Pendientes del backend (para validar con el responsable)
+
+- `GET /payments/{id}` en `AWAITING_CONFIRMATION` debería incluir `confirmBy`, `allowance` y el nombre del comercio, para poder reabrir la confirmación con todos los datos.

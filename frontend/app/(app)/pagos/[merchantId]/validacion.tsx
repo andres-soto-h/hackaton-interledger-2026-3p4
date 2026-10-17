@@ -66,7 +66,7 @@ function Validation({
         },
         idempotencyKey,
       );
-      queryClient.setQueryData(paymentQuoteKey(payment.paymentId), payment);
+      queryClient.setQueryData(paymentQuoteKey(payment.paymentId), { ...payment, merchantName: merchant.name });
       router.replace(`/pagos/confirmar/${payment.paymentId}` as never);
     } catch (e) {
       setError(paymentErrorMessage(e));

@@ -21,8 +21,9 @@ export const useRecentTransactions = () => useTransactions({ limit: 5 });
 const DEFAULT_POLL_MS = 2000;
 
 /** Pago por id; mientras no sea final consulta de nuevo según `Retry-After` (backend 009). */
-export function usePayment(paymentId: string) {
+export function usePayment(paymentId: string, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
+    enabled,
     queryKey: transactionKeys.payment(paymentId),
     queryFn: () => transactionsApi.getPayment(paymentId),
     refetchInterval: (query) => {
