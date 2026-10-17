@@ -18,7 +18,7 @@ export function useTransactions({ status, limit = 20 }: { status?: PaymentStatus
 
 export const useRecentTransactions = () => useTransactions({ limit: 5 });
 
-const DEFAULT_POLL_MS = 2000;
+const DEFAULT_POLL_MS = 3000;
 
 /** Pago por id; mientras no sea final consulta de nuevo según `Retry-After` (backend 009). */
 export function usePayment(paymentId: string, { enabled = true }: { enabled?: boolean } = {}) {
