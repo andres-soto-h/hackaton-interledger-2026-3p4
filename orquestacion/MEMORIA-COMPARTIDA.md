@@ -33,6 +33,19 @@ Formato:
 
 ## Decisiones
 
+### 2026-10-17 · Decisiones de diseño del 007 que afectan a otros specs
+- Origen: spec 007 (agente de tests)
+- Afecta: specs 007, 008, 021, 024
+- Decisión:
+  - `Challenge` (modules/users) gana `payment?: { paymentId, userId, totalDebit }`; los pagos usan el tipo `payment_confirmation`. Toca `user.types.ts` y `dynamo-users.repository.ts` (el 021 también las modifica: conflicto de merge a resolver al integrar).
+  - Al confirmar, el vencimiento del quote se revisa justo después de encontrar el pago (y al pedir opciones), antes de consumir el desafío (el spec decía otro orden, pero el desafío vive como máximo hasta el vencimiento del quote).
+  - Cancelar un pago que no está en `AWAITING_CONFIRMATION` → `409 PAYMENT_NOT_CANCELLABLE` (código nuevo; agregar a API.md al integrar).
+  - `paymentsEnabled = false` bloquea cotizar, pedir opciones y confirmar con `503 PAYMENTS_DISABLED`; cancelar sigue permitido.
+  - Puertos `FeeCalculator` y `FeeCollector` en `modules/payments/fee.ts` con implementaciones sin cobro; el 024 los reemplaza.
+  - Si una confirmación vuelve a `AWAITING_CONFIRMATION` por límite diario, se restaura el `expiresAt`.
+  - `api-key-auth.ts`: se abren las 4 rutas de `/api/v1/payments` a la capa de sesión (regex anclada).
+- Acción para los demás: el 008 y el 024 usan estos puertos y códigos.
+
 ### 2026-10-17 · Dueños de archivos del spec 007
 - Origen: orquestador
 - Afecta: specs 007, 023 (lote 2), 021, 024
