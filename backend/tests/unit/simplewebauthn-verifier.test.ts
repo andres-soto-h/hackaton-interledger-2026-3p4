@@ -86,7 +86,8 @@ describe('SimpleWebAuthn PasskeyVerifier', () => {
       expect(verified.publicKey.length).toBeGreaterThan(40)
     })
 
-    it.each([
+    type Change = { challenge?: string; origins?: string[]; rpID?: string }
+    it.each<[string, Change]>([
       ['otro challenge', { challenge: 'otro-challenge-distinto' }],
       ['otro origen', { origins: ['https://evil.example'] }],
       ['otro rpID', { rpID: 'evil.example' }]

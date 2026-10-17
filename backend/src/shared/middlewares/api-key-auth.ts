@@ -15,7 +15,10 @@ const PUBLIC_ROUTES = new Set([
   'POST /api/v1/auth/login/options',
   'POST /api/v1/auth/login/verify',
   'GET /api/v1/me',
-  'DELETE /api/v1/me'
+  'DELETE /api/v1/me',
+  'GET /dev/passkeys',
+  'GET /dev/passkeys.js',
+  'GET /dev/passkeys.css'
 ])
 
 // Hashing both values gives equal-length buffers, so the comparison takes the
