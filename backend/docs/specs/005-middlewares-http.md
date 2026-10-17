@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | 2026-10-17 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-0 / 7 tareas completadas. Desarrollo aprobado el 2026-10-17; se desarrolla en la rama `spec/005` (worker de DeepSeek) en paralelo con los specs 002 y 003. Depende de los specs 001 y 004.
+7 / 7 tareas completadas e integradas en `develop-andres` (277 tests, typecheck y lint en verde). Depende de los specs 001 y 004.
 
 ## Contexto
 
@@ -104,13 +104,13 @@ de los endpoints. Lineamientos en [SEGURIDAD.md](../SEGURIDAD.md).
 
 ## Tareas
 
-1. [ ] `requestId` + `httpLogger` con redacción: casos 1–3.
-2. [ ] `securityHeaders` y `cors`: casos 4–6.
-3. [ ] `jsonBody`: casos 7–8.
-4. [ ] `validate(schema)` y schemas comunes: casos 9–10.
-5. [ ] `idempotency`: casos 11–14.
-6. [ ] Test de rutas protegidas (caso 15) y orden final en `createApp`.
-7. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] `requestId` + `httpLogger` con redacción: casos 1–3.
+2. [x] `securityHeaders` y `cors`: casos 4–6.
+3. [x] `jsonBody`: casos 7–8.
+4. [x] `validate(schema)` y schemas comunes: casos 9–10.
+5. [x] `idempotency`: casos 11–14.
+6. [x] Test de rutas protegidas (caso 15) y orden final en `createApp`.
+7. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes
 

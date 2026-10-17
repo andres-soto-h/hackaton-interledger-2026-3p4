@@ -15,9 +15,18 @@ los specs 003, 004, 005 y 019. Requiere cambios de infraestructura en el spec 00
 
 ## Contexto
 
-**Decisión del 2026-10-16:** el usuario aprueba los pagos **una sola vez**, al
-registrarse, con un **monto fijo por día** disponible para gastar. Después la
-app paga sin volver a pedir aprobación en la wallet.
+**Decisión del 2026-10-16 (confirmada con el equipo y con Interledger el
+2026-10-17):** el usuario aprueba los pagos **una sola vez**, al registrarse,
+con un **monto fijo por día** disponible para gastar. Después la app paga sin
+volver a pedir aprobación en la wallet.
+
+**Confirmación de Interledger (2026-10-17):** un grant de `outgoing-payment`
+admite límites de gasto (`limits.debitAmount`) y un `interval`; el titular de la
+wallet autoriza una sola vez y los pagos dentro del límite proceden sin nuevas
+aprobaciones. La guía oficial
+[Get an outgoing payment grant for future payments](https://openpayments.dev/guides/outgoing-grant-future-payments/)
+usa un intervalo mensual; el mismo patrón sirve para el diario cambiando el
+intervalo a `R/<inicio>/P1D`.
 
 Open Payments lo permite con un **grant de outgoing payment con límites**: el
 usuario aprueba en su wallet "esta app puede debitar hasta X por día", y la API
@@ -250,12 +259,12 @@ pagos a medias (pago sí, comisión no):
 |---|---|---|
 | 1 | Aprobación de pagos | Una sola vez al vincular, con monto fijo por día (2026-10-16) |
 | 2 | Inicio del día | Medianoche de Bogotá (`America/Bogota`) (2026-10-16) |
-| 3 | Tope diario en Open Payments | Se asume que la red de prueba acepta `interval` (2026-10-16); lo confirman el spike (tarea 1) y la consulta del equipo con Interledger |
+| 3 | Tope diario en Open Payments | **Confirmado por Interledger el 2026-10-17:** el grant admite `debitAmount` + `interval` y se autoriza una sola vez. El spike (tarea 1) solo verifica el comportamiento en la red de prueba |
 
 ## Decisiones pendientes
 
-1. **Si Open Payments no acepta `interval`** (según el spike o la respuesta de
-   Interledger): plan B ya acordado, un grant con límite total sin intervalo y
+1. **Solo si el spike (tarea 1) contradice la confirmación de Interledger** y la
+   red de prueba no acepta `interval`: plan B ya acordado, un grant con límite total sin intervalo y
    el control diario solo en la API con la reserva atómica. Es menos seguro,
    porque Open Payments ya no frenaría un gasto diario excesivo si la API
    fallara. Si ocurre, se ajusta este spec y se pide aprobación del cambio.
@@ -263,4 +272,5 @@ pagos a medias (pago sí, comisión no):
 ## Notas
 
 - Referencias: [Grants de Open Payments](https://openpayments.dev/identity/grants/) ·
+  [Guía: grant de pago saliente para pagos futuros](https://openpayments.dev/guides/outgoing-grant-future-payments/) ·
   [Objetos del auth server de Rafiki (`limits`)](https://rafiki.dev/apis/auth/objects/).

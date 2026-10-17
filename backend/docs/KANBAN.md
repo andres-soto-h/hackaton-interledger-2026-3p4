@@ -6,8 +6,8 @@
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
 | | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 21/22 · *bootstrap de CDK reparado; falta comprobar el acceso de `tranqui-deployer` (tarea 22)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
-| | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
+| | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
 | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 0/5 | | |
 | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 0/9 | | |
@@ -17,7 +17,7 @@
 | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 0/9 | | |
 | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
-| | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 0/10 · *tope con `interval` por confirmar con Interledger* | | |
+| | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 0/10 · *tope con `interval` confirmado por Interledger (2026-10-17)* | | |
 | | [024 — Comisión por transacción](specs/024-comision-transacciones.md) · 0/7 · *decisión pendiente: orden / un solo cobro* | | |
 
 **Orden de desarrollo:** 001 → (003, 004) → 005 → 019 → 023 → 006 → 007 → 024 →
@@ -82,3 +82,5 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 005 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 002 | Tarea 22: `CDKToolkit` borrado y bootstrap rehecho con `tranqui-cfn-exec-policy`; rol de ejecución verificado. Falta comprobar `tranqui-deployer` |
 | 2026-10-17 | 003 | Fixtures y adapter del SDK (tareas 6–7); integrado en `develop-andres`, suite completa en verde → Hecho |
+| 2026-10-17 | 023 | Confirmado por Interledger: el grant admite límite + `interval` y se autoriza una sola vez (guía oficial enlazada); decisión pendiente 1 pasa a plan B condicionado al spike |
+| 2026-10-17 | 005 | Integrado en `develop-andres`, 277 tests en verde → Hecho |
