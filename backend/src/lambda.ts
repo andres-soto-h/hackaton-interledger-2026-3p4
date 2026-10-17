@@ -7,6 +7,13 @@ import { createLogger } from './shared/logger.js'
 
 type ServerlessHandler = ReturnType<typeof serverless>
 
+/** Comma-separated host allowlist from `CORS_ALLOWED_ORIGINS`; empty values dropped. */
+const corsAllowedOrigins = (): string[] =>
+  (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0)
+
 // Built once per Lambda instance (cold start) and reused by later invocations.
 let ready: Promise<ServerlessHandler> | undefined
 
@@ -14,7 +21,9 @@ async function init(): Promise<ServerlessHandler> {
   const config = loadConfig()
   const logger = createLogger(config)
   const secrets = await loadSecrets(config)
-  return serverless(createApp({ config, secrets, logger }))
+  return serverless(
+    createApp({ config, secrets, logger, corsAllowedOrigins: corsAllowedOrigins() })
+  )
 }
 
 /** AWS Lambda entry point (`lambda.handler`) behind the API Gateway HTTP API. */
