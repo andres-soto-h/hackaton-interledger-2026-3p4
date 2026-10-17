@@ -184,7 +184,7 @@ handlers y el spec afectado.
 | Registro con banco + celular y permiso con tope mensual (1.2 – 1.4) | Registro con nombre, correo, wallet address y PIN | Requisito del responsable del proyecto |
 | "Sí, sin volver a autorizar" (2.4): un permiso guardado para varios pagos | Cada pago se aprueba en la wallet | Decisión del 2026-10-16: aprobación en cada pago |
 | "Tope del mes" y "Le quedan $…" | No se muestra | Depende del permiso guardado |
-| Comisión TuTranqui de 0,001 % | Se muestran las comisiones que trae el quote | El backend no cobra comisión propia (decisión pendiente 2) |
+| Comisión TuTranqui de 0,001 % | Se muestra en la confirmación y el resultado cuando la API la devuelva | La configura un spec del backend (decisión 2 del plan) |
 | "Hablar con una persona", "Enviar comprobante a un familiar" | Fuera de alcance | Backlog |
 | Pagos P2P a contactos guardados ("Andrés amigo") | Fuera de alcance de estos specs; el agente paga a comercios del directorio | Requisito: pagos de servicios a comercios registrados |
 

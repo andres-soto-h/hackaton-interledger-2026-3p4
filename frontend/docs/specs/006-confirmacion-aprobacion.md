@@ -25,7 +25,7 @@ la usan los pagos manuales (005) y los que prepara el agente (008).
 
 **Incluye**
 - Pantalla de confirmación del pago a partir de la respuesta de `POST /payments` (o de `GET /payments/{id}` si se abre de nuevo).
-- Desglose: le paga a, valor que recibe el comercio, costo del pago (comisiones del quote), sale de (wallet del usuario), total que sale; tasa de cambio si las monedas son distintas.
+- Desglose: le paga a, valor que recibe el comercio, costo del pago (comisiones del quote), comisión TuTranqui (si la API la devuelve), sale de (wallet del usuario), total que sale; tasa de cambio si las monedas son distintas.
 - Mensaje hablado del resumen (texto accesible con `toSpokenAmount`; lo lee la voz en 009).
 - Cuenta regresiva hasta que vence la autorización; al vencer se deshabilita "Sí, pagar".
 - "Sí, pagar": abre la `authorizationUrl` en la wallet (web: misma pestaña; Android: `expo-web-browser`).
@@ -34,7 +34,6 @@ la usan los pagos manuales (005) y los que prepara el agente (008).
 **No incluye**
 - El resultado después de aprobar (spec 007).
 - Cancelar el pago en el backend (no existe endpoint; vence por TTL).
-- Comisión propia de TuTranqui (decisión pendiente 2 del [PLAN](../PLAN.md#decisiones-pendientes)).
 
 ## Criterios de aceptación
 
@@ -63,6 +62,7 @@ Toma el pago de la caché (lo dejó 005 o 008); si no está, `usePayment(payment
 | Recibe | `quote.receiveAmount` |
 | Costo del pago | `quote.debitAmount − quote.receiveAmount` si son de la misma moneda; si no, no se muestra por separado |
 | Tasa | `debitAmount / receiveAmount` con aritmética de enteros (unidad mínima) |
+| Comisión TuTranqui | Campo que defina el spec de comisión del backend (p. ej. `fee`); si no viene, la fila no se muestra |
 | Sale de | Wallet del usuario (sesión) |
 | Total | `quote.debitAmount` |
 | Vence | `min(quote.expiresAt, authorizationExpiresAt)` (lo que devuelva el backend 007) |
@@ -94,15 +94,16 @@ con implementación por plataforma:
 | 8 | integration | Vencimiento | Botón deshabilitado y mensaje |
 | 9 | integration | Pago ya `PROCESSING` | Redirige al resultado |
 | 10 | integration | "No pagar" | Vuelve al inicio; no abre la wallet |
-| 11 | manual | Web y Android contra la red de prueba: aprobar en la wallet | Vuelve a la app con el resultado |
+| 11 | unit | Desglose con y sin comisión TuTranqui | La fila aparece solo si la API la devuelve; el total sigue siendo `quote.debitAmount` |
+| 12 | manual | Web y Android contra la red de prueba: aprobar en la wallet | Vuelve a la app con el resultado |
 
 ## Tareas
 
-1. [ ] Casos 1–2 en rojo → desglose y texto hablado.
+1. [ ] Casos 1–2 y 11 en rojo → desglose (con comisión) y texto hablado.
 2. [ ] Caso 3 en rojo → `openAuthorization` por plataforma.
 3. [ ] Caso 4 en rojo → hook de cuenta regresiva.
 4. [ ] Casos 5–10 en rojo → pantalla de confirmación.
-5. [ ] Verificación manual (caso 11) cuando el backend 007 esté desplegado.
+5. [ ] Verificación manual (caso 12) cuando el backend 007 esté desplegado.
 6. [ ] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes
@@ -110,5 +111,8 @@ con implementación por plataforma:
 1. **`authorizationUrl` en `GET /payments/{id}`:** para abrir la confirmación
    sin caché (caso 6) el backend debe devolverla mientras el pago esté
    `PENDING_AUTHORIZATION`. Hay que confirmarlo en el backend 008.
-2. **Cancelar un pago pendiente:** hoy vence solo. ¿Se agrega
+2. **Comisión TuTranqui en la respuesta:** nombre del campo y si ya está
+   incluida en `quote.debitAmount`. Lo define el spec de comisión del backend;
+   el front se ajusta a ese contrato.
+3. **Cancelar un pago pendiente:** hoy vence solo. ¿Se agrega
    `POST /payments/{id}/cancel`? Recomendación: no para el hackatón.

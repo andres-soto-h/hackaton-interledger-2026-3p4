@@ -69,7 +69,7 @@ usePaymentStatus(paymentId): { payment, phase: "polling" | "final" | "timeout" |
 | Estado | Título | Detalle |
 |---|---|---|
 | `PROCESSING` / `PENDING_AUTHORIZATION` | Enviando el pago… | "Esto toma unos segundos." |
-| `COMPLETED` | Listo. Su pago quedó hecho. | "<comercio> lo recibió a las <hora>." + desglose + comprobante |
+| `COMPLETED` | Listo. Su pago quedó hecho. | "<comercio> lo recibió a las <hora>." + desglose (con la comisión TuTranqui si la API la devuelve) + comprobante |
 | `REJECTED` | Usted no aprobó el pago | "No se movió ni un peso." |
 | `FAILED` | El pago no se pudo hacer | Según `error.code`; si `sentAmount` es 0: "No se debitó nada." |
 | `EXPIRED` | Se venció el tiempo para aprobar | "No se movió ni un peso. Puede prepararlo otra vez." |
