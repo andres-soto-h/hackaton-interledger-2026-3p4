@@ -22,9 +22,12 @@ type Options = {
 const baseScreens = (): Screens => ({
   '(publico)/_layout': require('../../app/(publico)/_layout').default,
   '(publico)/bienvenida': require('../../app/(publico)/bienvenida').default,
+  '(publico)/registro': require('../../app/(publico)/registro').default,
   '(publico)/ingresar': require('../../app/(publico)/ingresar').default,
   '(app)/_layout': require('../../app/(app)/_layout').default,
   '(app)/index': require('../../app/(app)/index').default,
+  '(app)/vincular/index': require('../../app/(app)/vincular/index').default,
+  '(app)/vincular/resultado': require('../../app/(app)/vincular/resultado').default,
   '(app)/cuenta': require('../../app/(app)/cuenta').default,
 });
 /* eslint-enable @typescript-eslint/no-require-imports */

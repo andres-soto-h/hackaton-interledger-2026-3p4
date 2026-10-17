@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+6 / 7 tareas completadas en la rama `front/003` (142 tests en verde, lint y typecheck limpios). **Solo falta la verificación manual (tarea 6, caso 9)**: registro completo en Chrome con una wallet de la red de prueba y el backend 019/023 desplegado; pendiente del responsable. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 ## Contexto
 
@@ -49,7 +49,7 @@ y el [backend 023](../../../backend/docs/specs/023-vinculacion-wallet-monto-diar
 - **Dado** datos válidos, **cuando** toca "Seguir", **entonces** se pide `POST /auth/register/options`; si la wallet no existe o no está permitida (`422 WALLET_NOT_FOUND` / `WALLET_NOT_ALLOWED`), ve el error en el campo de la wallet.
 - **Dado** una wallet que ya tiene cuenta (`409 WALLET_ALREADY_REGISTERED`), **cuando** sigue, **entonces** ve el error y un enlace a "Ingresar".
 - **Dado** el paso 2, **cuando** crea el passkey, **entonces** se llama `POST /auth/register/verify`, queda con sesión y pasa al paso 3; si cancela el diálogo, sigue en el paso 2 y puede reintentar.
-- **Dado** el paso 3, **cuando** lo abre, **entonces** ve el monto diario en la moneda de su wallet y "Cada pago lo confirma usted en la app".
+- **Dado** el paso 3, **cuando** lo abre, **entonces** ve qué podrá y qué no podrá hacer TuTranqui y "Cada pago lo confirma usted en la app". El monto diario se muestra al volver de la wallet (y la wallet lo muestra al pedir el permiso): el backend no lo expone antes de vincular (ver *Pendientes del backend*).
 - **Dado** "Ir a mi wallet", **cuando** lo toca, **entonces** se llama `POST /me/wallet-link` y el navegador va a la `authorizationUrl` (solo si es `https`).
 - **Dado** que aprueba en su wallet, **cuando** vuelve a la app, **entonces** ve "Su wallet autorizó a TuTranqui", el monto diario y "Empezar a pagar".
 - **Dado** que rechaza o se vence el tiempo, **cuando** vuelve, **entonces** ve qué pasó y "Intentar de nuevo".
@@ -106,13 +106,13 @@ Vuelta: FRONTEND_RESULT_URL?linkId=…&status=…
 
 ## Tareas
 
-1. [ ] Handlers MSW de `/auth/register/*` y `/me/wallet-link` con fixtures por estado.
-2. [ ] Caso 1 en rojo → schema y normalización de wallet.
-3. [ ] Casos 3–4 en rojo → pasos 1 y 2.
-4. [ ] Casos 2 y 5–6 en rojo → paso 3 y vuelta desde la wallet.
-5. [ ] Casos 7–8 en rojo → aviso de vinculación pendiente y doble envío.
-6. [ ] Verificación manual (caso 9) cuando los backend 019 y 023 estén desplegados.
-7. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Handlers MSW de `/auth/register/*` y `/me/wallet-link` con fixtures por estado.
+2. [x] Caso 1 en rojo → schema y normalización de wallet.
+3. [x] Casos 3–4 en rojo → pasos 1 y 2.
+4. [x] Casos 2 y 5–6 en rojo → paso 3 y vuelta desde la wallet.
+5. [x] Casos 7–8 en rojo → aviso de vinculación pendiente y doble envío.
+6. [~] Verificación manual (caso 9) cuando los backend 019 y 023 estén desplegados: pendiente.
+7. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
@@ -129,3 +129,13 @@ Vuelta: FRONTEND_RESULT_URL?linkId=…&status=…
 - Depende de 001 y 002 (sesión y passkeys).
 - El backend 019 no pide correo: el registro es con nombre y wallet, y el ingreso
   es con el passkey, sin usuario.
+- Si la sesión se abre en `/registro`, el guard de `(publico)` lleva a `/vincular` (paso 3) en vez de al inicio.
+- En web, "Ir a mi wallet" navega en la misma pestaña (`window.location.assign`) para que la vuelta
+  caiga en `/vincular/resultado`; en Android nativo usa `Linking.openURL`.
+
+## Pendientes del backend (para validar con el responsable)
+
+- **Monto diario antes de vincular:** el paso 3 no puede mostrar el monto diario porque
+  `GET /me/wallet-link` responde `404` y `GET /me/allowance` depende de una vinculación. Se
+  propone exponerlo antes (p. ej. `dailyLimit` en `GET /me` o `GET /me/allowance` sin vinculación).
+  Mientras tanto el monto aparece al volver de la wallet.
