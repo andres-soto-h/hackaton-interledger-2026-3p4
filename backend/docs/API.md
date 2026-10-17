@@ -1,6 +1,6 @@
 # API de pagos P2P / P2M — visión general
 
-Documento de referencia compartido por los specs de la API (003 a 009). Define
+Documento de referencia compartido por los specs de la API (003 a 009 y 019 a 024). Define
 conceptos, flujos, estados, endpoints, arquitectura, almacenamiento, monedas y
 errores. Cada spec implementa una parte y remite aquí en lugar de repetirlo.
 Seguridad: [SEGURIDAD.md](SEGURIDAD.md).
@@ -13,7 +13,7 @@ Seguridad: [SEGURIDAD.md](SEGURIDAD.md).
 | **Cliente** | Quien llama a Open Payments. Se identifica con su wallet address y firma cada petición (HTTP Message Signatures) con una llave privada Ed25519 registrada en esa wallet | La API es el cliente; usa la llave de la plataforma |
 | **Grant (GNAP)** | Permiso que entrega el *authorization server* de una wallet; devuelve un *access token* | Uno por recurso |
 | **Grant no interactivo** | Se concede de inmediato | `incoming-payment` y `quote` |
-| **Grant interactivo** | El dueño de la wallet debe aprobarlo en su proveedor (redirect) | `outgoing-payment`: el emisor aprueba el débito |
+| **Grant interactivo** | El dueño de la wallet debe aprobarlo en su proveedor (redirect) | `outgoing-payment` con límite diario: el usuario lo aprueba una vez al vincular su wallet |
 | **Incoming payment** | Cuenta de cobro en la wallet del receptor, con monto esperado opcional y expiración | "Solicitar pago" y destino de todo pago |
 | **Quote** | Cotización en la wallet del emisor: cuánto se debita y cuánto recibe el receptor (incluye conversión de moneda y comisiones) | Paso previo al pago; expira |
 | **Outgoing payment** | Orden de pago desde la wallet del emisor hacia un incoming payment, sobre ILP | Ejecuta el pago |
@@ -26,8 +26,8 @@ Seguridad: [SEGURIDAD.md](SEGURIDAD.md).
 - Esa llave identifica a la app, como el `client_id` + secreto de OAuth. **No da
   acceso a fondos de nadie**: todo acceso pasa por un grant.
 - Los usuarios y comercios **nunca entregan llaves**. Para recibir solo hace falta
-  su wallet address (grant no interactivo); para pagar, el emisor aprueba el
-  grant interactivo iniciando sesión en su propio proveedor de wallet.
+  su wallet address (grant no interactivo); para pagar, el usuario aprueba una
+  vez un monto diario iniciando sesión en su propio proveedor de wallet.
 
 ## Flujos
 
@@ -44,46 +44,65 @@ Agente ◀── 201 { id, incomingPaymentUrl, amount, expiresAt } ─┘
 
 El `incomingPaymentUrl` es el "link de cobro": el pagador lo usa en `POST /payments`.
 
+### Vincular la wallet (una vez, al registrarse)
+
+```
+App ──POST /me/wallet-link──▶ API          (sesión del usuario)
+                              ├─ grant INTERACTIVO outgoing-payment
+                              │    límite = monto diario, intervalo = 1 día
+                              └─ WalletLink PENDING_AUTHORIZATION
+App ◀── 202 { linkId, authorizationUrl } ─┘
+
+Usuario abre authorizationUrl ──▶ su wallet ──aprueba──▶ redirect a
+GET /auth/callback?linkId&interact_ref&hash
+                              ├─ valida el callback, continúa el grant
+                              ├─ guarda el access token cifrado
+                              └─ WalletLink ACTIVE → el usuario ya puede pagar
+```
+
+Detalle en el [spec 023](specs/023-vinculacion-wallet-monto-diario.md).
+
 ### Hacer pago
 
 ```
-Agente ──POST /payments──▶ API
-                           ├─ GET wallets emisor y receptor
-                           ├─ si no viene incomingPaymentUrl: crear incoming payment en el receptor
-                           ├─ grant no interactivo quote + crear quote (wallet emisor)
-                           ├─ grant INTERACTIVO outgoing-payment con límite = quote.debitAmount
-                           └─ guardar Payment (PENDING_AUTHORIZATION)
-Agente ◀── 202 { paymentId, authorizationUrl, quote } ─┘
+App ──POST /payments──▶ API                (sesión; emisor = wallet vinculada)
+                        ├─ crear o validar el incoming payment del receptor
+                        ├─ quote + comisión + disponible del día
+                        └─ Payment AWAITING_CONFIRMATION
+App ◀── 201 { paymentId, quote (con comisión y total), allowance } ─┘
 
-Usuario emisor abre authorizationUrl ──▶ su wallet ──aprueba / rechaza──▶ redirect a
-GET /auth/callback?paymentId&interact_ref&hash
-                           ├─ valida el callback
-                           ├─ continúa el grant y crea el outgoing payment
-                           ├─ Payment → PROCESSING
-                           └─ página de resultado (HTML provisional hasta tener frontend)
+App ──POST /payments/{id}/confirm──▶ API   (firma del passkey del usuario)
+                        ├─ reserva el total en el monto diario
+                        ├─ outgoing payment con el token de la vinculación
+                        ├─ outgoing payment de la comisión a la wallet de la plataforma
+                        └─ Payment → PROCESSING
 
-Agente ──GET /payments/{id}──▶ API ──consulta Open Payments──▶ COMPLETED / FAILED
+App ──GET /payments/{id}──▶ API ──consulta Open Payments──▶ COMPLETED / FAILED
 ```
+
+Ningún pago pide aprobación en la wallet: la aprobación fue una sola, al
+vincular, con un tope diario. Detalle en los specs
+[007](specs/007-pago-y-autorizacion.md) y [024](specs/024-comision-transacciones.md).
 
 ### Estados de un pago
 
 ```
-PENDING_AUTHORIZATION ──aprobado──▶ PROCESSING ──▶ COMPLETED
-        │                               └────────▶ FAILED
-        ├──rechazado──▶ REJECTED
-        └──TTL / quote vencido──▶ EXPIRED
+AWAITING_CONFIRMATION ──confirmar──▶ PROCESSING ──▶ COMPLETED
+        │                                 └───────▶ FAILED
+        ├──cancelar──────▶ CANCELLED
+        └──quote vencido─▶ EXPIRED
 ```
 
 | Estado | Significado |
 |---|---|
-| `PENDING_AUTHORIZATION` | Quote creado; esperando que el emisor apruebe en su wallet |
-| `PROCESSING` | Grant aprobado y outgoing payment creado; ILP moviendo fondos |
+| `AWAITING_CONFIRMATION` | Cotizado; esperando que el usuario confirme en la app |
+| `PROCESSING` | Outgoing payment creado; ILP moviendo fondos |
 | `COMPLETED` | Open Payments reporta enviado el monto completo |
 | `FAILED` | Open Payments marcó el outgoing payment como fallido o no se pudo crear |
-| `REJECTED` | El emisor rechazó la autorización |
-| `EXPIRED` | No se autorizó a tiempo o el quote venció |
+| `CANCELLED` | El usuario canceló antes de confirmar |
+| `EXPIRED` | El quote venció antes de confirmar |
 
-Los estados solo avanzan; `COMPLETED`, `FAILED`, `REJECTED` y `EXPIRED` son finales.
+Los estados solo avanzan; `COMPLETED`, `FAILED`, `CANCELLED` y `EXPIRED` son finales.
 
 ## Endpoints
 
@@ -91,10 +110,14 @@ Los estados solo avanzan; `COMPLETED`, `FAILED`, `REJECTED` y `EXPIRED` son fina
 |---|---|---|---|
 | `GET /health` | 001 | Pública | Verifica que la API esté arriba |
 | `POST /api/v1/payment-requests` | 006 | API key | Solicitar pago (crea incoming payment) |
-| `POST /api/v1/payments` | 007 | API key | Inicia un pago; devuelve quote y URL de autorización |
-| `GET /api/v1/auth/callback` | 007 | Pública | Recibe la autorización del emisor y ejecuta el pago |
-| `GET /api/v1/payments/{paymentId}` | 008 | API key | Estado de un pago |
-| `GET /api/v1/transactions` | 008 | API key | Pagos y solicitudes de una wallet |
+| `POST /api/v1/payments` | 007 | Sesión | Cotiza un pago (con comisión y disponible del día) |
+| `POST /api/v1/payments/{paymentId}/confirm/options` · `/confirm` | 007 | Sesión + passkey | Confirma (ejecuta) el pago con la firma del passkey |
+| `POST /api/v1/payments/{paymentId}/cancel` | 007 | Sesión | Cancela un pago no confirmado |
+| `GET /api/v1/payments/{paymentId}` | 008 | Sesión | Estado de un pago propio |
+| `GET /api/v1/transactions` | 008 | Sesión | Pagos y solicitudes de la wallet del usuario |
+| `POST` · `GET` · `DELETE /api/v1/me/wallet-link` | 023 | Sesión | Vincular, ver o revocar la wallet con su monto diario |
+| `GET /api/v1/me/allowance` | 023 | Sesión | Monto diario, gastado y disponible |
+| `GET /api/v1/auth/callback` | 023 | Pública | Vuelta desde la wallet al vincular |
 | `POST /api/v1/auth/register/options` · `/verify` | 019 | Pública | Crear cuenta con passkey |
 | `POST /api/v1/auth/login/options` · `/verify` | 019 | Pública | Iniciar sesión con passkey |
 | `GET /api/v1/me` · `DELETE /api/v1/me` | 019 | Sesión de usuario | Ver o borrar la cuenta |
@@ -186,11 +209,11 @@ convierte monedas ni maneja tasas. Lo que sí define:
    comisiones las paga el emisor y se ven en el quote). Una solicitud de pago
    (P2M) siempre fija lo que recibe el comercio, en su moneda.
 2. **Mostrar la conversión antes de aprobar.** La respuesta de `POST /payments`
-   incluye ambos montos y la tasa implícita para que el agente se la muestre al
-   usuario.
+   incluye ambos montos, la tasa implícita y la comisión para que la app se los
+   muestre al usuario.
 3. **La tasa vale mientras el quote no venza** (normalmente pocos minutos). Por
-   eso el tiempo para autorizar es el menor entre el TTL configurado y la
-   expiración del quote.
+   eso el usuario debe confirmar el pago antes de que venza el quote; si no,
+   pasa a `EXPIRED` y hay que cotizar de nuevo.
 4. **El límite por pago depende de la moneda.** `MAX_PAYMENT_AMOUNTS` define un
    máximo por moneda del emisor (p. ej. `USD:1000,EUR:900,MXN:20000`) y se
    aplica al `debitAmount`. Una moneda sin límite configurado se rechaza
@@ -215,18 +238,24 @@ Formato estándar (spec 001):
 |---|---|---|---|
 | `VALIDATION_ERROR` | 400 | Body o query inválido | 005 |
 | `INVALID_JSON` | 400 | JSON mal formado | 001 |
-| `CALLBACK_INVALID` | 400 | Falta `interact_ref`/`hash` o el hash no coincide | 007 |
+| `CALLBACK_INVALID` | 400 | Falta `interact_ref`/`hash` o el hash no coincide | 023 |
 | `PASSKEY_VERIFICATION_FAILED` | 400 | Firma, origen, rpID o contador del passkey inválidos | 019 |
 | `CHALLENGE_EXPIRED` | 400 | Challenge o enlace de registro vencido, usado o inexistente | 019, 021 |
 | `UNAUTHORIZED` | 401 | API key ausente o inválida | 001 |
 | `SESSION_INVALID` | 401 | Sesión ausente, inválida o vencida; cuenta borrada o bloqueada | 019 |
 | `REAUTH_REQUIRED` | 401 | Acción sensible con sesión de más de 5 minutos | 019 |
 | `NOT_FOUND` | 404 | Ruta inexistente | 001 |
-| `PAYMENT_NOT_FOUND` | 404 | `paymentId` inexistente | 007, 008 |
+| `WALLET_NOT_LINKED` | 403 | Pagar sin una vinculación activa | 007, 023 |
+| `PAYMENT_NOT_FOUND` | 404 | `paymentId` inexistente o de otro usuario | 007, 008 |
+| `LINK_NOT_FOUND` | 404 | `linkId` inexistente en el callback | 023 |
 | `IDEMPOTENCY_CONFLICT` | 409 | Misma `Idempotency-Key` con otro body | 005 |
-| `CALLBACK_ALREADY_USED` | 409 | El pago ya salió de `PENDING_AUTHORIZATION` | 007 |
+| `CALLBACK_ALREADY_USED` | 409 | La vinculación ya salió de `PENDING_AUTHORIZATION` | 023 |
+| `PAYMENT_NOT_CONFIRMABLE` | 409 | El pago no está esperando confirmación | 007 |
+| `WALLET_ALREADY_LINKED` | 409 | Ya hay una vinculación activa | 023 |
+| `WALLET_LINK_REVOKED` | 409 | El usuario retiró el permiso desde su wallet | 023 |
 | `WALLET_ALREADY_REGISTERED` | 409 | La wallet ya tiene una cuenta | 019 |
-| `AUTHORIZATION_EXPIRED` | 410 | Autorización o quote vencidos | 007 |
+| `AUTHORIZATION_EXPIRED` | 410 | La vinculación no se aprobó a tiempo | 023 |
+| `QUOTE_EXPIRED` | 410 | Se confirmó un pago después de vencer el quote | 007 |
 | `PAYLOAD_TOO_LARGE` | 413 | Body mayor a 16 kb | 005 |
 | `UNSUPPORTED_MEDIA_TYPE` | 415 | Content-Type distinto de JSON | 005 |
 | `WALLET_NOT_FOUND` | 422 | La wallet address no existe | 003 |
@@ -235,9 +264,10 @@ Formato estándar (spec 001):
 | `CURRENCY_NOT_SUPPORTED` | 422 | Moneda del emisor sin límite configurado | 003 |
 | `AMOUNT_EXCEEDS_LIMIT` | 422 | Monto mayor al máximo de su moneda | 003 |
 | `INCOMING_PAYMENT_NOT_PAYABLE` | 422 | Incoming payment completado, vencido o sin monto | 007 |
+| `DAILY_LIMIT_EXCEEDED` | 422 | El total (pago + comisión) supera el disponible del día | 023 |
 | `QUOTE_FAILED` | 422 | Open Payments no pudo cotizar (sin ruta, sin liquidez, monto muy pequeño) | 003 |
-| `GRANT_NOT_FINALIZED` | 502 | El grant no quedó finalizado tras continuar | 007 |
-| `GRANT_LIMITS_MISMATCH` | 502 | El límite concedido no cubre el quote | 007 |
+| `GRANT_NOT_FINALIZED` | 502 | El grant no quedó finalizado tras continuar | 023 |
+| `GRANT_LIMITS_MISMATCH` | 502 | Los límites concedidos no son los pedidos | 023 |
 | `OPEN_PAYMENTS_ERROR` | 502 | Error de Open Payments no clasificado | 003 |
 | `OPEN_PAYMENTS_UNAVAILABLE` | 503 | La wallet o la red no responden | 003 |
 | `PAYMENTS_DISABLED` | 503 | Pagos desactivados desde el panel | 020 |
@@ -258,9 +288,13 @@ Además de la del spec 001:
 | `MAX_PAYMENT_AMOUNTS` | `USD:1000` | 003 | Máximo por pago por moneda del emisor. Editable desde el panel (spec 020) |
 | `PAYMENTS_TABLE_NAME` | — | 004 | Tabla DynamoDB (solo Lambda) |
 | `CORS_ALLOWED_ORIGINS` | vacío | 005 | Orígenes permitidos (vacío = CORS deshabilitado) |
-| `API_BASE_URL` | — (obligatoria) | 007 | URL pública de la API; base del `finish.uri` |
-| `FRONTEND_RESULT_URL` | — | 007 | Página de resultado; sin valor se muestra el HTML provisional |
-| `PAYMENT_AUTH_TTL_SECONDS` | `600` | 007 | Tiempo máximo para autorizar un pago. Editable desde el panel (spec 020) |
+| `API_BASE_URL` | — (obligatoria en local) | 023 | URL pública de la API; base del `finish.uri` |
+| `FRONTEND_RESULT_URL` | — | 023 | Página de resultado de la vinculación; sin valor se muestra el HTML provisional |
+| `LINK_AUTH_TTL_SECONDS` | `600` | 023 | Tiempo para aprobar la vinculación en la wallet. Editable desde el panel (spec 020) |
+| `DAILY_SPEND_LIMITS` | `USD:200` | 023 | Monto diario por moneda para las vinculaciones nuevas. Editable desde el panel |
+| `DAILY_LIMIT_TIMEZONE` | `America/Bogota` | 023 | Zona horaria del inicio del día |
+| `TOKEN_KEY_SECRET_ARN` | — | 023 | Llave de cifrado de tokens (en local, `TOKEN_ENCRYPTION_KEY`) |
+| `FEE_PERCENTAGE` | `0` | 024 | Comisión por pago (%). Editable desde el panel |
 | `SESSION_SECRET_ARN` | — | 019 | Secreto de firma de sesiones (en local, `SESSION_SECRET`) |
 | `SESSION_TTL_SECONDS` | `3600` | 019 | Duración de la sesión de usuario |
 | `WEBAUTHN_RP_ID` | `localhost` | 019 | Dominio del frontend al que quedan atados los passkeys |

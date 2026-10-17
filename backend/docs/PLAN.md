@@ -41,11 +41,12 @@ backend/
 │   ├── config/
 │   │   └── env.ts            ← lee y valida variables; falla al arrancar si falta alguna
 │   ├── modules/              ← un módulo por funcionalidad
-│   │   ├── auth/             ← grants interactivos y callback de Open Payments
+│   │   ├── auth/             ← vinculación de la wallet (grant con monto diario) y callback (spec 023)
 │   │   ├── payments/         ← hacer un pago (quote + outgoing payment)
 │   │   ├── payment-requests/ ← solicitar un pago (incoming payment)
 │   │   ├── transactions/     ← consultar transacciones
 │   │   ├── users/            ← cuentas con passkeys y sesión (spec 019)
+│   │   ├── fees/             ← cálculo y cobro de comisiones (spec 024)
 │   │   └── admin/            ← panel HTML: configuración, usuarios, actividad (specs 020–022)
 │   │       (cada módulo: *.routes.ts, *.controller.ts, *.service.ts, *.schemas.ts)
 │   ├── integrations/

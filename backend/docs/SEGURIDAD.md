@@ -36,7 +36,11 @@ Si este documento crece, se puede convertir en su propio spec.
 
 | Medida | Dónde |
 |---|---|
-| Ningún pago se ejecuta sin aprobación del dueño de la wallet emisora (grant interactivo con límite = monto del quote) | Spec 007 |
+| El dueño de la wallet aprueba en su proveedor un tope diario (grant interactivo con `debitAmount` + `interval`); Open Payments no deja gastar más | Spec 023 |
+| Riesgo: con un permiso preaprobado, quien pueda crear pagos puede gastar el monto diario de un usuario. Mitigación: crear y confirmar pagos exige la sesión del propio usuario; el emisor sale de la sesión, nunca del body; la API key no puede pagar | Spec 007 |
+| Confirmación de cada pago con el passkey del usuario (para que ni el agente ni una sesión robada puedan pagar) | Spec 007 |
+| Reserva atómica del monto diario (pago + comisión) antes de mover dinero | Specs 007, 023 y 024 |
+| El usuario puede revocar el permiso en su wallet o en la app; borrar la cuenta cancela el grant | Specs 019 y 023 |
 | Máximo por pago por moneda (`MAX_PAYMENT_AMOUNTS`) y validación estricta de montos | Spec 003 |
 | Riesgo: quien tenga la API key puede crear solicitudes de pago hacia cualquier wallet permitida. Mitigación: lista blanca de comercios P2M y cuotas por API key | Recomendación |
 
@@ -76,7 +80,9 @@ servicios internos, por ejemplo al endpoint de metadata de AWS.
 
 | Medida | Dónde |
 |---|---|
-| Tokens de Open Payments guardados solo mientras el pago está activo; revocados y borrados al llegar a un estado final | Specs 004 y 008 |
+| Access token de la vinculación cifrado con AES-256-GCM (llave en Secrets Manager, `linkId` como dato asociado); nunca en respuestas, logs ni eventos | Spec 023 |
+| Rotación del token antes de vencer; cancelación del grant al desvincular o borrar la cuenta | Spec 023 |
+| Los pagos no guardan tokens | Spec 004 |
 | `description` de máximo 140 caracteres, sin caracteres de control, tratada solo como texto | Spec 005 (schemas) |
 | Cifrado en reposo de DynamoDB (activo por defecto) | Spec 002 |
 | No guardar datos personales más allá de las wallet addresses | Spec 004 |

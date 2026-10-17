@@ -7,10 +7,11 @@ Cuando se aborde, se convierte en un spec.
 | ID | Tema | Estado |
 |---|---|---|
 | TD-001 | Autenticación de la API más fuerte que la API key | Abierta |
-| TD-002 | Verificar que la wallet registrada es del usuario | Abierta |
+| TD-002 | Verificar que la wallet registrada es del usuario | Se resuelve con el spec 023 |
 | TD-003 | Passkeys nativos en la app Android (React Native) | Abierta |
 | TD-004 | Recuperar la cuenta sin un passkey | Abierta |
 | TD-005 | Administradores individuales en vez de una clave compartida | Abierta |
+| TD-006 | Pago y comisión no son atómicos | Abierta |
 
 ## TD-001 — Autenticación de la API más fuerte que la API key
 
@@ -32,6 +33,10 @@ Cuando se aborde, se convierte en un spec.
   flujo de pagos funcionando.
 
 ## TD-002 — Verificar que la wallet registrada es del usuario
+
+> **Se resuelve con el spec 023 (2026-10-16):** al vincular la wallet, el
+> usuario aprueba un grant interactivo en su proveedor, y solo su dueño puede
+> hacerlo. Se cierra cuando el spec 023 esté hecho.
 
 - **Registrada:** 2026-10-16 · **Origen:** spec 019.
 - **Decisión actual:** al registrarse, la API solo comprueba que la wallet
@@ -91,3 +96,16 @@ Cuando se aborde, se convierte en un spec.
   `admin` y passkey; el primero se crea con un enlace de registro generado desde
   la CLI.
 - **Por qué no ahora:** la clave compartida basta para la demo.
+
+## TD-006 — Pago y comisión no son atómicos
+
+- **Registrada:** 2026-10-16 · **Origen:** spec 024.
+- **Decisión actual:** la comisión se cobra con un segundo outgoing payment,
+  después del pago principal. Si falla, se reintenta y queda visible en el panel.
+- **Riesgo:** comisiones no cobradas; el usuario podría ver dos débitos en su wallet.
+- **Mitigaciones actuales:** reserva del total antes de pagar; reintento al
+  refrescar; resumen de comisiones fallidas en el panel.
+- **Solución propuesta:** cobrar las comisiones fallidas en lote al día
+  siguiente con el mismo grant, o que la plataforma sea el receptor y reenvíe
+  al comercio (requiere liquidez y cambia la responsabilidad de la plataforma).
+- **Por qué no ahora:** la solución simple basta para la demo.
