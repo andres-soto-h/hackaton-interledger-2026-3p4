@@ -10,7 +10,7 @@
 
 ## Estado
 
-0 / 5 tareas completadas. Borrador para revisión. Depende del spec 008.
+0 / 5 tareas completadas. Borrador para revisión; patrón de polling aprobado. Depende del spec 008.
 
 ## Contexto
 
@@ -119,8 +119,12 @@ X-Tranqui-Signature: t=1729112345,v1=<hex(hmac_sha256(secret, t + "." + body))>
 4. [ ] Suite completa en verde, lint y typecheck limpios.
 5. [ ] Decidir si se implementa la fase 2 (webhook) como spec propio.
 
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Cómo se entera el agente del resultado | **Polling** (2026-10-16). El webhook (fase 2) queda diseñado para después |
+
 ## Decisiones pendientes
 
-1. **¿Webhook en esta fase del hackatón?** Recomendación: **solo polling**. Ya
-   funciona con el spec 008 y no obliga al agente a exponer un endpoint. El
-   webhook queda diseñado para después.
+Ninguna.

@@ -120,6 +120,12 @@ con `pnpm test:dynamo` (requiere Docker).
 6. [ ] Script `pnpm test:dynamo` y documentación.
 7. [ ] Suite completa en verde, lint y typecheck limpios.
 
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Dónde viven las transacciones | Open Payments es la fuente de verdad; DynamoDB guarda el estado del flujo y una copia (índice) de lo que hizo la API, que se refresca al leer pagos no finales (2026-10-16) |
+
 ## Decisiones pendientes
 
 1. **Pruebas contra DynamoDB.** Recomendación: **DynamoDB Local en Docker**.
