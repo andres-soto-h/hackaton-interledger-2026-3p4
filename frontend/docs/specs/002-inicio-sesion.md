@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+6 / 7 tareas completadas en la rama `front/002` (94 tests en verde, lint y typecheck limpios, `expo export -p web` compila). **Solo falta la verificación manual (tarea 6, caso 11)** con passkeys reales en Chrome de escritorio y Android, que requiere el backend 019 desplegado; pendiente del responsable. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 ## Contexto
 
@@ -118,13 +118,13 @@ useSession(): { status: "loading" | "signedIn" | "signedOut"; user?: User; signI
 
 ## Tareas
 
-1. [ ] Handlers MSW de `/auth/login/*`, `/me`, `/me/wallet-link` y `/me/allowance`; fake de passkeys.
-2. [ ] Casos 1–3 en rojo → `sessionStore`, `SessionProvider` y módulo de passkeys.
-3. [ ] Casos 4–6 en rojo → bienvenida e ingreso.
-4. [ ] Caso 7 en rojo → guards de rutas.
-5. [ ] Casos 8–10 en rojo → Mi cuenta.
-6. [ ] Verificación manual (caso 11) cuando el backend 019 esté desplegado.
-7. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Handlers MSW de `/auth/login/*`, `/me`, `/me/wallet-link` y `/me/allowance`; fake de passkeys.
+2. [x] Casos 1–3 en rojo → `sessionStore`, `SessionProvider` y módulo de passkeys.
+3. [x] Casos 4–6 en rojo → bienvenida e ingreso.
+4. [x] Caso 7 en rojo → guards de rutas.
+5. [x] Casos 8–10 en rojo → Mi cuenta.
+6. [~] Verificación manual (caso 11) cuando el backend 019 esté desplegado: pendiente.
+7. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
@@ -133,3 +133,10 @@ useSession(): { status: "loading" | "signedIn" | "signedOut"; user?: User; signI
 | 1 | Autenticación | Passkey (desbloqueo del dispositivo); la app no tiene PIN propio (2026-10-16) |
 | 2 | Duración de la sesión | La que defina el backend (`SESSION_TTL_SECONDS`, 1 h por defecto); sin refresh token |
 | 3 | Pedir algo antes de cada pago | El passkey confirma cada pago (spec 006) |
+| 4 | Pruebas de pantallas | Se montan las rutas reales de `app/` con `renderRouter` de `expo-router/testing-library` (`tests/utils/render-app.tsx`); se importan `screen`/`fireEvent` de ese mismo módulo (2026-10-17) |
+| 5 | Confirmaciones | "Quitar permiso", "Cerrar sesión" y "Eliminar mi cuenta" se confirman con un panel en la propia pantalla (`ConfirmPanel`), no con `Alert`, que no funciona igual en web y Android (2026-10-17) |
+| 6 | Sin vinculación | `GET /me/wallet-link` con `404 LINK_NOT_FOUND` se trata como "sin permiso" y ofrece vincular (backend openapi) (2026-10-17) |
+
+## Pendientes del backend (para validar con el responsable)
+
+- Ninguno nuevo. Las rutas `/registro` y `/vincular` que enlaza este spec las crea el spec 003.
