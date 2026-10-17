@@ -69,6 +69,33 @@ pnpm typecheck   # tsc --noEmit
 pnpm lint        # ESLint + Prettier (pnpm format para corregir formato)
 ```
 
+### Tests contra DynamoDB Local
+
+`pnpm test:dynamo` corre el contrato del repositorio de pagos contra DynamoDB
+Local (requiere la instancia en `http://localhost:8000`). Apunta a otro endpoint
+con la variable `DYNAMODB_ENDPOINT` (por defecto `http://localhost:8000`).
+
+Con Colima + nerdctl (sin Docker; los puertos publicados con `-p` no llegan a
+macOS, así que se corre con `--network host`):
+
+```bash
+nerdctl run -d --name tranqui-dynamodb --network host \
+  amazon/dynamodb-local:2.6.1 -jar DynamoDBLocal.jar -inMemory -sharedDb -port 8000
+
+cd backend
+pnpm test:dynamo
+```
+
+Con Docker:
+
+```bash
+docker run -d --name tranqui-dynamodb -p 8000:8000 amazon/dynamodb-local:2.6.1 \
+  -jar DynamoDBLocal.jar -inMemory -sharedDb
+
+cd backend
+pnpm test:dynamo
+```
+
 ## Build
 
 ```bash
