@@ -180,6 +180,230 @@ paths:
           description: Cuenta borrada; los pagos se conservan.
         '401':
           $ref: '#/components/responses/ReauthRequired'
+  /api/v1/me/wallet-link:
+    post:
+      summary: Inicia la vinculación de la wallet
+      operationId: startWalletLink
+      tags:
+        - Wallet Link
+      security:
+        - BearerAuth: []
+      responses:
+        '202':
+          description: Vinculación iniciada; el usuario debe aprobar en su wallet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletLinkStart'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '409':
+          description: Ya hay una vinculación ACTIVE.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: WALLET_ALREADY_LINKED
+                  message: Wallet is already linked
+        '422':
+          description: La moneda de la wallet no tiene monto diario configurado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: CURRENCY_NOT_SUPPORTED
+                  message: Currency is not supported
+        '502':
+          $ref: '#/components/responses/OpenPaymentsError'
+        '503':
+          $ref: '#/components/responses/OpenPaymentsUnavailable'
+        '504':
+          $ref: '#/components/responses/OpenPaymentsTimeout'
+    get:
+      summary: Estado de la vinculación de la wallet
+      operationId: getWalletLink
+      tags:
+        - Wallet Link
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Estado de la vinculación; `Retry-After` mientras está pendiente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletLinkStatus'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '404':
+          description: No hay vinculación para esta cuenta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LINK_NOT_FOUND
+                  message: Wallet link not found
+    delete:
+      summary: Desvincula la wallet (cancela el grant)
+      operationId: unlinkWallet
+      tags:
+        - Wallet Link
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Vinculación cancelada y token borrado.
+        '401':
+          $ref: '#/components/responses/ReauthRequired'
+        '404':
+          description: No hay vinculación para esta cuenta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LINK_NOT_FOUND
+                  message: Wallet link not found
+  /api/v1/me/allowance:
+    get:
+      summary: Disponible del monto diario preaprobado
+      operationId: getAllowance
+      tags:
+        - Wallet Link
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Límite diario y gasto del periodo actual.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Allowance'
+              example:
+                dailyLimit:
+                  value: '200.00'
+                  assetCode: USD
+                spent:
+                  value: '45.50'
+                  assetCode: USD
+                available:
+                  value: '154.50'
+                  assetCode: USD
+                periodStart: '2026-10-17T05:00:00.000Z'
+                periodEnd: '2026-10-18T05:00:00.000Z'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '403':
+          description: Sin vinculación ACTIVE.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: WALLET_NOT_LINKED
+                  message: Wallet is not linked
+        '422':
+          description: El pago superaría el disponible del día.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: DAILY_LIMIT_EXCEEDED
+                  message: Daily limit exceeded
+  /api/v1/auth/callback:
+    get:
+      summary: Callback de la autorización de la wallet
+      operationId: walletLinkCallback
+      tags:
+        - Wallet Link
+      security: []
+      parameters:
+        - name: linkId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: interact_ref
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: hash
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: result
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirección a `FRONTEND_RESULT_URL` con `linkId` y `status`.
+          headers:
+            Location:
+              schema:
+                type: string
+        '200':
+          description: Página HTML provisional cuando no hay `FRONTEND_RESULT_URL`.
+        '400':
+          description: Callback inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: CALLBACK_INVALID
+                  message: Invalid callback
+        '404':
+          description: Vinculación inexistente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: LINK_NOT_FOUND
+                  message: Wallet link not found
+        '409':
+          description: Callback ya usado o límites del grant distintos a los pedidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                alreadyUsed:
+                  value:
+                    error:
+                      code: CALLBACK_ALREADY_USED
+                      message: Callback was already used
+                limitsMismatch:
+                  value:
+                    error:
+                      code: GRANT_LIMITS_MISMATCH
+                      message: Grant limits do not match
+        '410':
+          description: La autorización venció.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: AUTHORIZATION_EXPIRED
+                  message: Authorization expired
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -215,6 +439,72 @@ components:
           type: string
           pattern: '^[A-Z]{3}$'
           example: USD
+    WalletLinkStart:
+      type: object
+      required:
+        - linkId
+        - authorizationUrl
+        - dailyLimit
+        - expiresAt
+      properties:
+        linkId:
+          type: string
+          example: wl_01J...
+        authorizationUrl:
+          type: string
+          format: uri
+        dailyLimit:
+          $ref: '#/components/schemas/Amount'
+        expiresAt:
+          type: string
+          format: date-time
+    WalletLinkStatus:
+      type: object
+      required:
+        - linkId
+        - status
+        - isFinal
+        - walletVerified
+        - dailyLimit
+      properties:
+        linkId:
+          type: string
+          example: wl_01J...
+        status:
+          type: string
+          enum:
+            - PENDING_AUTHORIZATION
+            - ACTIVE
+            - REJECTED
+            - EXPIRED
+            - REVOKED
+        isFinal:
+          type: boolean
+        walletVerified:
+          type: boolean
+        dailyLimit:
+          $ref: '#/components/schemas/Amount'
+    Allowance:
+      type: object
+      required:
+        - dailyLimit
+        - spent
+        - available
+        - periodStart
+        - periodEnd
+      properties:
+        dailyLimit:
+          $ref: '#/components/schemas/Amount'
+        spent:
+          $ref: '#/components/schemas/Amount'
+        available:
+          $ref: '#/components/schemas/Amount'
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
     CreatePaymentRequestBody:
       type: object
       required:
