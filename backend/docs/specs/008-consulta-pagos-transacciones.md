@@ -22,6 +22,11 @@ los specs 007, 023 y 024.
   token al terminar cada pago (el token es del monto diario y sigue vigente).
 - Al terminar: se libera de la reserva lo no gastado; se reintenta la comisión fallida.
 - La respuesta incluye la comisión y su estado.
+- `GET /transactions` devuelve **todos los datos de cada transacción en un solo
+  lote por página** (incluido el nombre del comercio o receptor), paginado con
+  cursor para carga perezosa (*lazy loading*). El frontend no pide nada más por
+  cada elemento. `status` acepta un solo valor (definido el 2026-10-16 con el
+  frontend 004).
 
 ## Contexto
 
@@ -97,7 +102,33 @@ La wallet es la de la cuenta de la sesión.
 | `status` | Opcional |
 | `limit` / `cursor` | 1–100 (20) / opaco |
 
-Response: `{ "items": [...], "nextCursor": "..." }`. Los elementos no finales
+Response: `{ "items": [...], "nextCursor": "..." }`. Cada elemento trae todo lo
+que la app muestra, para no hacer una petición por elemento:
+
+```json
+{
+  "id": "pay_01J...",
+  "kind": "payment",
+  "direction": "outgoing",
+  "type": "p2m",
+  "status": "COMPLETED",
+  "counterparty": { "name": "EPM", "walletAddress": "https://ilp.interledger-test.dev/epm", "merchantId": "mer_epm" },
+  "debitAmount": { "value": "86401", "assetCode": "COP" },
+  "receiveAmount": { "value": "86400", "assetCode": "COP" },
+  "fee": { "value": "1", "assetCode": "COP", "percentage": "0.001" },
+  "totalDebit": { "value": "86401", "assetCode": "COP" },
+  "description": "EPM · contrato 7731",
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+- `counterparty.name`: nombre del comercio del directorio si la wallet es de un
+  comercio; si no, el `publicName` de la wallet; si no hay, `null`.
+- `nextCursor` es `null` en la última página; la app pide la siguiente página
+  cuando el usuario llega al final de la lista.
+
+Los elementos no finales
 de la página se refrescan contra Open Payments antes de responder (con un
 límite de concurrencia para no exceder el tiempo de API Gateway).
 
@@ -116,13 +147,14 @@ límite de concurrencia para no exceder el tiempo de API Gateway).
 | 9 | Integration | Paginación con cursor | Sin duplicados ni faltantes |
 | 10 | Integration | Solicitud pagada / vencida al listar | `COMPLETED` / `EXPIRED` |
 | 11 | Integration | Rutas en el test de rutas protegidas; `walletAddress` en el query | `401` sin sesión, también con API key / `400 VALIDATION_ERROR` |
+| 13 | Integration | Elemento de la lista de un comercio del directorio / de una wallet sin comercio | `counterparty.name` del directorio / `publicName` o `null`; todos los campos del contrato presentes |
 | 12 | E2E | Registro → vincular wallet (aprobación manual) → solicitud → cotizar → confirmar → consulta hasta `COMPLETED` en la red de prueba | Fondos y comisión movidos |
 
 ## Tareas
 
 1. [ ] `PaymentsService.getStatus`: casos 1–7 en rojo → implementación.
 2. [ ] Ruta `GET /payments/{id}`.
-3. [ ] `TransactionsService.list` y ruta: casos 8–11.
+3. [ ] `TransactionsService.list` y ruta: casos 8–11 y 13.
 4. [ ] Contrato en `openapi.yaml`.
 5. [ ] Script `pnpm test:e2e` y ejecución manual del caso 12.
 6. [ ] Suite completa en verde, lint y typecheck limpios.
