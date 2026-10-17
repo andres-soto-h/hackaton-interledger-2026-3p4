@@ -23,6 +23,7 @@ export const openPaymentsTestConfig = {
     rpName: 'Tranqui',
     origins: ['http://localhost:3000']
   },
+  passkeyBypass: false,
   frontendResultUrl: '',
   dailySpendLimits: { USD: '200' } as Record<string, string>,
   dailyLimitTimezone: 'America/Bogota',

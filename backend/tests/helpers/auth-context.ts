@@ -32,7 +32,11 @@ export const wallet = (name: string, assetCode = 'USD'): WalletAddress => ({
  * verifier, fake Open Payments gateway and a controllable clock.
  */
 export function buildAuthContext(
-  options: { sessionTtlSeconds?: number; activityLog?: ActivityLog } = {}
+  options: {
+    sessionTtlSeconds?: number
+    activityLog?: ActivityLog
+    passkeyBypass?: boolean
+  } = {}
 ) {
   const clock = { value: START }
   const now = () => clock.value
@@ -66,6 +70,7 @@ export function buildAuthContext(
         gateway,
         settings,
         webauthn: { rpID: RP_ID, rpName: 'Tranqui', origins: ORIGINS },
+        passkeyBypass: options.passkeyBypass,
         now,
         activity: createActivityEmitter({ log: options.activityLog })
       }),

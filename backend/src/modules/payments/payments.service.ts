@@ -44,6 +44,8 @@ export interface PaymentsServiceDeps {
   fees: FeeCalculator
   feeCollector: FeeCollector
   webauthn: { rpID: string; origins: string[] }
+  /** When `true`, payment confirmation skips WebAuthn (local testing only). */
+  passkeyBypass?: boolean
   /** Milliseconds since the epoch. */
   now: () => number
   logger?: Pick<Logger, 'warn'>
@@ -154,6 +156,8 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
     logger,
     activity
   } = deps
+
+  const passkeyBypass = deps.passkeyBypass ?? false
 
   const emit: ActivityEmitter = activity ?? (() => Promise.resolve())
 
@@ -471,40 +475,42 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       throw challengeExpired()
     }
 
-    const credentialId = credentialIdOf(input.credential)
-    if (typeof credentialId !== 'string' || credentialId.length === 0)
-      throw passkeyFailed()
+    if (!passkeyBypass) {
+      const credentialId = credentialIdOf(input.credential)
+      if (typeof credentialId !== 'string' || credentialId.length === 0)
+        throw passkeyFailed()
 
-    const stored = await users.getCredential(credentialId)
-    if (stored === null || stored.userId !== user.id) throw passkeyFailed()
+      const stored = await users.getCredential(credentialId)
+      if (stored === null || stored.userId !== user.id) throw passkeyFailed()
 
-    let verified
-    try {
-      verified = await verifier.verifyAuthentication({
-        credential: input.credential,
-        expectedChallenge: challenge.challenge,
-        expectedOrigins: webauthn.origins,
-        expectedRPID: webauthn.rpID,
-        stored: {
-          publicKey: stored.publicKey,
-          counter: stored.counter,
-          ...(stored.transports !== undefined ? { transports: stored.transports } : {})
-        }
+      let verified
+      try {
+        verified = await verifier.verifyAuthentication({
+          credential: input.credential,
+          expectedChallenge: challenge.challenge,
+          expectedOrigins: webauthn.origins,
+          expectedRPID: webauthn.rpID,
+          stored: {
+            publicKey: stored.publicKey,
+            counter: stored.counter,
+            ...(stored.transports !== undefined ? { transports: stored.transports } : {})
+          }
+        })
+      } catch (error) {
+        if (error instanceof PasskeyVerificationError) throw passkeyFailed()
+        throw error
+      }
+
+      const newCounter = verified.newCounter
+      // Synced passkeys (counter 0) pass; hardware-backed counters must advance.
+      if (stored.counter > 0 || newCounter > 0) {
+        if (newCounter <= stored.counter) throw passkeyFailed()
+      }
+      await users.updateCredentialUsage(credentialId, {
+        counter: newCounter,
+        lastUsedAt: iso()
       })
-    } catch (error) {
-      if (error instanceof PasskeyVerificationError) throw passkeyFailed()
-      throw error
     }
-
-    const newCounter = verified.newCounter
-    // Synced passkeys (counter 0) pass; hardware-backed counters must advance.
-    if (stored.counter > 0 || newCounter > 0) {
-      if (newCounter <= stored.counter) throw passkeyFailed()
-    }
-    await users.updateCredentialUsage(credentialId, {
-      counter: newCounter,
-      lastUsedAt: iso()
-    })
 
     let taken: Payment
     try {

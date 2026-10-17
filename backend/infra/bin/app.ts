@@ -19,6 +19,7 @@ new BackendStack(app, `TranquiBackend-${stage}`, {
   frontendResultUrl: process.env.FRONTEND_RESULT_URL,
   publicApiUrl: process.env.PUBLIC_API_URL,
   corsAllowedOrigins: process.env.CORS_ALLOWED_ORIGINS,
+  passkeyBypass: process.env.PASSKEY_BYPASS === 'true',
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION ?? 'us-east-1'

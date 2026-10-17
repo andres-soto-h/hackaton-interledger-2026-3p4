@@ -18,7 +18,10 @@ function passkeyErrorMessage(error: unknown): string {
   if (error instanceof ApiError && error.code === 'CHALLENGE_EXPIRED') {
     return 'Se venció el tiempo. Vuelva al paso anterior e intente de nuevo.';
   }
-  return 'No pudimos crear su cuenta. Intente de nuevo.';
+  const code = (error as { code?: string } | null)?.code ?? '';
+  return code
+    ? `No pudimos crear su cuenta (${code}). Intente de nuevo.`
+    : 'No pudimos crear su cuenta. Intente de nuevo.';
 }
 
 export default function Register() {

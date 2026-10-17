@@ -12,6 +12,7 @@
     "test:dynamo": "vitest run --config vitest.dynamo.config.ts",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:watch": "vitest",
+    "clean:db": "./scripts/clean-dynamodb.sh",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier --check src tests",
     "format": "prettier --write src tests",

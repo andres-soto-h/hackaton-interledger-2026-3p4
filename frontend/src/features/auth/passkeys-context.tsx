@@ -1,5 +1,10 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { createPasskeyService, type PasskeyService } from './passkeys';
+import {
+  createBypassPasskeyService,
+  createPasskeyService,
+  isPasskeyBypassEnabled,
+  type PasskeyService,
+} from './passkeys';
 
 const PasskeysContext = createContext<PasskeyService | null>(null);
 
@@ -10,7 +15,10 @@ export function PasskeysProvider({
   service?: PasskeyService;
   children: ReactNode;
 }) {
-  const value = useMemo(() => service ?? createPasskeyService(), [service]);
+  const value = useMemo(() => {
+    if (service) return service;
+    return isPasskeyBypassEnabled() ? createBypassPasskeyService() : createPasskeyService();
+  }, [service]);
   return <PasskeysContext.Provider value={value}>{children}</PasskeysContext.Provider>;
 }
 

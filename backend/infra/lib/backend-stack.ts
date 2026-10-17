@@ -43,6 +43,8 @@ export interface BackendStackProps extends StackProps {
   publicApiUrl?: string
   /** Comma-separated exact origins allowed by CORS. Only passed when set. */
   corsAllowedOrigins?: string
+  /** Skips WebAuthn verification (register, login, payment confirm). Local/testing only. */
+  passkeyBypass?: boolean
 }
 
 export class BackendStack extends Stack {
@@ -180,6 +182,9 @@ export class BackendStack extends Stack {
     }
     if (props.corsAllowedOrigins !== undefined) {
       environment.CORS_ALLOWED_ORIGINS = props.corsAllowedOrigins
+    }
+    if (props.passkeyBypass === true) {
+      environment.PASSKEY_BYPASS = 'true'
     }
 
     const apiFunction = new Function(this, 'ApiFunction', {

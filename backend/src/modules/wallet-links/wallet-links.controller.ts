@@ -62,13 +62,13 @@ export function createWalletLinksController(
   }
 
   const callback: RequestHandler = async (req, res, next) => {
+    const query = req.query as {
+      linkId?: string
+      interact_ref?: string
+      hash?: string
+      result?: string
+    }
     try {
-      const query = req.query as {
-        linkId?: string
-        interact_ref?: string
-        hash?: string
-        result?: string
-      }
       const outcome = await service.handleCallback({
         linkId: query.linkId ?? '',
         interactRef: query.interact_ref,
@@ -92,6 +92,16 @@ export function createWalletLinksController(
           `<!doctype html><html><body><h1>Wallet link ${escapeHtml(status)}</h1></body></html>`
         )
     } catch (error) {
+      // The wallet always lands the browser here; send it back to the app even on
+      // error so the user never sees a raw JSON response. The app polls the real
+      // link status (`GET /me/wallet-link`) and shows the right state.
+      if (frontendResultUrl !== undefined) {
+        res.redirect(
+          302,
+          `${frontendResultUrl}?linkId=${encodeURIComponent(query.linkId ?? '')}&status=REJECTED`
+        )
+        return
+      }
       next(error)
     }
   }

@@ -218,12 +218,23 @@ describe('loadConfig', () => {
       })
     })
 
+    it('PASSKEY_BYPASS está apagado por defecto y se enciende explícitamente', () => {
+      expect(loadConfig(LOCAL)).toMatchObject({ passkeyBypass: false })
+      expect(loadConfig({ ...LOCAL, PASSKEY_BYPASS: 'true' })).toMatchObject({
+        passkeyBypass: true
+      })
+      expect(loadConfig({ ...LAMBDA_ENV, PASSKEY_BYPASS: 'false' })).toMatchObject({
+        passkeyBypass: false
+      })
+    })
+
     it.each([
       ['STORAGE', 'sqlite'],
       ['SESSION_SECRET', 'short'],
       ['ADMIN_PASSWORD', 'short'],
       ['TOKEN_KEY', 'short'],
       ['ADMIN_ENABLED', 'maybe'],
+      ['PASSKEY_BYPASS', 'maybe'],
       ['WEBAUTHN_ORIGINS', 'not-an-origin'],
       ['CORS_ALLOWED_ORIGINS', 'app.example'],
       ['DAILY_SPEND_LIMITS', 'USD'],

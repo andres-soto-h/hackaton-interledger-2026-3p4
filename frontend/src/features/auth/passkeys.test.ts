@@ -1,5 +1,7 @@
 import {
+  createBypassPasskeyService,
   createPasskeyService,
+  isPasskeyBypassEnabled,
   PasskeyAlreadyRegistered,
   PasskeyCancelled,
   PasskeyUnsupported,
@@ -71,5 +73,34 @@ describe('createPasskeyService', () => {
       browserSupportsWebAuthn: () => true,
     });
     await expect(service.authenticate(options)).rejects.toBe(boom);
+  });
+});
+
+describe('bypass de passkeys', () => {
+  const original = process.env.EXPO_PUBLIC_PASSKEY_BYPASS;
+
+  afterEach(() => {
+    if (original === undefined) delete process.env.EXPO_PUBLIC_PASSKEY_BYPASS;
+    else process.env.EXPO_PUBLIC_PASSKEY_BYPASS = original;
+  });
+
+  it('isPasskeyBypassEnabled solo es true con "true"', () => {
+    process.env.EXPO_PUBLIC_PASSKEY_BYPASS = 'true';
+    expect(isPasskeyBypassEnabled()).toBe(true);
+    process.env.EXPO_PUBLIC_PASSKEY_BYPASS = 'false';
+    expect(isPasskeyBypassEnabled()).toBe(false);
+    delete process.env.EXPO_PUBLIC_PASSKEY_BYPASS;
+    expect(isPasskeyBypassEnabled()).toBe(false);
+  });
+
+  it('simula crear y autenticar sin tocar WebAuthn', async () => {
+    const service = createBypassPasskeyService();
+    expect(await service.isSupported()).toBe(true);
+
+    const created = await service.create(options);
+    expect(created.id).toBe('passkey_bypass');
+
+    const authenticated = await service.authenticate(options);
+    expect(authenticated.id).toBe('passkey_bypass');
   });
 });

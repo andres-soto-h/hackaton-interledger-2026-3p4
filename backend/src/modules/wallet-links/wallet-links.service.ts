@@ -406,13 +406,21 @@ export function createWalletLinksService({
         interval: link.interval
       }
       const granted = grantResult.grantedLimits
+      // Compare the amount in minor units: the wallet echoes the granted amount
+      // normalized to the asset scale ("500000.00"), while the requested value
+      // keeps the configured decimal ("500000"); a raw string compare fails.
       const limitsMatch =
         granted !== undefined &&
-        granted.debitAmount.value === requested.debitAmount.value &&
         granted.debitAmount.assetCode === requested.debitAmount.assetCode &&
-        granted.interval === requested.interval
+        granted.interval === requested.interval &&
+        toMinorUnits(granted.debitAmount.value, link.assetScale) ===
+          toMinorUnits(requested.debitAmount.value, link.assetScale)
 
       if (!limitsMatch) {
+        logger?.warn(
+          { linkId, requested, granted: granted ?? null, assetScale: link.assetScale },
+          'Wallet link grant limits do not match'
+        )
         await gateway.cancelGrant({
           continueUri: link.continueUri,
           continueToken: link.continueToken

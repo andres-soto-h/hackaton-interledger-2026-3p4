@@ -18,6 +18,12 @@ interface BaseConfig {
   /** Admin panel switch (spec 020). */
   adminEnabled: boolean
   webauthn: { rpId: string; rpName: string; origins: string[] }
+  /**
+   * When `true`, WebAuthn verification is skipped (register, login and payment
+   * confirmation all succeed without a real passkey). Only for local testing of
+   * flows that depend on a session; never enable in production.
+   */
+  passkeyBypass: boolean
   /** Where the browser lands after authorizing a wallet link (spec 023). */
   frontendResultUrl: string
   /** Daily allowance per currency (spec 023). */
@@ -179,6 +185,12 @@ const booleanFlag = z
   .default('true')
   .transform((value) => value === 'true')
 
+/** Boolean flag that is OFF unless explicitly set to `true`. */
+const optInBooleanFlag = z
+  .enum(['true', 'false'])
+  .default('false')
+  .transform((value) => value === 'true')
+
 const feePercentage = z
   .string()
   .default('0')
@@ -203,6 +215,7 @@ const sharedAppSchema = {
   WEBAUTHN_RP_ID: z.string().min(1).default('localhost'),
   WEBAUTHN_RP_NAME: z.string().min(1).default('Tranqui'),
   WEBAUTHN_ORIGINS: originList('http://localhost:3000'),
+  PASSKEY_BYPASS: optInBooleanFlag,
   FRONTEND_RESULT_URL: httpsUrlOrEmpty,
   DAILY_SPEND_LIMITS: dailySpendLimits,
   DAILY_LIMIT_TIMEZONE: dailyLimitTimezone,
@@ -320,6 +333,7 @@ function sharedConfig(
       rpName: data.WEBAUTHN_RP_NAME,
       origins: data.WEBAUTHN_ORIGINS
     },
+    passkeyBypass: data.PASSKEY_BYPASS,
     frontendResultUrl: data.FRONTEND_RESULT_URL ?? '',
     dailySpendLimits: data.DAILY_SPEND_LIMITS,
     dailyLimitTimezone: data.DAILY_LIMIT_TIMEZONE,

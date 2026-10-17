@@ -20,6 +20,7 @@ import { createTransactionsRouter } from '../modules/transactions/transactions.r
 import { createTransactionsService } from '../modules/transactions/transactions.service.js'
 import { createPaymentRequestsRouter } from '../modules/payments/payment-requests.routes.js'
 import { createPaymentRequestsService } from '../modules/payments/payment-requests.service.js'
+import { createMerchantsRouter } from '../modules/merchants/merchants.routes.js'
 import { createMeRouter } from '../modules/users/me.routes.js'
 import { createSettingsDailyLimitProvider } from '../modules/wallet-links/daily-limit.provider.js'
 import { createWalletLinksRouter } from '../modules/wallet-links/wallet-links.routes.js'
@@ -51,7 +52,9 @@ export interface CompositionDeps {
   extraRouters?: Router[]
 }
 
-const SESSION_TTL_SECONDS = 3600
+// 7 days: long enough for the hackathon demo so the session does not expire
+// mid-flow and kick the user back to the welcome screen.
+const SESSION_TTL_SECONDS = 7 * 24 * 3600
 
 /** Editable settings as configured by the environment: the defaults before the admin panel changes them. */
 export function editableDefaults(config: Config): EditableSettings {
@@ -137,6 +140,7 @@ export function createComposition({
         rpName: config.webauthn.rpName,
         origins: config.webauthn.origins
       },
+      passkeyBypass: config.passkeyBypass,
       now
     }),
     createMeRouter({
@@ -144,6 +148,7 @@ export function createComposition({
       sessions,
       beforeDeleteAccount: (userId) => walletLinks.revokeForUser(userId)
     }),
+    createMerchantsRouter({ sessions, users: storage.users }),
     createWalletLinksRouter({
       service: walletLinks,
       users: storage.users,
@@ -162,6 +167,7 @@ export function createComposition({
         fees,
         feeCollector,
         webauthn: { rpID: config.webauthn.rpId, origins: config.webauthn.origins },
+        passkeyBypass: config.passkeyBypass,
         now,
         logger
       }),

@@ -19,3 +19,6 @@
 | 2026-10-17 | 003 | Fixtures HTTP escritos a mano, no capturados de la red de prueba | Validar contra la red real | Resuelto — se aplaza (los fixtures bastan) |
 | 2026-10-17 | 023 | Spike manual (caso 1): grant con límite + interval, pagos dentro/sobre el límite, rotar, cancelar | Ejecutarlo en la red de prueba | Resuelto — se aplaza (confirmado por Interledger) |
 | 2026-10-17 | 002 | Tarea 11 y verificación de `tranqui-deployer` | Verificar el acceso del usuario deployer | Resuelto — desplegado en `dev` (2026-10-17) |
+
+
+

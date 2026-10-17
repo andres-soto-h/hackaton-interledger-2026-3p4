@@ -16,6 +16,14 @@ la configuración de agentes, scripts y memoria compartida va en
 
 TypeScript · Node.js · Express · Vitest + supertest · pnpm · AWS Lambda.
 
+## Directiva actual (vigente desde 2026-10-17)
+
+> **Modo hackatón: probar en AWS, no en los tests.**
+> A partir de ahora **no se corren ni se modifican los tests**. Los cambios se
+> hacen directo sobre el código, se suben a AWS y se prueban allá. Esto
+> suspende temporalmente el flujo SDD + TDD de abajo (specs, tests en rojo,
+> worktrees y memoria compartida) hasta que el responsable lo reactive.
+
 ## Flujo obligatorio (SDD + TDD)
 
 - Toda funcionalidad tiene su propio spec en `backend/docs/specs/NNN-<nombre>.md` (o
@@ -46,3 +54,22 @@ TypeScript · Node.js · Express · Vitest + supertest · pnpm · AWS Lambda.
 - Nunca poner llaves privadas, key IDs ni otros secretos en el código.
 - `backend/src/api/index.js` es solo un ejemplo de referencia; no se modifica ni
   se usa como base de código.
+
+
+# Instructions for React Native UI/UX Refinement
+
+## Design Philosophy & Aesthetics
+- Avoid generic AI styles ("AI slop"): NO rounded blue primary buttons with default drop shadows.
+- Prioritize high contrast, deliberate spacing (using 8pt grid system), and cohesive typography hierarchy.
+- Use subtle interactions (scale transforms on press via React Native Reanimated).
+
+## Tech Stack & Styling Rules
+- Preferred styling engine: NativeWind / React Native Unistyles / StyleSheet with tokens.
+- Use `Pressable` over `TouchableOpacity` with active opacity/scale state.
+- Always handle Safe Area Insets explicitly via `react-native-safe-area-context`.
+- Use `FlashList` instead of `FlatList` for long data collections to maintain 60FPS performance.
+
+## Component Refinement Protocol
+1. Do not break layout responsiveness. Use flex layouts optimized for both compact screens and tablets.
+2. Every touchable target MUST have a minimum dimension of 44x44dp (`hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}`).
+3. Provide skeleton loaders (`Moti` or `Reanimated`) instead of plain activity indicators.

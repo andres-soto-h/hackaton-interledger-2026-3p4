@@ -51,6 +51,7 @@ Local (`.env`, ver `.env.example`) y Lambda comparten los nombres salvo los secr
 | `DYNAMODB_ENDPOINT` | opcional (DynamoDB Local) | — | — |
 | `CORS_ALLOWED_ORIGINS` | opcional | opcional | vacío (CORS desactivado) |
 | `WEBAUTHN_RP_ID`, `WEBAUTHN_RP_NAME`, `WEBAUTHN_ORIGINS` | opcional | opcional | `localhost`, `Tranqui`, `http://localhost:3000` |
+| `PASSKEY_BYPASS` | opcional | opcional | `false` (con `true`, registro, ingreso y confirmación de pagos no verifican WebAuthn; solo pruebas locales) |
 | `ADMIN_ENABLED` | opcional | opcional | `true` |
 | `FRONTEND_RESULT_URL` | opcional | opcional | vacío |
 | `PUBLIC_API_URL` | opcional | opcional | local: `http://localhost:PORT`; Lambda: el dominio de la primera petición |

@@ -41,6 +41,24 @@ export interface PasskeyService {
   authenticate(options: RequestOptions): Promise<AuthenticationResponseJSON>;
 }
 
+/**
+ * When `EXPO_PUBLIC_PASSKEY_BYPASS=true`, the app never calls WebAuthn: register,
+ * login and payment confirmation all simulate a successful passkey.
+ */
+export function isPasskeyBypassEnabled(): boolean {
+  return process.env.EXPO_PUBLIC_PASSKEY_BYPASS === 'true';
+}
+
+/** Service that fakes passkeys (no WebAuthn, no device prompt) for local testing. */
+export function createBypassPasskeyService(): PasskeyService {
+  const credential = { id: 'passkey_bypass', rawId: 'passkey_bypass', type: 'public-key' };
+  return {
+    isSupported: async () => true,
+    create: async () => credential as unknown as RegistrationResponseJSON,
+    authenticate: async () => credential as unknown as AuthenticationResponseJSON,
+  };
+}
+
 type Deps = {
   startRegistration: typeof startRegistration;
   startAuthentication: typeof startAuthentication;

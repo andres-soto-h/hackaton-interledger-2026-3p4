@@ -25,6 +25,11 @@ export interface AuthDeps {
   gateway: OpenPaymentsGateway
   settings: SettingsProvider
   webauthn: { rpID: string; rpName: string; origins: string[] }
+  /**
+   * When `true`, WebAuthn verification is skipped (register and login succeed
+   * without a real passkey). For local testing only.
+   */
+  passkeyBypass?: boolean
   /** Milliseconds since the epoch. */
   now?: () => number
   /** Business activity emitter (spec 022); defaults to a no-op. */
@@ -87,6 +92,7 @@ export interface AuthService {
 
 export function createAuthService(deps: AuthDeps): AuthService {
   const { users, verifier, sessions, gateway, settings, webauthn } = deps
+  const passkeyBypass = deps.passkeyBypass ?? false
   const emit: ActivityEmitter = deps.activity ?? (() => Promise.resolve())
   const nowMs = deps.now ?? Date.now
   const nowSeconds = (): number => Math.floor(nowMs() / 1000)
@@ -188,20 +194,32 @@ export function createAuthService(deps: AuthDeps): AuthService {
         throw challengeExpired()
       }
 
-      let verified
-      try {
-        verified = await verifier.verifyRegistration({
-          credential: input.credential,
-          expectedChallenge: challenge.challenge,
-          expectedOrigins: webauthn.origins,
-          expectedRPID: webauthn.rpID
-        })
-      } catch (error) {
-        if (error instanceof PasskeyVerificationError) throw passkeyFailed()
-        throw error
-      }
-
       const pending = challenge.pending
+
+      let verified
+      if (passkeyBypass) {
+        // Bypass: no WebAuthn. A synthetic credential keeps the account model
+        // intact (one credential per user) so the rest of the app is unchanged.
+        verified = {
+          credentialId: `bypass_${pending.userId}`,
+          publicKey: 'bypass',
+          counter: 0,
+          deviceType: 'multiDevice' as const,
+          backedUp: false
+        }
+      } else {
+        try {
+          verified = await verifier.verifyRegistration({
+            credential: input.credential,
+            expectedChallenge: challenge.challenge,
+            expectedOrigins: webauthn.origins,
+            expectedRPID: webauthn.rpID
+          })
+        } catch (error) {
+          if (error instanceof PasskeyVerificationError) throw passkeyFailed()
+          throw error
+        }
+      }
 
       // Enrollment link: attach the passkey to the existing account.
       if (pending.enrollmentTokenHash !== undefined) {
@@ -282,6 +300,15 @@ export function createAuthService(deps: AuthDeps): AuthService {
     async loginVerify(input) {
       const challenge = await users.consumeChallenge(input.challengeId, nowSeconds())
       if (challenge === null || challenge.type !== 'login') throw challengeExpired()
+
+      if (passkeyBypass) {
+        // Bypass: without a passkey there is no credential to identify the
+        // user, so log in as the most recently registered active account.
+        const accounts = await users.listUsers()
+        const user = accounts.find((account) => account.status === 'ACTIVE')
+        if (user === undefined) throw sessionInvalid()
+        return { user: publicUser(user), session: issueSession(user) }
+      }
 
       const credentialId = credentialIdOf(input.credential)
       if (typeof credentialId !== 'string' || credentialId.length === 0) {

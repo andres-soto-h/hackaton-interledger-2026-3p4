@@ -23,6 +23,7 @@ export default function Home() {
         onPress={() => router.push('/agente' as never)}
       />
       <Button label="Pagar un servicio" variant="secondary" onPress={() => router.push('/pagos' as never)} />
+      <Button label="Comercios seguros" variant="secondary" onPress={() => router.push('/comercios' as never)} />
 
       <AppText variant="heading" accessibilityRole="header">
         Últimos pagos
