@@ -4,7 +4,11 @@ import type { AuthService } from './auth.service.js'
 export function createAuthController(service: AuthService) {
   const registerOptions: RequestHandler = async (req, res, next) => {
     try {
-      const body = req.body as { displayName: string; walletAddress: string }
+      const body = req.body as {
+        displayName?: string
+        walletAddress?: string
+        enrollmentToken?: string
+      }
       res.status(200).json(await service.registerOptions(body))
     } catch (error) {
       next(error)

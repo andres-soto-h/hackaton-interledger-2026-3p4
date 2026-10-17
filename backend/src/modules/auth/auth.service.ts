@@ -1,9 +1,10 @@
+import { createHash } from 'node:crypto'
 import type { OpenPaymentsGateway } from '../../integrations/open-payments/gateway.js'
 import { AppError } from '../../shared/errors/app-error.js'
 import { newChallengeId, newUserId } from '../../shared/ids/ids.js'
 import { assertSafeWalletUrl } from '../../shared/security/wallet-url.js'
 import type { SettingsProvider } from '../../shared/settings/settings-provider.js'
-import type { SessionService } from '../../shared/session/session.service.js'
+import type { Session, SessionService } from '../../shared/session/session.service.js'
 import {
   PasskeyVerificationError,
   type PasskeyVerifier
@@ -65,8 +66,9 @@ const credentialIdOf = (credential: unknown): string | undefined =>
 
 export interface AuthService {
   registerOptions(input: {
-    displayName: string
-    walletAddress: string
+    displayName?: string
+    walletAddress?: string
+    enrollmentToken?: string
   }): Promise<{ challengeId: string; options: Record<string, unknown> }>
   registerVerify(input: {
     challengeId: string
@@ -82,10 +84,52 @@ export function createAuthService(deps: AuthDeps): AuthService {
   const nowSeconds = (): number => Math.floor(nowMs() / 1000)
   const iso = (): string => new Date(nowMs()).toISOString()
 
+  const issueSession = (user: User): Session =>
+    sessions.issue(user.id, user.sessionVersion ?? 0)
+
+  const registerOptionsWithEnrollment = async (
+    enrollmentToken: string
+  ): Promise<{ challengeId: string; options: Record<string, unknown> }> => {
+    const tokenHash = createHash('sha256').update(enrollmentToken).digest('hex')
+    const enrollment = await users.getEnrollment(tokenHash, nowSeconds())
+    if (enrollment === null) throw challengeExpired()
+
+    const user = await users.getUser(enrollment.userId)
+    if (user === null || user.status !== 'ACTIVE') throw challengeExpired()
+
+    const options = await verifier.createRegistrationOptions({
+      rpID: webauthn.rpID,
+      rpName: webauthn.rpName,
+      userId: user.id,
+      userName: user.displayName
+    })
+
+    const challengeId = newChallengeId(nowMs())
+    await users.createChallenge({
+      id: challengeId,
+      challenge: options.challenge,
+      type: 'register',
+      pending: {
+        userId: user.id,
+        displayName: user.displayName,
+        walletAddress: user.walletAddress,
+        walletAssetCode: user.walletAssetCode,
+        enrollmentTokenHash: tokenHash
+      },
+      expiresAt: nowSeconds() + CHALLENGE_TTL_SECONDS
+    })
+
+    return { challengeId, options }
+  }
+
   return {
     async registerOptions(input) {
+      if (input.enrollmentToken !== undefined) {
+        return registerOptionsWithEnrollment(input.enrollmentToken)
+      }
+
       const safeWalletUrl = assertSafeWalletUrl(
-        input.walletAddress,
+        input.walletAddress ?? '',
         await settings.getSettings()
       )
       const wallet = await gateway.getWalletAddress(safeWalletUrl)
@@ -98,7 +142,7 @@ export function createAuthService(deps: AuthDeps): AuthService {
         rpID: webauthn.rpID,
         rpName: webauthn.rpName,
         userId,
-        userName: input.displayName
+        userName: input.displayName ?? ''
       })
 
       const challengeId = newChallengeId(nowMs())
@@ -108,7 +152,7 @@ export function createAuthService(deps: AuthDeps): AuthService {
         type: 'register',
         pending: {
           userId,
-          displayName: input.displayName,
+          displayName: input.displayName ?? '',
           walletAddress: wallet.id,
           walletAssetCode: wallet.assetCode
         },
@@ -142,6 +186,34 @@ export function createAuthService(deps: AuthDeps): AuthService {
       }
 
       const pending = challenge.pending
+
+      // Enrollment link: attach the passkey to the existing account.
+      if (pending.enrollmentTokenHash !== undefined) {
+        const enrollment = await users.consumeEnrollment(
+          pending.enrollmentTokenHash,
+          nowSeconds()
+        )
+        if (enrollment === null) throw challengeExpired()
+
+        const credential: Credential = {
+          id: verified.credentialId,
+          userId: pending.userId,
+          publicKey: verified.publicKey,
+          counter: verified.counter,
+          ...(verified.transports !== undefined
+            ? { transports: verified.transports }
+            : {}),
+          deviceType: verified.deviceType,
+          backedUp: verified.backedUp,
+          createdAt: iso()
+        }
+        await users.addCredential(credential)
+
+        const user = await users.getUser(pending.userId)
+        if (user === null) throw challengeExpired()
+        return { user: publicUser(user), session: issueSession(user) }
+      }
+
       const user: User = {
         id: pending.userId,
         displayName: pending.displayName,
@@ -169,7 +241,7 @@ export function createAuthService(deps: AuthDeps): AuthService {
         throw error
       }
 
-      return { user: publicUser(user), session: sessions.issue(user.id) }
+      return { user: publicUser(user), session: issueSession(user) }
     },
 
     async loginOptions() {
@@ -228,7 +300,7 @@ export function createAuthService(deps: AuthDeps): AuthService {
         lastUsedAt: iso()
       })
 
-      return { user: publicUser(user), session: sessions.issue(user.id) }
+      return { user: publicUser(user), session: issueSession(user) }
     }
   }
 }

@@ -7,10 +7,15 @@ import { createAuthService, type AuthDeps } from './auth.service.js'
 /** The credential is opaque (WebAuthn payload): only `id` is required. */
 const credentialSchema = z.looseObject({ id: z.string().min(1) })
 
-const registerOptionsSchema = z.strictObject({
-  displayName: z.string().min(1).max(60),
-  walletAddress: z.string().min(1)
-})
+const registerOptionsSchema = z.union([
+  z.strictObject({
+    displayName: z.string().min(1).max(60),
+    walletAddress: z.string().min(1)
+  }),
+  z.strictObject({
+    enrollmentToken: z.string().regex(/^[0-9a-f]{64}$/)
+  })
+])
 
 const registerVerifySchema = z.strictObject({
   challengeId: z.string(),

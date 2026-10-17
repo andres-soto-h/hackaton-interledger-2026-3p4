@@ -10,6 +10,19 @@ export interface User {
   createdAt: string
   /** ISO 8601 in UTC. */
   updatedAt: string
+  /**
+   * Incremented to invalidate the user's sessions (block, access reset).
+   * Absent means 0; it only appears after a `bumpSessionVersion`.
+   */
+  sessionVersion?: number
+}
+
+/** A one-time passkey enrollment link (only its SHA-256 hash is stored). */
+export interface Enrollment {
+  tokenHash: string
+  userId: string
+  /** TTL in epoch seconds. */
+  expiresAt: number
 }
 
 export type CredentialDeviceType = 'singleDevice' | 'multiDevice'
@@ -41,6 +54,8 @@ export interface Challenge {
     displayName: string
     walletAddress: string
     walletAssetCode: string
+    /** Present when the registration uses an enrollment link. */
+    enrollmentTokenHash?: string
   }
   /** TTL in epoch seconds. */
   expiresAt: number

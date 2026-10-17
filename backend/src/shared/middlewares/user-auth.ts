@@ -64,6 +64,11 @@ export function userAuth({
       return
     }
 
+    if (claims.sessionVersion !== (user.sessionVersion ?? 0)) {
+      next(sessionInvalid())
+      return
+    }
+
     res.locals[USER_KEY] = user
     res.locals[CLAIMS_KEY] = claims
     next()
