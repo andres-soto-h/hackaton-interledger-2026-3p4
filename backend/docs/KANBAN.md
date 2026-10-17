@@ -6,7 +6,7 @@
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
 | | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 21/22 · *despliegue bloqueado: reparar bootstrap de CDK (tarea 22, pendiente de autorización)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
-| | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 5/8 |
+| | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 5/8 | |
 | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 0/5 | | |
