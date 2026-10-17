@@ -14,7 +14,7 @@
 | | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 9/9 |
 | | | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 9/9 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
-| | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
+| | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
 | | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 9/10 · *solo falta el spike en red real (pendiente del responsable)* · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
@@ -101,3 +101,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 007 | Lote 1 integrado (tareas 1–7), 914 tests en verde |
 | 2026-10-17 | 024 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 007 | Cableado en la composición y contrato OpenAPI; 932 tests en verde → Hecho |
+| 2026-10-17 | 008 | Desarrollo aprobado → En desarrollo |

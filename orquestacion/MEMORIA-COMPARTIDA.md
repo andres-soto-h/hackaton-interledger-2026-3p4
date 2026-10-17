@@ -29,8 +29,15 @@ Formato:
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
 | 023 | `spec/023` | `../<repo>-worktrees/spec-023` | 2026-10-17 | Vinculación de wallet y monto diario (con fakes) |
 | 024 | `spec/024` | `../<repo>-worktrees/spec-024` | 2026-10-17 | Comisión por transacción |
+| 008 | `spec/008` | `../<repo>-worktrees/spec-008` | 2026-10-17 | Consulta de pagos y transacciones |
 
 ## Decisiones
+
+### 2026-10-17 · Dueños de archivos del spec 008
+- Origen: orquestador
+- Afecta: specs 008, 024, 009, 022
+- Decisión: el **008** es dueño de `src/modules/transactions/` (nuevo) y de `getStatus` + ruta `GET /payments/{id}` en `modules/payments/` (archivos nuevos `payments-status.*` o añadidos mínimos a service/routes; el 024 toca el cálculo de comisión en `payments.service.ts`/`fee.ts`: no reordenar ni reformatear esas funciones). No edita app.ts/server.ts/lambda.ts/composition/config. El cableado lo hace el orquestador.
+- Acción para los demás: 009 y 022 usan `getStatus`/`TransactionsService`.
 
 ### 2026-10-17 · Dueños de archivos del spec 024
 - Origen: orquestador

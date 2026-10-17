@@ -6,6 +6,7 @@
 
 | Fecha | Spec | Pendiente | Qué se necesita | Estado |
 |---|---|---|---|---|
+| 2026-10-17 | 008 | Ejecución manual del caso 12 (flujo completo contra la red de prueba) y `pnpm test:e2e` contra red real | Ejecutarlo con las wallets de prueba y la llave de la plataforma | Abierto |
 | 2026-10-17 | 024 | Decisiones del spec sin resolver: orden de cobro y un solo cobro vs dos | Se desarrolla con las recomendaciones del spec (primero el pago, después la comisión; dos cobros mostrados como un solo total). Confirmar o cambiar | Abierto (desarrollo continúa con el valor por defecto) |
 | 2026-10-17 | cableado | Monto diario por defecto `USD:200` (valor asumido por el orquestador) | Confirmar o cambiar el valor (editable luego desde el panel, spec 020) | Abierto |
 | 2026-10-17 | cableado | `PUBLIC_API_URL` y `CORS_ALLOWED_ORIGINS` no están en el IaC; en Lambda el callback usa el dominio de la primera petición | Definir dominio público y añadir ambas variables a la plantilla (spec 002, pausado) | Abierto |

@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 6 tareas completadas. Ajustado el 2026-10-16 por el monto diario preaprobado
+0 / 6 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/008`; se arranca con los campos de comisión ya presentes en `Payment` mientras el 024 termina. La ejecución manual del caso 12 (red de prueba real) es un pendiente del responsable. Ajustado el 2026-10-16 por el monto diario preaprobado
 (spec 023) y la comisión (spec 024); Cambios aprobados el 2026-10-16. Depende de
 los specs 007, 023 y 024.
 
