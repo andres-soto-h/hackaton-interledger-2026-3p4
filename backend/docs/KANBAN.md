@@ -12,7 +12,7 @@
 | | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 9/9 |
 | | | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 9/9 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
-| | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 0/9 | | |
+| | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 0/9 | |
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
 | | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | |
@@ -94,3 +94,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 021 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 023 | Lote 1 integrado (tareas 2, 3, 5–8; 4 en memoria) |
 | 2026-10-17 | 020 | Lote 2 integrado (DynamoDB de ActivityLog y configuración, página de inicio); 694 tests en verde → Hecho |
+| 2026-10-17 | 007 | Desarrollo aprobado → En desarrollo |

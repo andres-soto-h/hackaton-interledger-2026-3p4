@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 (versión con aprobación en la wallet por pago); cambios aprobados el 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 9 tareas completadas. Reescrito el 2026-10-16 por la decisión de aprobar los
+0 / 9 tareas completadas. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/007`. Reescrito el 2026-10-16 por la decisión de aprobar los
 pagos una sola vez, con un monto diario (spec 023). Cambios aprobados el 2026-10-16. Depende de los specs 003, 004, 005, 019 y 023.
 
 **Qué cambió respecto a la versión aprobada:**

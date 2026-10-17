@@ -29,8 +29,15 @@ Formato:
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
 | 023 | `spec/023` | `../<repo>-worktrees/spec-023` | 2026-10-17 | Vinculación de wallet y monto diario (con fakes) |
 | 021 | `spec/021` | `../<repo>-worktrees/spec-021` | 2026-10-17 | Panel admin: gestión de usuarios |
+| 007 | `spec/007` | `../<repo>-worktrees/spec-007` | 2026-10-17 | Cotizar, confirmar y cancelar pagos |
 
 ## Decisiones
+
+### 2026-10-17 · Dueños de archivos del spec 007
+- Origen: orquestador
+- Afecta: specs 007, 023 (lote 2), 021, 024
+- Decisión: el **007** es dueño de `src/modules/payments/` (servicio de pagos, controller, rutas; el 006 ya está Hecho: no cambia `payment-requests.*` salvo para reutilizar) y de `src/shared/webauthn/` solo para agregar el flujo de desafío de confirmación (sin cambiar el contrato del `PasskeyVerifier` del 019). Consume del 023 `WalletLinksService.reserve` / token cifrado vía sus puertos ya integrados (`modules/wallet-links/`), sin modificarlos; si necesita algo nuevo, PROPUESTAS.md. No edita app.ts/server.ts/lambda.ts/config/infra. La comisión (024) aún no existe: deja el cálculo del total detrás de un puerto `FeeCalculator` con implementación sin comisión (0%) para que el 024 lo reemplace.
+- Acción para los demás: el 024 implementa `FeeCalculator`.
 
 ### 2026-10-17 · Decisiones del 021 que afectan a otros specs
 - Origen: spec 021 (agente de tests)
