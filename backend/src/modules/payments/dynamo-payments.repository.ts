@@ -3,6 +3,7 @@ import {
   GetCommand,
   PutCommand,
   QueryCommand,
+  ScanCommand,
   UpdateCommand,
   type DynamoDBDocumentClient
 } from '@aws-sdk/lib-dynamodb'
@@ -266,6 +267,29 @@ export function createDynamoPaymentsRepository({
           ExpressionAttributeNames: { '#id': 'id' }
         })
       )
+    },
+
+    /**
+     * Full scan filtered by the `pay_` id prefix. Fine for the low volume of the
+     * admin summary; if it grows, move the aggregate to a counter item.
+     */
+    async listAllPayments() {
+      const items: Payment[] = []
+      let startKey: Record<string, unknown> | undefined
+      do {
+        const result = await client.send(
+          new ScanCommand({
+            TableName: tableName,
+            FilterExpression: 'begins_with(#id, :prefix)',
+            ExpressionAttributeNames: { '#id': 'id' },
+            ExpressionAttributeValues: { ':prefix': 'pay_' },
+            ExclusiveStartKey: startKey
+          })
+        )
+        items.push(...((result.Items ?? []) as unknown as Payment[]))
+        startKey = result.LastEvaluatedKey
+      } while (startKey !== undefined)
+      return items
     },
 
     async getPaymentRequest(id) {

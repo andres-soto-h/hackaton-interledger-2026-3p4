@@ -124,6 +124,10 @@ export function createInMemoryPaymentsRepository(): PaymentsRepository {
       return Promise.resolve(structuredClone(next))
     },
 
+    listAllPayments() {
+      return Promise.resolve([...payments.values()].map((p) => structuredClone(p)))
+    },
+
     listByWallet(q) {
       const all: Item[] = [...payments.values(), ...requests.values()]
 
