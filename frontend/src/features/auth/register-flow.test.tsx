@@ -151,7 +151,7 @@ describe('Registro · paso 3 (permiso en la wallet)', () => {
           {
             linkId: 'wl_01',
             authorizationUrl: 'http://evil.test/grant',
-            dailyLimit: { value: '200.00', assetCode: 'USD' },
+            dailyLimit: { value: '500000.00', assetCode: 'COP' },
             expiresAt: '2026-10-17T12:10:00.000Z',
           },
           { status: 202 },
@@ -175,7 +175,7 @@ describe('Registro · paso 3 (permiso en la wallet)', () => {
           {
             linkId: 'wl_01',
             authorizationUrl: 'https://wallet.interledger-test.dev/grant/interact/abc',
-            dailyLimit: { value: '200.00', assetCode: 'USD' },
+            dailyLimit: { value: '500000.00', assetCode: 'COP' },
             expiresAt: '2026-10-17T12:10:00.000Z',
           },
           { status: 202 },
@@ -212,9 +212,9 @@ describe('Vuelta desde la wallet', () => {
   it('ACTIVE: "Su wallet autorizó a TuTranqui", el monto diario y "Empezar a pagar"', async () => {
     await renderApp({ initialUrl: '/vincular/resultado?linkId=wl_01&status=ACTIVE', session });
     expect(await screen.findByText('Su wallet autorizó a TuTranqui')).toBeTruthy();
-    expect(screen.getByText('US$200,00')).toBeTruthy();
+    expect(screen.getByText('$500.000')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Empezar a pagar' }));
-    expect(await screen.findByText(/Hola, bienvenida a TuTranqui/)).toBeTruthy();
+    expect(await screen.findByText(/¿Qué pagamos hoy\?/)).toBeTruthy();
   });
 
   it.each([
@@ -256,7 +256,7 @@ describe('Inicio sin vinculación', () => {
 
   it('con la vinculación activa no muestra el aviso', async () => {
     await renderApp({ initialUrl: '/', session });
-    await screen.findByText(/Hola, bienvenida a TuTranqui/);
+    await screen.findByText(/¿Qué pagamos hoy\?/);
     await act(async () => {});
     expect(screen.queryByText('Vincule su wallet para empezar a pagar')).toBeNull();
   });

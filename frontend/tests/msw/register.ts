@@ -20,7 +20,7 @@ export const registerHandlers = [
       {
         linkId: 'wl_01',
         authorizationUrl: 'https://wallet.interledger-test.dev/grant/interact/abc',
-        dailyLimit: { value: '200.00', assetCode: 'USD' },
+        dailyLimit: { value: '500000.00', assetCode: 'COP' },
         expiresAt: '2026-10-17T12:10:00.000Z',
       },
       { status: 202 },
