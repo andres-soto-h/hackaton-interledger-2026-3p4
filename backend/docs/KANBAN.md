@@ -5,7 +5,7 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 21/22 · *despliegue bloqueado: reparar bootstrap de CDK (tarea 22, pendiente de autorización)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
+| | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 21/22 · *bootstrap de CDK reparado; falta comprobar el acceso de `tranqui-deployer` (tarea 22)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
 | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 5/8 | |
 | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 0/7 | |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
@@ -80,3 +80,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 004 | Integrado en `develop-andres`, suite completa en verde → Hecho |
 | 2026-10-17 | 002 | Tareas 13–21 integradas en `develop-andres`; quedan el despliegue y el bootstrap de CDK (tarea 22) |
 | 2026-10-17 | 005 | Desarrollo aprobado → En desarrollo |
+| 2026-10-17 | 002 | Tarea 22: `CDKToolkit` borrado y bootstrap rehecho con `tranqui-cfn-exec-policy`; rol de ejecución verificado. Falta comprobar `tranqui-deployer` |

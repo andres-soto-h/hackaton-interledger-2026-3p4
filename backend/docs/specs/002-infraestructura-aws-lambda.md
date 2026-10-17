@@ -10,10 +10,10 @@
 
 ## Estado
 
-21 / 22 tareas completadas. Plantilla IaC en `backend/infra/`: 22/22 tests en
+21 / 22 tareas completadas (la 22 solo conserva la comprobación de `tranqui-deployer`). Plantilla IaC en `backend/infra/`: 22/22 tests en
 verde y typecheck limpio. Tareas 13–21 hechas en la rama `spec/002`, pendientes
 de integrar. Pendiente: reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
-El despliegue está bloqueado por la tarea 22: reparar el bootstrap de CDK de la cuenta, pendiente de autorización.
+Bootstrap de CDK reparado el 2026-10-17 (tarea 22): el despliegue ya no está bloqueado por la cuenta; solo espera el código del backend y comprobar el acceso de `tranqui-deployer`.
 **Por ahora solo se trabaja la plantilla IaC (sin desplegar). No se despliega hasta tener la mayoría del código del backend** (decisión 9).
 
 > 2026-10-16: aprobados los cambios que piden los specs de la API (003–009).
@@ -225,18 +225,19 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 22. [ ] **Reparar el bootstrap de CDK con permisos limitados al proyecto** (cuenta `340464868186`, `us-east-1`, perfil `drive-backup-admin`). *Requiere autorización del responsable: borra un stack compartido de la cuenta.*
     - [x] Crear el usuario de despliegue `tranqui-deployer` con la política inline `tranqui-deploy-scope` (ver [SEGURIDAD.md](../SEGURIDAD.md#permisos-de-despliegue-aws)).
     - [x] Crear la política administrada `tranqui-cfn-exec-policy` (v2, sin hallazgos en Access Analyzer).
-    - [ ] Borrar el stack `CDKToolkit`, que está roto: el bucket `cdk-hnb659fds-assets-340464868186-us-east-1` y el repositorio ECR `cdk-hnb659fds-container-assets-340464868186-us-east-1` se borraron fuera de CloudFormation y la actualización falla con `ECRRepository:NotFound`. Ningún otro stack de la cuenta lo usa.
+    - [x] Borrar el stack `CDKToolkit`, que está roto: el bucket `cdk-hnb659fds-assets-340464868186-us-east-1` y el repositorio ECR `cdk-hnb659fds-container-assets-340464868186-us-east-1` se borraron fuera de CloudFormation y la actualización falla con `ECRRepository:NotFound`. Ningún otro stack de la cuenta lo usa.
       ```
       AWS_PROFILE=drive-backup-admin AWS_REGION=us-east-1 aws cloudformation delete-stack --stack-name CDKToolkit
       AWS_PROFILE=drive-backup-admin AWS_REGION=us-east-1 aws cloudformation wait stack-delete-complete --stack-name CDKToolkit
       ```
-    - [ ] Volver a hacer el bootstrap con la política limitada:
+    - [x] Volver a hacer el bootstrap con la política limitada:
       ```
       cd backend/infra
       AWS_PROFILE=drive-backup-admin AWS_REGION=us-east-1 pnpm exec cdk bootstrap aws://340464868186/us-east-1 \
         --cloudformation-execution-policies arn:aws:iam::340464868186:policy/tranqui-cfn-exec-policy
       ```
-    - [ ] Verificar que el rol `cdk-hnb659fds-cfn-exec-role-340464868186-us-east-1` solo tiene `tranqui-cfn-exec-policy` y que `tranqui-deployer` puede asumir el rol de deploy.
+    - [x] Verificar que el rol `cdk-hnb659fds-cfn-exec-role-340464868186-us-east-1` solo tiene `tranqui-cfn-exec-policy` (verificado el 2026-10-17).
+    - [ ] Verificar que `tranqui-deployer` puede asumir el rol de deploy (se comprueba en el primer `cdk deploy`).
 
 ~~Evaluar un mecanismo de autenticación más seguro que la API key~~ → deuda técnica TD-001.
 
