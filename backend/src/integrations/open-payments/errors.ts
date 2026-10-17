@@ -4,6 +4,13 @@ import type { GatewayOperation } from './gateway.js'
 
 const networkCodes = new Set(['ECONNREFUSED', 'ENOTFOUND', 'ECONNRESET', 'EAI_AGAIN'])
 
+/** Operations that present an access token to the resource server. */
+const tokenOperations = new Set<GatewayOperation>([
+  'createOutgoingPayment',
+  'getOutgoingPayment',
+  'createQuote'
+])
+
 type SdkLikeError = Error & {
   status?: number
   code?: string
@@ -48,6 +55,17 @@ export function toApiError(
   let result: AppError
   if (isTimeoutError(name, description)) {
     result = new AppError(504, 'OPEN_PAYMENTS_TIMEOUT', 'Open Payments request timed out')
+  } else if (
+    operation === 'rotateToken' &&
+    (status === 401 || status === 403 || status === 404)
+  ) {
+    result = new AppError(409, 'GRANT_REVOKED', 'The grant no longer exists')
+  } else if (status === 401 && tokenOperations.has(operation)) {
+    result = new AppError(
+      502,
+      'OPEN_PAYMENTS_UNAUTHORIZED',
+      'The access token was rejected'
+    )
   } else if (status === 404 && operation === 'getWalletAddress') {
     result = new AppError(422, 'WALLET_NOT_FOUND', 'Wallet address not found')
   } else if (operation === 'createQuote' && (status === 400 || status === 422)) {

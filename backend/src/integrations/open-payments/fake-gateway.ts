@@ -18,10 +18,19 @@ interface PendingGrantState {
   sender: WalletAddress
   finishUri: string
   clientNonce: string
+  limits: { debitAmount: Amount; interval: string }
 }
 
 interface GrantState {
   manageUrl: string
+  continueToken: string
+}
+
+export interface GrantRequestRecord {
+  sender: WalletAddress
+  limits: { debitAmount: Amount; interval: string }
+  finishUri: string
+  clientNonce: string
   continueToken: string
 }
 
@@ -30,6 +39,16 @@ export interface FakeOpenPaymentsGateway extends OpenPaymentsGateway {
   completeOutgoingPayment(id: string): void
   failOutgoingPayment(id: string): void
   failNext(operation: GatewayOperation, error: unknown): void
+  /** Every interactive grant requested, in order. */
+  grantRequests(): GrantRequestRecord[]
+  /** `continueToken`s of the grants cancelled via `cancelGrant`. */
+  cancelledGrants(): string[]
+  /** Marks a token as rejected by the auth server (it can still be rotated). */
+  invalidateAccessToken(token: string): void
+  /** Overrides the granted limits only for the next `continueGrant` call. */
+  overrideNextGrantedLimits(limits: { debitAmount: Amount; interval: string }): void
+  /** Revokes every grant: tokens fail and rotation is refused. */
+  revokeGrants(): void
 }
 
 const appError = (status: number, code: string): AppError =>
@@ -49,8 +68,9 @@ const resourceUrl = (resourceServer: string, resource: string, id: string): stri
  * calls and never converts between currencies.
  */
 export function createFakeOpenPaymentsGateway({
-  now = () => new Date()
-}: { now?: () => Date } = {}): FakeOpenPaymentsGateway {
+  now = () => new Date(),
+  tokenTtlSeconds = 600
+}: { now?: () => Date; tokenTtlSeconds?: number } = {}): FakeOpenPaymentsGateway {
   const wallets = new Map<string, WalletAddress>()
   const incomingPayments = new Map<string, IncomingPayment>()
   const quotes = new Map<string, Quote>()
@@ -58,6 +78,13 @@ export function createFakeOpenPaymentsGateway({
   const pendingGrants = new Map<string, PendingGrantState>()
   const accessTokens = new Map<string, GrantState>()
   const failQueues = new Map<GatewayOperation, unknown[]>()
+  const grantRequestLog: GrantRequestRecord[] = []
+  const cancelledGrantLog: string[] = []
+  const invalidatedTokens = new Set<string>()
+  let revoked = false
+  let nextGrantedLimits: { debitAmount: Amount; interval: string } | undefined
+
+  const expiresAt = (): Date => new Date(now().getTime() + tokenTtlSeconds * 1000)
 
   // Runs the synchronous body as a Promise so that both `failNext` and errors
   // thrown inside it surface as rejections (never as synchronous throws).
@@ -96,6 +123,9 @@ export function createFakeOpenPaymentsGateway({
   }
 
   const assertAccessToken = (token: string): void => {
+    if (revoked || invalidatedTokens.has(token)) {
+      throw appError(502, 'OPEN_PAYMENTS_UNAUTHORIZED')
+    }
     if (!accessTokens.has(token)) throw appError(502, 'OPEN_PAYMENTS_ERROR')
   }
 
@@ -180,7 +210,15 @@ export function createFakeOpenPaymentsGateway({
           finishNonce: pending.finishNonce,
           sender: input.sender,
           finishUri: input.finishUri,
-          clientNonce: input.clientNonce
+          clientNonce: input.clientNonce,
+          limits: input.limits
+        })
+        grantRequestLog.push({
+          sender: input.sender,
+          limits: input.limits,
+          finishUri: input.finishUri,
+          clientNonce: input.clientNonce,
+          continueToken
         })
         return pending
       })
@@ -201,7 +239,9 @@ export function createFakeOpenPaymentsGateway({
           manageUrl,
           continueToken: input.continueToken
         })
-        return { accessToken, manageUrl }
+        const grantedLimits = nextGrantedLimits ?? pending.limits
+        nextGrantedLimits = undefined
+        return { accessToken, manageUrl, expiresAt: expiresAt(), grantedLimits }
       })
     },
 
@@ -248,18 +288,24 @@ export function createFakeOpenPaymentsGateway({
       accessToken: string
     }): Promise<{ accessToken: string; manageUrl: string; expiresAt?: Date }> {
       return call('rotateToken', () => {
+        if (revoked) throw appError(409, 'GRANT_REVOKED')
         const grant = accessTokens.get(input.accessToken)
         if (!grant) throw appError(502, 'OPEN_PAYMENTS_ERROR')
 
         const nextToken = randomUUID()
         accessTokens.delete(input.accessToken)
         accessTokens.set(nextToken, grant)
-        return { accessToken: nextToken, manageUrl: grant.manageUrl }
+        return {
+          accessToken: nextToken,
+          manageUrl: grant.manageUrl,
+          expiresAt: expiresAt()
+        }
       })
     },
 
     cancelGrant(input: { continueUri: string; continueToken: string }): Promise<void> {
       return call('cancelGrant', () => {
+        cancelledGrantLog.push(input.continueToken)
         for (const [token, grant] of accessTokens) {
           if (grant.continueToken === input.continueToken) accessTokens.delete(token)
         }
@@ -283,6 +329,26 @@ export function createFakeOpenPaymentsGateway({
       const queue = failQueues.get(operation) ?? []
       queue.push(error)
       failQueues.set(operation, queue)
+    },
+
+    grantRequests(): GrantRequestRecord[] {
+      return [...grantRequestLog]
+    },
+
+    cancelledGrants(): string[] {
+      return [...cancelledGrantLog]
+    },
+
+    invalidateAccessToken(token: string): void {
+      invalidatedTokens.add(token)
+    },
+
+    overrideNextGrantedLimits(limits: { debitAmount: Amount; interval: string }): void {
+      nextGrantedLimits = limits
+    },
+
+    revokeGrants(): void {
+      revoked = true
     }
   }
 }
