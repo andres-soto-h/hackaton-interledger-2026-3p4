@@ -6,7 +6,7 @@
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
 | | | | [026 — Pago a comercio con wallet del receptor (solo COP)](specs/026-pago-comercio-cop.md) · 4/4 · [027 — Cancelación de grant al borrar cuenta](specs/027-cancelacion-grant-cuenta.md) · 3/3 |
-| | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 21/22 · ⏸ *pausado hasta tener una versión inicial del backend (no cuenta para el límite de 3)* · *bootstrap de CDK reparado; falta comprobar el acceso de `tranqui-deployer` (tarea 22)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
+| | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 22/22 · *desplegado en `dev` el 2026-10-17; falta cargar el secreto `open-payments`* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
 | | | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 5/5 |

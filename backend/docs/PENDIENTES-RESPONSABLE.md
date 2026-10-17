@@ -6,7 +6,8 @@
 
 | Fecha | Spec | Pendiente | Qué se necesita | Estado |
 |---|---|---|---|---|
-| 2026-10-17 | 026 | Aprobar el borrador del pago a comercio solo en COP | Revisar [026](specs/026-pago-comercio-cop.md); autorizar su desarrollo | Abierto |
+| 2026-10-17 | 002 | Cargar el secreto `tranqui/dev/open-payments` con las llaves de la wallet de la plataforma (`walletAddressUrl`, `keyId`, `privateKey`) | Proveer las llaves de la wallet de la plataforma (o el archivo) | Abierto |
+| 2026-10-17 | 026 | Aprobar el borrador del pago a comercio solo en COP | Revisar [026](specs/026-pago-comercio-cop.md); autorizar su desarrollo | Resuelto — implementado (Hecho) |
 | 2026-10-17 | backlog | Conectar `GET /merchants` a la lista de comercios en la base de Google Cloud (el front usa una lista simulada) | Spec del backend aún sin escribir; ver [KANBAN](KANBAN.md#backlog-specs-por-escribir) | Abierto |
 | 2026-10-17 | 008 | Ejecución manual del caso 12 (flujo completo contra la red de prueba) y `pnpm test:e2e` contra red real | Ejecutarlo con las wallets de prueba y la llave de la plataforma | Abierto — guía entregada; lo ejecuta el responsable |
 | 2026-10-17 | 009 | ¿Hace falta el webhook hacia el agente (fase 2) después del hackatón? | Decidir; hoy el seguimiento es solo por polling | Resuelto — solo polling, sin webhook |
@@ -17,4 +18,4 @@
 | 2026-10-17 | cableado | Borrar la cuenta con vinculación `PENDING_AUTHORIZATION` no cancela el grant (vence solo) | Decidir | Resuelto — cancelar el grant explícitamente. [spec 027](specs/027-cancelacion-grant-cuenta.md) (Aprobado) |
 | 2026-10-17 | 003 | Fixtures HTTP escritos a mano, no capturados de la red de prueba | Validar contra la red real | Resuelto — se aplaza (los fixtures bastan) |
 | 2026-10-17 | 023 | Spike manual (caso 1): grant con límite + interval, pagos dentro/sobre el límite, rotar, cancelar | Ejecutarlo en la red de prueba | Resuelto — se aplaza (confirmado por Interledger) |
-| 2026-10-17 | 002 | Tarea 11 y verificación de `tranqui-deployer` | Verificar el acceso del usuario deployer | Abierto — verificar tranqui-deployer (sin desplegar) |
+| 2026-10-17 | 002 | Tarea 11 y verificación de `tranqui-deployer` | Verificar el acceso del usuario deployer | Resuelto — desplegado en `dev` (2026-10-17) |

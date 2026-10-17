@@ -10,13 +10,17 @@
 
 ## Estado
 
-**Pausado desde el 2026-10-17** por decisión del responsable: no cuenta para el límite de 3 specs en paralelo y se retoma cuando el backend tenga una versión inicial completa (tarea 11, despliegue en `dev`).
+**Desplegado en `dev` el 2026-10-17** (tarea 11): stack `TranquiBackend-dev` creado
+(Lambda, HTTP API, DynamoDB, secretos y alarmas) con `tranqui-deployer` (tarea 22
+verificada). URL en el output `ApiUrl`. **Pendiente:** cargar el secreto
+`tranqui/dev/open-payments` con las llaves de la wallet de la plataforma (el
+stack lo crea vacío; ver [infra/README.md](../infra/README.md#secretos)).
 
-21 / 22 tareas completadas (la 22 solo conserva la comprobación de `tranqui-deployer`). Plantilla IaC en `backend/infra/`: 22/22 tests en
-verde y typecheck limpio. Tareas 13–21 hechas en la rama `spec/002`, pendientes
-de integrar. Pendiente: reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
-Bootstrap de CDK reparado el 2026-10-17 (tarea 22): el despliegue ya no está bloqueado por la cuenta; solo espera el código del backend y comprobar el acceso de `tranqui-deployer`.
-**Por ahora solo se trabaja la plantilla IaC (sin desplegar). No se despliega hasta tener la mayoría del código del backend** (decisión 9).
+22 / 22 tareas completadas. Plantilla IaC en `backend/infra/`: 22/22 tests en
+verde y typecheck limpio. Bootstrap de CDK reparado el 2026-10-17 (tarea 22) y
+`tranqui-cfn-exec-policy` ampliada con `ssm:GetParameters` y
+`apigateway:TagResource`/`UntagResource` para que el rol de ejecución pueda
+desplegar.
 
 > 2026-10-16: aprobados los cambios que piden los specs de la API (003–009).
 > La evaluación de JWT pasó a deuda técnica ([TD-001](../DEUDA-TECNICA.md#td-001--autenticación-de-la-api-más-fuerte-que-la-api-key)).
@@ -207,7 +211,7 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 8. [x] Definir log group con retención hasta pasar el test 7.
 9. [x] Documentar dónde y cómo se guardan las llaves privadas en el despliegue (formato del secreto, carga, rotación) en el README.
 10. [ ] **Reemplazar las llaves de la wallet personal por las de una wallet de la plataforma** (crear la wallet `tranqui-app` en la red de prueba, sin fondos; generar sus llaves y cargarlas en el secreto). Las wallets de comercios de prueba solo se crean para recibir pagos; no necesitan llaves.
-11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de la tarea 22; pospuesta hasta tener la mayoría del backend (decisión 9).*
+11. [x] Desplegar en `dev` y verificar los casos 10–11. *Desplegado el 2026-10-17; queda cargar el secreto `open-payments` con las llaves reales.*
 12. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 11).*
 13. [x] Tabla de pagos: índices y renombre a `PAYMENTS_TABLE_NAME` (casos 12 y 14).
 14. [x] Throttling de API Gateway (caso 13).
@@ -224,7 +228,7 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 
 *Preparación de la cuenta de AWS (bloquea la tarea 11):*
 
-22. [ ] **Reparar el bootstrap de CDK con permisos limitados al proyecto** (cuenta `340464868186`, `us-east-1`, perfil `drive-backup-admin`). *Requiere autorización del responsable: borra un stack compartido de la cuenta.*
+22. [x] **Reparar el bootstrap de CDK con permisos limitados al proyecto** (cuenta `340464868186`, `us-east-1`, perfil `drive-backup-admin`). *Requiere autorización del responsable: borra un stack compartido de la cuenta.*
     - [x] Crear el usuario de despliegue `tranqui-deployer` con la política inline `tranqui-deploy-scope` (ver [SEGURIDAD.md](../SEGURIDAD.md#permisos-de-despliegue-aws)).
     - [x] Crear la política administrada `tranqui-cfn-exec-policy` (v2, sin hallazgos en Access Analyzer).
     - [x] Borrar el stack `CDKToolkit`, que está roto: el bucket `cdk-hnb659fds-assets-340464868186-us-east-1` y el repositorio ECR `cdk-hnb659fds-container-assets-340464868186-us-east-1` se borraron fuera de CloudFormation y la actualización falla con `ECRRepository:NotFound`. Ningún otro stack de la cuenta lo usa.
@@ -239,7 +243,7 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
         --cloudformation-execution-policies arn:aws:iam::340464868186:policy/tranqui-cfn-exec-policy
       ```
     - [x] Verificar que el rol `cdk-hnb659fds-cfn-exec-role-340464868186-us-east-1` solo tiene `tranqui-cfn-exec-policy` (verificado el 2026-10-17).
-    - [ ] Verificar que `tranqui-deployer` puede asumir el rol de deploy (se comprueba en el primer `cdk deploy`).
+    - [x] Verificar que `tranqui-deployer` puede asumir el rol de deploy (verificado en el primer `cdk deploy`, 2026-10-17; se añadieron `ssm:GetParameters` y `apigateway:TagResource`/`UntagResource` a `tranqui-cfn-exec-policy`).
 
 ~~Evaluar un mecanismo de autenticación más seguro que la API key~~ → deuda técnica TD-001.
 
