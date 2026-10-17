@@ -15,6 +15,12 @@ import {
   DEFAULT_SESSION_TTL_SECONDS,
   type AdminSessionManager
 } from './admin-session.js'
+import type { PaymentStatus } from '../payments/payment.types.js'
+import {
+  type OpenPaymentsStatus,
+  type OpenPaymentsStatusChecker,
+  type PaymentsSummaryProvider
+} from './home-summary.js'
 import { escapeHtml, html, raw } from './html.js'
 import { renderLayout } from './layout.js'
 import { createInMemoryLoginAttempts, type LoginAttemptsStore } from './login-attempts.js'
@@ -26,6 +32,15 @@ const CSP =
 const ADMIN_CSS = '/* tranqui admin panel */\n'
 const ADMIN_JS = '// tranqui admin panel\n'
 
+const HOME_STATUSES: PaymentStatus[] = [
+  'AWAITING_CONFIRMATION',
+  'PROCESSING',
+  'COMPLETED',
+  'FAILED',
+  'CANCELLED',
+  'EXPIRED'
+]
+
 export interface AdminDeps {
   enabled?: boolean
   adminPassword: string
@@ -34,6 +49,8 @@ export interface AdminDeps {
   settings: EditableSettingsProvider
   settingsStore: SettingsStore
   activityLog: ActivityLog
+  paymentsSummary?: PaymentsSummaryProvider
+  openPaymentsStatus?: OpenPaymentsStatusChecker
   loginAttempts?: LoginAttemptsStore
   now?: () => number
   logger?: Logger
@@ -404,11 +421,59 @@ export function createAdminRouter(deps: AdminDeps): Router {
     res.redirect(302, '/admin/login')
   })
 
-  router.get('/admin', adminAuth, (_req, res) => {
+  router.get('/admin', adminAuth, async (_req, res) => {
     const token = res.locals.adminSession as string
+
+    let counts: Partial<Record<PaymentStatus, number>> = {}
+    if (deps.paymentsSummary !== undefined) {
+      try {
+        counts = await deps.paymentsSummary.last24h()
+      } catch {
+        counts = {}
+      }
+    }
+
+    let openPayments: OpenPaymentsStatus | null = null
+    if (deps.openPaymentsStatus !== undefined) {
+      try {
+        openPayments = await deps.openPaymentsStatus.check()
+      } catch {
+        openPayments = null
+      }
+    }
+
+    const rows = HOME_STATUSES.map(
+      (status) => html`
+        <tr>
+          <td>${status}</td>
+          <td>${counts[status] ?? 0}</td>
+        </tr>
+      `
+    )
+
+    const statusBadge =
+      openPayments === null
+        ? html`<span class="badge text-bg-secondary">No disponible</span>`
+        : openPayments.connected
+          ? html`<span class="badge text-bg-success">Conectado</span>`
+          : html`<span class="badge text-bg-danger">Error: ${openPayments.error}</span>`
+
     const body = html`
       <h1>Inicio</h1>
-      <p>Panel de administración de tranqui.</p>
+      <h2>Pagos (últimas 24 h)</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>Conteo</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      <h2>Open Payments</h2>
+      <p>${statusBadge}</p>
       <ul>
         <li><a href="/admin/settings">Configuración</a></li>
       </ul>
