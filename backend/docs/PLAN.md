@@ -110,7 +110,10 @@ backend/docs/
 1. Claude redacta el spec → **Borrador**. El responsable lo aprueba → **Aprobado**.
 2. El desarrollo solo inicia con autorización explícita → **En desarrollo**.
 3. TDD: tests primero (rojo) → código mínimo (verde) → refactor.
-4. Pasa a **Hecho** solo con toda la suite en verde. No se inicia otro spec antes.
+4. Pasa a **Hecho** solo con toda la suite en verde. Puede haber hasta 3 specs en
+   desarrollo en paralelo, cada uno en su worktree, con la memoria compartida
+   ([orquestacion/MEMORIA-COMPARTIDA.md](../../orquestacion/MEMORIA-COMPARTIDA.md))
+   al día; sin ella, un spec a la vez.
 5. Cada cambio de estado actualiza `KANBAN.md` y la sección *Estado* del spec.
 
 Los specs se numeran en orden de creación (`001`, `002`, …).

@@ -67,3 +67,4 @@ El despliegue del 002 ya se puede hacer (el 001 está hecho).
 | 2026-10-16 | 023, 024 | Specs aprobados → Aprobado |
 | 2026-10-16 | 007, 019, 023, 024 | Decisiones: confirmación de pagos con passkey; dominio de CloudFront; día de Bogotá; se asume `interval` (plan B: control en la API); la comisión la paga quien paga |
 | 2026-10-16 | 008 | `GET /transactions` devuelve todos los datos de cada transacción (incluido el nombre del comercio) en lotes paginados para carga perezosa; `status` de un solo valor (pedido del frontend 004) |
+| 2026-10-16 | — | Regla de flujo: hasta 3 specs En desarrollo en paralelo con memoria compartida ([orquestacion](../../orquestacion/README.md)); orquestación con Claude + workers de DeepSeek |
