@@ -39,3 +39,10 @@ export function counterpartyName(c: { name: string | null; walletAddress: string
     return c.walletAddress;
   }
 }
+
+/** Solo la hora: "3:24 p. m." (hora de Bogotá). */
+export function formatClock(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return time.format(date).replace(/\u202f|\u00a0/g, ' ');
+}

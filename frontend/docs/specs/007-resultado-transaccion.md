@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
-| Finalizado | — |
+| Desarrollo aprobado | 2026-10-17 |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-0 / 4 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+4 / 4 tareas completadas en `develop-andres` (274 tests en verde, lint y typecheck limpios). Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 ## Contexto
 
@@ -84,15 +84,22 @@ usePaymentStatus(paymentId): { payment, phase: "polling" | "final" | "timeout" |
 
 ## Tareas
 
-1. [ ] Handlers MSW de `/payments/{id}` con secuencias de estados y `Retry-After`.
-2. [ ] Casos 1–2 en rojo → `usePaymentStatus`.
-3. [ ] Casos 3–5 en rojo → pantalla de resultado.
-4. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Handlers MSW de `/payments/{id}` con secuencias de estados y `Retry-After`.
+2. [x] Casos 1–2 en rojo → `usePaymentStatus`.
+3. [x] Casos 3–5 en rojo → pantalla de resultado.
+4. [x] Suite completa en verde, lint y typecheck limpios.
 
-## Decisiones pendientes
+## Decisiones
 
-1. **Hora de recepción:** el mockup dice "lo recibió a las 3:24". ¿El backend
-   expone cuándo se completó (`completedAt`)? Si no, se usa `updatedAt`.
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Hora de recepción | Se usa `updatedAt` (hora de Bogotá) porque el backend no expone `completedAt` (2026-10-17) |
+| 2 | Estado repetido | La pantalla no muestra además el `StatusBadge`: el título ya dice el estado |
+| 3 | Intervalo por omisión | 3 s si la API no manda `Retry-After` (antes 2 s en el detalle del spec 004) |
+
+## Pendientes del backend (para validar con el responsable)
+
+- Exponer `completedAt` en `GET /payments/{id}` para mostrar la hora exacta de recepción.
 
 ## Notas
 

@@ -36,6 +36,7 @@ const baseScreens = (): Screens => ({
   '(app)/pagos/[merchantId]/datos': require('../../app/(app)/pagos/[merchantId]/datos').default,
   '(app)/pagos/[merchantId]/validacion': require('../../app/(app)/pagos/[merchantId]/validacion').default,
   '(app)/pagos/confirmar/[paymentId]': require('../../app/(app)/pagos/confirmar/[paymentId]').default,
+  '(app)/pagos/resultado/[paymentId]': require('../../app/(app)/pagos/resultado/[paymentId]').default,
   '(app)/cuenta': require('../../app/(app)/cuenta').default,
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
