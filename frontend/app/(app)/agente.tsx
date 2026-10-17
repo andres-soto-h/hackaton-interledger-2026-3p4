@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAgent } from '@/features/agent/agent-context';
 import { AgentBubble, UserBubble } from '@/features/agent/components/Bubbles';
 import { MerchantChoice, PaymentProposalCard, PaymentStatusCard } from '@/features/agent/components/Cards';
 import type { ChatMessage } from '@/features/agent/types';
-import { colors, layout, spacing } from '@/theme';
-import { AppHeader, AppText, Button, TextField } from '@/ui';
+import { layout, spacing } from '@/theme';
+import { AppHeader, AppText, Button, ScreenShell, TextField } from '@/ui';
 
 const MAX = 500;
 const EXAMPLES = ['Pague la luz', '¿Cuánto pagué este mes?'];
@@ -53,7 +52,7 @@ export default function Agent() {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
+    <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.column}>
         <View style={styles.header}>
           <AppHeader actionLabel="Inicio" onAction={() => router.replace('/')} />
@@ -61,6 +60,7 @@ export default function Agent() {
             Hable con TuTranqui
           </AppText>
         </View>
+        {/* FlatList: la conversación es corta y no es cuello de botella de 60 fps. */}
         <FlatList
           testID="chat-list"
           data={messages}
@@ -90,13 +90,12 @@ export default function Agent() {
           {messages.length > 0 ? <Button label="Empezar de nuevo" variant="ghost" onPress={reset} /> : null}
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { backgroundColor: colors.background, flex: 1 },
-  column: { alignSelf: 'center', flex: 1, maxWidth: layout.maxContentWidth, width: '100%' },
+  column: { flex: 1 },
   header: { gap: spacing.sm, paddingHorizontal: layout.screenMargin, paddingTop: spacing.lg },
   list: { gap: spacing.md, padding: layout.screenMargin },
   agentBlock: { gap: spacing.md },

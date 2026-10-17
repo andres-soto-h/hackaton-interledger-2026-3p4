@@ -97,7 +97,7 @@ describe('Lista de transacciones', () => {
     await screen.findByText('Comercio 1');
     const list = screen.getByTestId('transaction-list');
     await act(async () => {
-      list.props.refreshControl.props.onRefresh();
+      list.props.onRefresh();
     });
     await waitFor(() => expect(seen).toHaveLength(2));
     expect(seen[1].searchParams.get('cursor')).toBeNull();

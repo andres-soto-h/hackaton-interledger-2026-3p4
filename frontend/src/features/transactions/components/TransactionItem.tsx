@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, View } from 'react-native';
-import { colors, layout, radii, spacing } from '@/theme';
+import { StyleSheet, View } from 'react-native';
+import { borderWidth, colors, layout, radii, spacing } from '@/theme';
 import { formatMoney } from '@/lib/money';
-import { AppText, StatusBadge, paymentStatusText } from '@/ui';
+import { AppText, PressableScale, StatusBadge, paymentStatusText } from '@/ui';
 import { counterpartyName, formatRelativeDate } from '../format';
 import type { Transaction } from '../types';
 
@@ -12,10 +12,11 @@ export function TransactionItem({ transaction: t, onPress, now }: Props) {
   const amount = formatMoney(t.totalDebit ?? t.debitAmount);
   const when = formatRelativeDate(t.createdAt, now);
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={`${name}, ${amount}, ${when}, ${paymentStatusText(t.status)}`}
       onPress={() => onPress?.(t.id)}
+      haptic="tap"
       style={styles.row}
     >
       <View style={styles.left}>
@@ -26,7 +27,7 @@ export function TransactionItem({ transaction: t, onPress, now }: Props) {
         <StatusBadge status={t.status} />
       </View>
       <AppText variant="bodyStrong">{amount}</AppText>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -34,7 +35,9 @@ const styles = StyleSheet.create({
   row: {
     alignItems: 'flex-start',
     backgroundColor: colors.surface,
+    borderColor: colors.borderSubtle,
     borderRadius: radii.card,
+    borderWidth: borderWidth.hairline,
     flexDirection: 'row',
     gap: spacing.md,
     justifyContent: 'space-between',

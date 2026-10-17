@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
-import { colors, layout, radii, spacing, typography } from '@/theme';
+import { borderWidth, colors, layout, radii, spacing, typography } from '@/theme';
 import { AppText } from './AppText';
 
 type Props = Omit<TextInputProps, 'style'> & {
@@ -8,7 +9,9 @@ type Props = Omit<TextInputProps, 'style'> & {
   error?: string;
 };
 
-export function TextField({ label, help, error, ...input }: Props) {
+export function TextField({ label, help, error, onFocus, onBlur, ...input }: Props) {
+  const [focused, setFocused] = useState(false);
+  const borderColor = error ? colors.danger : focused ? colors.primary : colors.borderSubtle;
   return (
     <View style={styles.wrapper}>
       <AppText variant="label" color="textMuted">
@@ -19,7 +22,15 @@ export function TextField({ label, help, error, ...input }: Props) {
         accessibilityHint={help}
         accessibilityState={{ disabled: input.editable === false }}
         placeholderTextColor={colors.textMuted}
-        style={[styles.input, error ? styles.inputError : null]}
+        onFocus={(event) => {
+          setFocused(true);
+          onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          setFocused(false);
+          onBlur?.(event);
+        }}
+        style={[styles.input, { borderColor }]}
         {...input}
       />
       {help && !error ? (
@@ -41,12 +52,10 @@ const styles = StyleSheet.create({
   input: {
     ...typography.body,
     backgroundColor: colors.surface,
-    borderColor: colors.border,
     borderRadius: radii.button,
-    borderWidth: 2,
+    borderWidth: borderWidth.hairline,
     color: colors.text,
     minHeight: layout.buttonHeight,
     paddingHorizontal: spacing.lg,
   },
-  inputError: { borderColor: colors.danger },
 });

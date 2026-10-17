@@ -1,4 +1,5 @@
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { StyleSheet, View } from 'react-native';
 import { spacing } from '@/theme';
 import { AppText, Button, EmptyState, ErrorState } from '@/ui';
 import type { Transaction } from '../types';
@@ -35,12 +36,12 @@ export function TransactionList(props: Props) {
   }
 
   return (
-    <FlatList
+    <FlashList
       testID="transaction-list"
       data={body ? [] : items}
       keyExtractor={(t) => t.id}
       renderItem={({ item }) => <TransactionItem transaction={item} onPress={props.onOpen} />}
-      ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+      ItemSeparatorComponent={Separator}
       ListHeaderComponent={props.header}
       ListEmptyComponent={body ?? undefined}
       ListFooterComponent={
@@ -52,13 +53,19 @@ export function TransactionList(props: Props) {
       }
       onEndReachedThreshold={0.4}
       onEndReached={() => hasMore && !fetchingMore && props.onEndReached()}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={props.onRefresh} />}
+      refreshing={refreshing}
+      onRefresh={props.onRefresh}
       contentContainerStyle={styles.content}
     />
   );
 }
 
+function Separator() {
+  return <View style={styles.separator} />;
+}
+
 const styles = StyleSheet.create({
-  content: { gap: spacing.md, padding: spacing.xl },
+  content: { padding: spacing.xl },
+  separator: { height: spacing.md },
   empty: { gap: spacing.lg },
 });

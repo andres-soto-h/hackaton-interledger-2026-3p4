@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radii, spacing } from '@/theme';
+import { borderWidth, colors, iconSize, radii, spacing } from '@/theme';
 import { AppText } from './AppText';
 
 export type PaymentStatus =
@@ -31,8 +31,8 @@ export function StatusBadge({ status }: { status: PaymentStatus }) {
   const { text, color, icon } = STATUS[status];
   return (
     <View accessible accessibilityLabel={`Estado: ${text}`} style={styles.badge}>
-      <Ionicons name={icon} size={20} color={colors[color]} accessibilityElementsHidden />
-      <AppText variant="label" color={color} style={styles.text}>
+      <Ionicons name={icon} size={iconSize.md} color={colors[color]} accessibilityElementsHidden />
+      <AppText variant="labelStrong" color={color}>
         {text}
       </AppText>
     </View>
@@ -44,11 +44,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     backgroundColor: colors.surfaceAlt,
+    borderColor: colors.borderSubtle,
     borderRadius: radii.chip,
+    borderWidth: borderWidth.hairline,
     flexDirection: 'row',
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingVertical: spacing.sm,
   },
-  text: { fontWeight: '600' },
 });

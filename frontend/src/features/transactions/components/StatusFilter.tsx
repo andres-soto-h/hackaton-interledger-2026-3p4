@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
-import { colors, layout, radii, spacing } from '@/theme';
-import { AppText } from '@/ui';
+import { StyleSheet, View } from 'react-native';
+import { borderWidth, colors, layout, radii, spacing } from '@/theme';
+import { AppText, PressableScale } from '@/ui';
 import { STATUS_FILTERS } from '../filters';
 
 type Option = { id: string; label: string };
@@ -17,18 +17,20 @@ export function StatusFilter<T extends string = string>({ value, onChange, optio
       {(options ?? STATUS_FILTERS).map(({ id, label }) => {
         const selected = id === value;
         return (
-          <Pressable
+          <PressableScale
             key={id}
             accessibilityRole="radio"
             accessibilityLabel={label}
             accessibilityState={{ selected }}
             onPress={() => onChange(id as T)}
+            haptic="selection"
+            scaleTo={0.96}
             style={[styles.chip, selected ? styles.chipOn : null]}
           >
             <AppText variant="label" color={selected ? 'surface' : 'primary'}>
               {label}
             </AppText>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>
@@ -40,10 +42,12 @@ const styles = StyleSheet.create({
   chip: {
     alignItems: 'center',
     backgroundColor: colors.surfaceAlt,
+    borderColor: colors.borderSubtle,
     borderRadius: radii.chip,
+    borderWidth: borderWidth.hairline,
     justifyContent: 'center',
     minHeight: layout.minTouch,
     paddingHorizontal: spacing.lg,
   },
-  chipOn: { backgroundColor: colors.primary },
+  chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
 });

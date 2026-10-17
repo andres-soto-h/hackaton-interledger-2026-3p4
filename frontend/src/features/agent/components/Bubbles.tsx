@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import { colors, spacing } from '@/theme';
+import { borderWidth, colors, radii, spacing } from '@/theme';
 import { AppText } from '@/ui';
 
 /** El texto del agente es siempre texto plano: ni HTML, ni markdown, ni enlaces que se abran solos. */
@@ -26,7 +26,13 @@ export function UserBubble({ text }: { text: string }) {
 }
 
 const styles = StyleSheet.create({
-  bubble: { borderRadius: 18, gap: spacing.xs, maxWidth: '88%', padding: spacing.md },
-  agent: { alignSelf: 'flex-start', backgroundColor: colors.surface, borderTopLeftRadius: 4 },
-  user: { alignSelf: 'flex-end', backgroundColor: colors.surfaceAlt, borderTopRightRadius: 4 },
+  bubble: { borderRadius: radii.bubble, gap: spacing.xs, maxWidth: '88%', padding: spacing.md },
+  agent: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSubtle,
+    borderTopLeftRadius: radii.bubbleTip,
+    borderWidth: borderWidth.hairline,
+  },
+  user: { alignSelf: 'flex-end', backgroundColor: colors.surfaceAlt, borderTopRightRadius: radii.bubbleTip },
 });
