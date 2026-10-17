@@ -33,6 +33,15 @@ Formato:
 
 ## Decisiones
 
+### 2026-10-17 · Excepciones: 019 y 020 tocan `api-key-auth.ts` y `ids.ts`
+- Origen: orquestador (avisado por los agentes de tests de 019 y 020)
+- Afecta: specs 019, 020 (y 006) · `src/shared/middlewares/api-key-auth.ts`, `src/shared/middlewares/json-body.ts`, `src/shared/ids/ids.ts`
+- Decisión: excepciones puntuales a "los middlewares del 005 se usan tal cual":
+  - **019**: `api-key-auth.ts` deja pasar sin API key los `POST` públicos de `auth` y `GET`/`DELETE /api/v1/me`; `ids.ts` agrega los prefijos `usr` y `chl`.
+  - **020**: `api-key-auth.ts` y `json-body.ts` dejan pasar el panel (`/admin/*`) sin API key ni parser JSON; `ids.ts` agrega `evt`.
+  - Cada worker hace solo su cambio, mínimo y aditivo (una entrada por lista); no reordena ni reformatea el archivo. El orquestador resuelve el conflicto de merge al integrar.
+- Acción para los demás: el 006 no toca esos archivos.
+
 ### 2026-10-17 · Dueños de archivos del spec 006
 - Origen: orquestador
 - Afecta: specs 006, 019, 020
