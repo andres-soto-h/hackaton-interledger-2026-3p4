@@ -20,6 +20,12 @@ El despliegue del 002 se puede hacer al terminar el 001.
 
 - Webhooks hacia el agente (fase 2 del spec 009, si se aprueba)
 - Seguridad como spec propio (si [SEGURIDAD.md](SEGURIDAD.md) lo amerita)
+- Pedidos por el frontend ([contratos propuestos](../../frontend/docs/PLAN.md#dependencias-con-el-backend)):
+  - Usuarios y sesiones: registro, ingreso con correo + PIN, usuario actual, eliminar cuenta y token de sesión en vez de API key para la app
+  - Directorio de comercios — `GET /api/v1/merchants`
+  - Verificación de wallet — `GET /api/v1/wallets/verify`
+  - Transacciones del usuario en sesión (ajuste al 008) y `authorizationUrl` en `GET /payments/{id}` mientras esté pendiente
+  - API del agente — `POST /api/v1/agent/messages` con tools sin permiso de aprobar
 
 ## Historial
 
@@ -36,3 +42,4 @@ El despliegue del 002 se puede hacer al terminar el 001.
 | 2026-10-16 | 002 | Aprobados cambios: tabla de pagos con índices, throttling, configuración y alarmas; evaluación de JWT → deuda técnica TD-001 |
 | 2026-10-16 | 003–009 | Spec de la API dividido en 7 specs; creados como borrador con [API.md](API.md) y [SEGURIDAD.md](SEGURIDAD.md) como referencia común |
 | 2026-10-16 | 002 | Llaves de comercios ficticios → una sola identidad de cliente (wallet de la plataforma); formato del secreto simplificado (impacta 001 y 003) |
+| 2026-10-16 | — | Backlog: endpoints que pide el frontend (usuarios, directorio, verificación de wallet, agente) |
