@@ -12,9 +12,8 @@
 
 **Desplegado en `dev` el 2026-10-17** (tarea 11): stack `TranquiBackend-dev` creado
 (Lambda, HTTP API, DynamoDB, secretos y alarmas) con `tranqui-deployer` (tarea 22
-verificada). URL en el output `ApiUrl`. **Pendiente:** cargar el secreto
-`tranqui/dev/open-payments` con las llaves de la wallet de la plataforma (el
-stack lo crea vacío; ver [infra/README.md](../infra/README.md#secretos)).
+verificada). Secreto `open-payments` cargado con las llaves de la plataforma y
+`GET /health` responde `200`. URL en el output `ApiUrl`.
 
 22 / 22 tareas completadas. Plantilla IaC en `backend/infra/`: 22/22 tests en
 verde y typecheck limpio. Bootstrap de CDK reparado el 2026-10-17 (tarea 22) y

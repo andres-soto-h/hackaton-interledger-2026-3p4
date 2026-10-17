@@ -6,7 +6,7 @@
 
 | Fecha | Spec | Pendiente | Qué se necesita | Estado |
 |---|---|---|---|---|
-| 2026-10-17 | 002 | Cargar el secreto `tranqui/dev/open-payments` con las llaves de la wallet de la plataforma (`walletAddressUrl`, `keyId`, `privateKey`) | Proveer las llaves de la wallet de la plataforma (o el archivo) | Abierto |
+| 2026-10-17 | 002 | Cargar el secreto `tranqui/dev/open-payments` con las llaves de la wallet de la plataforma (`walletAddressUrl`, `keyId`, `privateKey`) | Proveer las llaves de la wallet de la plataforma (o el archivo) | Resuelto — cargado y verificado (2026-10-17) |
 | 2026-10-17 | 026 | Aprobar el borrador del pago a comercio solo en COP | Revisar [026](specs/026-pago-comercio-cop.md); autorizar su desarrollo | Resuelto — implementado (Hecho) |
 | 2026-10-17 | backlog | Conectar `GET /merchants` a la lista de comercios en la base de Google Cloud (el front usa una lista simulada) | Spec del backend aún sin escribir; ver [KANBAN](KANBAN.md#backlog-specs-por-escribir) | Abierto |
 | 2026-10-17 | 008 | Ejecución manual del caso 12 (flujo completo contra la red de prueba) y `pnpm test:e2e` contra red real | Ejecutarlo con las wallets de prueba y la llave de la plataforma | Abierto — guía entregada; lo ejecuta el responsable |
