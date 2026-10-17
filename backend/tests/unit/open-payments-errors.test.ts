@@ -94,4 +94,21 @@ describe('toApiError', () => {
       code: 'WALLET_NOT_FOUND'
     })
   })
+
+  // Spec 023: tokens rechazados y grants revocados.
+  it.each([['createOutgoingPayment'], ['getOutgoingPayment'], ['createQuote']] as const)(
+    '401 al usar un token en %s → OPEN_PAYMENTS_UNAUTHORIZED',
+    (operation) => {
+      const result = toApiError(sdkError(401), operation)
+      expect(result).toMatchObject({ status: 502, code: 'OPEN_PAYMENTS_UNAUTHORIZED' })
+    }
+  )
+
+  it.each([401, 403, 404])(
+    '%i al rotar el token → GRANT_REVOKED (409): el grant ya no existe',
+    (status) => {
+      const result = toApiError(sdkError(status), 'rotateToken')
+      expect(result).toMatchObject({ status: 409, code: 'GRANT_REVOKED' })
+    }
+  )
 })
