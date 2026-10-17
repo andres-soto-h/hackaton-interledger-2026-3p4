@@ -90,7 +90,7 @@ export function createWalletLinksService({
   const toStatusResult = (link: WalletLink): WalletLinkStatusResult => ({
     linkId: link.id,
     status: link.status === 'AUTHORIZING' ? 'PENDING_AUTHORIZATION' : link.status,
-    isFinal: link.status !== 'PENDING_AUTHORIZATION',
+    isFinal: link.status !== 'PENDING_AUTHORIZATION' && link.status !== 'AUTHORIZING',
     walletVerified: link.status === 'ACTIVE',
     dailyLimit: { value: link.dailyLimit, assetCode: link.assetCode }
   })

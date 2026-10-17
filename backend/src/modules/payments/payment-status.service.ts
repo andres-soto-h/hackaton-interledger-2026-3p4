@@ -13,6 +13,7 @@ export interface PaymentStatusResponse {
   paymentId: string
   type: PaymentType
   status: PaymentStatus
+  isFinal: boolean
   senderWalletAddress: string
   receiverWalletAddress: string
   debitAmount: Amount
@@ -87,6 +88,7 @@ export function createPaymentStatusService(
     paymentId: payment.id,
     type: payment.type,
     status: payment.status,
+    isFinal: FINAL_STATUSES.has(payment.status),
     senderWalletAddress: payment.senderWalletAddress,
     receiverWalletAddress: payment.receiverWalletAddress,
     debitAmount: payment.quote.debitAmount,
