@@ -1162,6 +1162,14 @@ components:
         feeStatus:
           type: string
           enum: [NONE, PENDING, PROCESSING, COLLECTED, FAILED]
+          description: >-
+            Estado del cobro de la comisión, que se hace con un
+            segundo outgoing payment a la wallet de la plataforma después del
+            pago principal.
+            NONE: sin comisión o el pago principal falló; PENDING: cotizada y aún
+            no cobrada; PROCESSING: el cobro está en curso; COLLECTED: cobrada;
+            FAILED: el cobro falló (se reintenta una vez al consultar el pago).
+            El pago principal no depende de este estado.
         totalDebit:
           $ref: '#/components/schemas/Amount'
         description:

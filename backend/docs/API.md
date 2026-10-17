@@ -84,6 +84,12 @@ Ningún pago pide aprobación en la wallet: la aprobación fue una sola, al
 vincular, con un tope diario. Detalle en los specs
 [007](specs/007-pago-y-autorizacion.md) y [024](specs/024-comision-transacciones.md).
 
+**Comisión (spec 024).** La cotización trae `fee` (con `percentage`) y `totalDebit`
+(pago + comisión). Se cobra con un segundo outgoing payment después del pago
+principal, y su estado va en `feeStatus` (`NONE`, `PENDING`, `PROCESSING`,
+`COLLECTED`, `FAILED`). Si el cobro falla, el pago principal no se ve afectado:
+la plataforma lo reintenta una vez al consultar el pago. No agrega códigos de error.
+
 ### Estados de un pago
 
 ```
