@@ -10,7 +10,7 @@
 
 ## Estado
 
-7 / 9 tareas completadas. La 8 (pruebas) queda diferida por la directiva de no tests; falta la 9 (despliegue y prueba manual). **Spec aprobado el 2026-10-17** con las decisiones de abajo; **Desarrollo aprobado el 2026-10-17**; se trabaja en la rama `develop-local`. Código listo (`agent/`, módulo `agent` del backend, CDK, OpenAPI y docs); **sin desplegar**: faltan habilitar el acceso al modelo en Bedrock, cargar la llave de ElevenLabs y la prueba manual.
+7 / 9 tareas completadas. La 8 (pruebas) queda diferida por la directiva de no tests. La 9 va avanzada: **desplegado en `dev` el 2026-10-17** (con `tranqui-deployer`) y probado el agente de punta a punta con Bedrock real (Claude Haiku 4.5) contra una API falsa; falta cargar la llave de ElevenLabs en `tranqui/dev/elevenlabs` y la prueba manual desde la app. **Spec aprobado el 2026-10-17** con las decisiones de abajo; **Desarrollo aprobado el 2026-10-17**; se trabaja en la rama `develop-local`. Código listo (`agent/`, módulo `agent` del backend, CDK, OpenAPI y docs); desplegado; falta la llave de ElevenLabs y la prueba manual. **Modelo:** Claude Haiku 4.5 (`us.anthropic.claude-haiku-4-5-20251001-v1:0`). Haiku 5.5 aparece como autorizado pero Bedrock responde que no está disponible para la cuenta; se reevalúa más adelante.
 
 ## Contexto
 

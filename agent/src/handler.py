@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import time
 from typing import Any
 
@@ -40,6 +41,11 @@ def _get_model() -> BedrockModel:
     return _model
 
 
+def _plain(text: str) -> str:
+    """Texto plano para el chat y la voz: sin asteriscos, almohadillas ni comillas invertidas."""
+    return re.sub(r"[*#`]+", "", text).strip()
+
+
 def _to_messages(history: list[dict[str, str]]) -> list[dict[str, Any]]:
     messages = [
         {"role": m["role"], "content": [{"text": str(m["text"])[:2000]}]}
@@ -64,7 +70,7 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         messages=_to_messages(event.get("history", [])),
         callback_handler=None,
     )
-    reply = str(agent(text)).strip() or FALLBACK_REPLY
+    reply = _plain(str(agent(text))) or FALLBACK_REPLY
     result: dict[str, Any] = {"text": reply, "actions": ctx.actions}
 
     if event.get("speak"):
