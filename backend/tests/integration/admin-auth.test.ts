@@ -155,7 +155,8 @@ describe('cookie con otra audiencia', () => {
   const forged = (
     h: ReturnType<typeof buildAdminHarness>,
     claims: Record<string, unknown>
-  ) => `tranqui_admin=${signJwt(SIGNING_KEY, { exp: nowSeconds(h) + 600, ...claims })}`
+  ) =>
+    `tranqui_admin=${signJwtWithKey(SIGNING_KEY, { exp: nowSeconds(h) + 600, ...claims })}`
 
   it('un JWT de usuario de la app (aud distinto) firmado con la misma clave se rechaza', async () => {
     const h = buildAdminHarness()
@@ -169,7 +170,7 @@ describe('cookie con otra audiencia', () => {
 
   it('un JWT admin firmado con otra clave se rechaza', async () => {
     const h = buildAdminHarness()
-    const token = signJwt('another-key-another-key-another-key', {
+    const token = signJwtWithKey('another-key-another-key-another-key', {
       aud: 'tranqui-admin',
       exp: nowSeconds(h) + 600
     })
