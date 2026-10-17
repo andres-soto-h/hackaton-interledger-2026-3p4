@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | 2026-10-16 |
-| Finalizado | — |
+| Finalizado | 2026-10-16 |
 
 ## Estado
 
-0 / 14 tareas completadas. Desarrollo autorizado el 2026-10-16.
+14 / 14 tareas completadas. Suite en verde (42 tests), lint, typecheck y build limpios; `cdk synth` verificado con el build real.
 
 ## Contexto
 
@@ -170,20 +170,20 @@ lee una vez por instancia (en el cold start) y queda en memoria.
 
 ## Tareas
 
-1. [ ] Crear el proyecto `backend/` (package.json, tsconfig, Vitest, ESLint, Prettier, `.nvmrc`, `.env.example`).
-2. [ ] Mover el ejemplo a `backend/reference/` sin modificarlo.
-3. [ ] Configuración de entorno: tests 10–11 en rojo → implementación.
-4. [ ] Logger estructurado.
-5. [ ] Errores y 404: tests 2–5 en rojo → `AppError`, `errorHandler`, `notFound`.
-6. [ ] `app.ts` + `GET /health`: test 1 en rojo → implementación.
-7. [ ] Middleware de API key: tests 6–9 en rojo → implementación. *Movida desde el spec 002.*
-8. [ ] Cargador de secretos: tests 12–14 en rojo → implementación. *Movida desde el spec 002.*
-9. [ ] `server.ts` para correr en local.
-10. [ ] `lambda.ts`: test 15 en rojo → implementación con el adaptador elegido.
-11. [ ] Build del backend a `backend/dist/` con `lambda.handler`; verificar `cdk synth` del spec 002 con el build real.
-12. [ ] Scripts `dev`, `test`, `lint`, `typecheck`, `build` funcionando.
-13. [ ] README del backend.
-14. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Crear el proyecto `backend/` (package.json, tsconfig, Vitest, ESLint, Prettier, `.nvmrc`, `.env.example`).
+2. [x] Mover el ejemplo a `backend/reference/` sin modificarlo.
+3. [x] Configuración de entorno: tests 10–11 en rojo → implementación.
+4. [x] Logger estructurado.
+5. [x] Errores y 404: tests 2–5 en rojo → `AppError`, `errorHandler`, `notFound`.
+6. [x] `app.ts` + `GET /health`: test 1 en rojo → implementación.
+7. [x] Middleware de API key: tests 6–9 en rojo → implementación. *Movida desde el spec 002.*
+8. [x] Cargador de secretos: tests 12–14 en rojo → implementación. *Movida desde el spec 002.*
+9. [x] `server.ts` para correr en local.
+10. [x] `lambda.ts`: test 15 en rojo → implementación con el adaptador elegido.
+11. [x] Build del backend a `backend/dist/` con `lambda.handler`; verificar `cdk synth` del spec 002 con el build real.
+12. [x] Scripts `dev`, `test`, `lint`, `typecheck`, `build` funcionando.
+13. [x] README del backend.
+14. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
@@ -198,3 +198,19 @@ lee una vez por instancia (en el cold start) y queda en memoria.
 
 - Las tareas 7 y 8 se movieron desde el spec 002 (antes 001) el 2026-10-16.
 - El ejemplo en `reference/` queda fuera del build, del lint y de los tests.
+
+### Desviaciones durante el desarrollo
+
+- **TypeScript 6.0.3** en vez de 7.x (el que usa `infra/`): `typescript-eslint`
+  8.71 solo soporta TypeScript < 6.1, y sin eso no funciona el lint con tipos.
+- `NODE_ENV` tiene valor por defecto (`production` en Lambda, `development` en
+  local), porque el stack de infraestructura no lo define.
+- El ejemplo quedó en `backend/reference/p2p-payment-example.js` (nombre del
+  PLAN) junto con su `package.json`, sin cambios.
+- El secreto de la API key se lee como texto plano (así lo genera el stack); el
+  de Open Payments se valida como `{ walletAddressUrl, keyId, privateKey }`.
+- `.env` se carga con `process.loadEnvFile` de Node (sin `dotenv`).
+- La API key se valida antes de leer el body: una petición sin key y con JSON
+  inválido recibe `401`, no `400`.
+- `pnpm` 10 requiere aprobar el script de build de `esbuild`
+  (`onlyBuiltDependencies`).
