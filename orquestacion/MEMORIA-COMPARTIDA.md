@@ -25,7 +25,7 @@ Formato:
 | Spec | Rama | Worktree | Desde | Lote actual |
 |---|---|---|---|---|
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
-| 003 | `spec/003` | `../<repo>-worktrees/spec-003` | 2026-10-16 | Tareas 1–5 (configuración, montos, anti-SSRF, puerto + fake, errores) |
+| 003 | `spec/003` | `../<repo>-worktrees/spec-003` | 2026-10-16 | Tareas 6–7 (fixtures y adapter del SDK, casos 9–13) |
 
 ## Decisiones
 
@@ -147,6 +147,6 @@ Formato:
 - Origen: orquestador
 - Afecta: todos
 - Decisión: los workers no agregan dependencias. En este lote no se necesitan:
-  los IDs ULID se generan con `node:crypto`. El SDK de Open Payments y msw los
-  agrega el orquestador en el lote del adapter (003, tareas 6–7).
+  los IDs ULID se generan con `node:crypto`. El SDK de Open Payments (7.4.0) y msw
+  (3.0.3) ya los agregó el orquestador en `spec/003` (2026-10-17).
 - Acción para los demás: ninguna.
