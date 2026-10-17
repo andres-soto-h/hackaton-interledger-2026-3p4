@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de los specs 001 y 004.
+0 / 7 tareas completadas. Desarrollo aprobado el 2026-10-17; se desarrolla en la rama `spec/005` (worker de DeepSeek) en paralelo con los specs 002 y 003. Depende de los specs 001 y 004.
 
 ## Contexto
 
@@ -117,6 +117,9 @@ de los endpoints. Lineamientos en [SEGURIDAD.md](../SEGURIDAD.md).
 Ninguna.
 
 ## Notas
+
+- El almacén de idempotencia es un puerto (`IdempotencyStore`) con implementación en memoria en este spec. La implementación en DynamoDB (registros `idem_<hash>`, TTL 24 h) queda para el primer spec que use `idempotency` (006), junto con el cableado de `createApp`.
+- `CORS_ALLOWED_ORIGINS` se pasa a `createApp` como lista (`corsAllowedOrigins`); `server.ts` y `lambda.ts` la leen de la variable de entorno. La variable se agrega a la plantilla de infraestructura en una tarea del spec 002 cuando haga falta.
 
 - `express-rate-limit` no se usa: en Lambda cada instancia tiene su propia
   memoria, así que el límite real se pone en API Gateway (spec 002).

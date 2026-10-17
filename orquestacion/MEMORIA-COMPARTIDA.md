@@ -26,8 +26,19 @@ Formato:
 |---|---|---|---|---|
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
 | 003 | `spec/003` | `../<repo>-worktrees/spec-003` | 2026-10-16 | Tareas 6–7 (fixtures y adapter del SDK, casos 9–13) |
+| 005 | `spec/005` | `../<repo>-worktrees/spec-005` | 2026-10-17 | Tareas 1–6 (requestId, logger, helmet, cors, jsonBody, validate, idempotency) |
 
 ## Decisiones
+
+### 2026-10-17 · Dueños de archivos del lote del spec 005 y puerto de idempotencia
+- Origen: orquestador
+- Afecta: specs 002, 003, 005 (y 006 en adelante)
+- Decisión:
+  - `src/app.ts`, `src/server.ts`, `src/lambda.ts`, `src/shared/middlewares/`, `src/shared/logger.ts`, `src/shared/validation/`, `src/shared/idempotency/` y `src/shared/errors/*`: solo el **005**. El 005 puede agregar `details` opcional a `errorBody` y mapear los errores de `express.json` (413/415) en `errorHandler`.
+  - `src/config/env.ts` sigue siendo solo del 003: `CORS_ALLOWED_ORIGINS` se lee con `process.env` en `server.ts`/`lambda.ts` y entra a `createApp` como `corsAllowedOrigins: string[]` (por defecto `[]`).
+  - Idempotencia: puerto `IdempotencyStore` (`begin` / `complete` / `release`) con implementación en memoria; la de DynamoDB llega con el primer spec que use el middleware (006).
+  - El 005 agrega `helmet`, `cors` y `pino-http` (las dependencias las agrega el orquestador).
+- Acción para los demás: el 003 y el 002 no tocan esos archivos; si necesitan algo, PROPUESTAS.md.
 
 ### 2026-10-16 · Autopagos y paginación con direction=all
 - Origen: spec 004 (worker)
