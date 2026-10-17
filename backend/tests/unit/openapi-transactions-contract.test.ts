@@ -16,7 +16,7 @@ describe('openapi.yaml · consulta de pagos y transacciones', () => {
     '%s se consulta con GET y exige la sesión (BearerAuth), no la API key',
     (path) => {
       const block = pathBlock(path)
-      expect(block).toMatch(/^    get:/m)
+      expect(block).toMatch(/^ {4}get:/m)
       expect(block).toContain('BearerAuth')
       expect(block).not.toContain('ApiKeyAuth')
     }

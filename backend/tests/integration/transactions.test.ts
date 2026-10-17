@@ -105,8 +105,8 @@ describe('GET /api/v1/transactions · listado', () => {
     expect(ids(payments)).toEqual([h.third.id, h.second.id, h.first.id])
     expect(ids(requests)).toEqual([h.request.id])
     expect(ids(processing)).toEqual([h.third.id, h.second.id])
-    // El filtro usa el estado guardado: el pago terminado todavía no se ha refrescado.
-    expect(ids(completed)).toEqual([])
+    // El primer listado refrescó el pago terminado y guardó su estado.
+    expect(ids(completed)).toEqual([h.first.id])
   })
 
   it('un usuario sin transacciones recibe una lista vacía', async () => {

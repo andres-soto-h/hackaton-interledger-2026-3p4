@@ -14,7 +14,11 @@ export default tseslint.config(
       globals: globals.node,
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['eslint.config.js', 'esbuild.config.js']
+          allowDefaultProject: [
+            'eslint.config.js',
+            'esbuild.config.js',
+            'vitest.e2e.config.ts'
+          ]
         },
         tsconfigRootDir: import.meta.dirname
       }
