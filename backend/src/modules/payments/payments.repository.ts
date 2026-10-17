@@ -14,6 +14,12 @@ export interface ListByWalletQuery {
   cursor?: string
 }
 
+export interface ListAllPaymentsQuery {
+  status?: PaymentStatus
+  limit: number
+  cursor?: string
+}
+
 export interface PaymentsRepository {
   createPayment(p: Payment): Promise<void>
   getPayment(id: string): Promise<Payment | null>
@@ -33,6 +39,11 @@ export interface PaymentsRepository {
   listAllPayments(): Promise<Payment[]>
   listByWallet(q: ListByWalletQuery): Promise<{
     items: (Payment | PaymentRequest)[]
+    nextCursor?: string
+  }>
+  /** Panel listing (spec 022): every payment, newest first, across all wallets. */
+  listAllPayments(q: ListAllPaymentsQuery): Promise<{
+    items: Payment[]
     nextCursor?: string
   }>
 }

@@ -159,6 +159,29 @@ export function createInMemoryPaymentsRepository(): PaymentsRepository {
         return Promise.resolve({ items })
       }
       return Promise.resolve({ items, nextCursor: encodeCursor(page[page.length - 1]!) })
+    },
+
+    listAllPayments(q) {
+      const sorted = [...payments.values()]
+        .filter((payment) => q.status === undefined || payment.status === q.status)
+        .sort(byNewestFirst)
+
+      let startIndex = 0
+      if (q.cursor !== undefined) {
+        const cursor = decodeCursor(q.cursor)
+        while (startIndex < sorted.length && isAtOrAfter(sorted[startIndex]!, cursor)) {
+          startIndex++
+        }
+      }
+
+      const page = sorted.slice(startIndex, startIndex + q.limit)
+      const hasMore = startIndex + q.limit < sorted.length
+      const items = page.map((payment) => structuredClone(payment))
+
+      if (!hasMore) {
+        return Promise.resolve({ items })
+      }
+      return Promise.resolve({ items, nextCursor: encodeCursor(page[page.length - 1]!) })
     }
   }
 }

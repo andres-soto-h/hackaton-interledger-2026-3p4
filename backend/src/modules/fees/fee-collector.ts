@@ -1,5 +1,6 @@
 import type { OpenPaymentsGateway } from '../../integrations/open-payments/gateway.js'
 import type { Logger } from '../../shared/logger.js'
+import type { ActivityEmitter } from '../../shared/activity/activity-emitter.js'
 import type { FeeCollector } from '../payments/fee.js'
 import type { Payment } from '../payments/payment.types.js'
 import type { PaymentsRepository } from '../payments/payments.repository.js'
@@ -40,6 +41,8 @@ export interface FeeCollectorDeps {
   /** Milliseconds since the epoch. */
   now: () => number
   logger?: Pick<Logger, 'warn'>
+  /** Business activity emitter (spec 022); defaults to a no-op. */
+  activity?: ActivityEmitter
 }
 
 /**
@@ -53,8 +56,11 @@ export function createFeeCollector({
   walletLinks,
   platformWalletUrl,
   now,
-  logger
+  logger,
+  activity
 }: FeeCollectorDeps): FeeCollector {
+  const emit: ActivityEmitter = activity ?? (() => Promise.resolve())
+
   /** Creates the incoming payment, quote and outgoing payment for the fee. */
   const settle = async (
     payment: Payment
@@ -98,6 +104,12 @@ export function createFeeCollector({
       logger?.warn({ paymentId: payment.id, err: error }, 'Failed to mark fee as failed')
     }
     await releaseFee(payment)
+    await emit({
+      type: 'fee.failed',
+      level: 'error',
+      paymentId: payment.id,
+      message: 'Fee collection failed'
+    })
   }
 
   const collect = async (payment: Payment): Promise<void> => {
@@ -116,6 +128,11 @@ export function createFeeCollector({
         },
         { expectedStatus: payment.status }
       )
+      await emit({
+        type: 'fee.collected',
+        paymentId: payment.id,
+        message: `Fee collected: ${payment.fee.value} ${payment.fee.assetCode}`
+      })
     } catch (error) {
       logger?.warn({ paymentId: payment.id, err: error }, 'Fee collection failed')
       await markFailed(payment, attempts)

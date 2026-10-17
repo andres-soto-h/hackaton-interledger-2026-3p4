@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import type { OpenPaymentsGateway } from '../../integrations/open-payments/gateway.js'
 import { AppError } from '../../shared/errors/app-error.js'
+import type { ActivityEmitter } from '../../shared/activity/activity-emitter.js'
 import { newChallengeId, newUserId } from '../../shared/ids/ids.js'
 import { assertSafeWalletUrl } from '../../shared/security/wallet-url.js'
 import type { SettingsProvider } from '../../shared/settings/settings-provider.js'
@@ -26,6 +27,8 @@ export interface AuthDeps {
   webauthn: { rpID: string; rpName: string; origins: string[] }
   /** Milliseconds since the epoch. */
   now?: () => number
+  /** Business activity emitter (spec 022); defaults to a no-op. */
+  activity?: ActivityEmitter
 }
 
 export interface PublicUser {
@@ -80,6 +83,7 @@ export interface AuthService {
 
 export function createAuthService(deps: AuthDeps): AuthService {
   const { users, verifier, sessions, gateway, settings, webauthn } = deps
+  const emit: ActivityEmitter = deps.activity ?? (() => Promise.resolve())
   const nowMs = deps.now ?? Date.now
   const nowSeconds = (): number => Math.floor(nowMs() / 1000)
   const iso = (): string => new Date(nowMs()).toISOString()
@@ -240,6 +244,12 @@ export function createAuthService(deps: AuthDeps): AuthService {
         if (error instanceof WalletAlreadyRegisteredError) throw walletAlreadyRegistered()
         throw error
       }
+
+      await emit({
+        type: 'user.registered',
+        message: 'User registered',
+        data: { userId: user.id }
+      })
 
       return { user: publicUser(user), session: issueSession(user) }
     },

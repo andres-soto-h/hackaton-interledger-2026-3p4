@@ -8,7 +8,7 @@ const BOOTSTRAP_CSS_SRI =
 export interface RenderLayoutOptions {
   title: string
   body: SafeHtml
-  active?: 'home' | 'settings' | 'users'
+  active?: 'home' | 'settings' | 'users' | 'activity' | 'payments'
   flash?: { kind: 'success' | 'danger'; message: string }
   csrfToken?: string
   showNav?: boolean
@@ -41,6 +41,7 @@ export function renderLayout({
         <span class="navbar-brand">tranqui</span>
         <ul class="navbar-nav me-auto">
           <li class="nav-item"><a class="nav-link${active === 'home' ? ' active' : ''}" href="/admin">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link${active === 'activity' ? ' active' : ''}" href="/admin/activity">Actividad</a></li>
           <li class="nav-item"><a class="nav-link${active === 'users' ? ' active' : ''}" href="/admin/users">Usuarios</a></li>
           <li class="nav-item"><a class="nav-link${active === 'settings' ? ' active' : ''}" href="/admin/settings">Configuración</a></li>
         </ul>
