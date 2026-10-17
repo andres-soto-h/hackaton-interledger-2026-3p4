@@ -19,6 +19,13 @@ export const displayNameSchema = z
   .min(2, 'Escriba su nombre')
   .max(60, 'El nombre es muy largo (máximo 60 letras)');
 
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email('Escriba un correo válido')
+  .max(254, 'El correo es muy largo');
+
 export const walletNameSchema = z
   .string()
   .transform((value, ctx) => {
@@ -35,6 +42,7 @@ export const walletNameSchema = z
 
 export const registerSchema = z.object({
   displayName: displayNameSchema,
+  email: emailSchema,
   walletName: walletNameSchema,
 });
 

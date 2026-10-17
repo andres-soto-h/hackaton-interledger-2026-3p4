@@ -9,7 +9,7 @@ export type ChallengeOptions = RequestOptions & { challengeId: string };
 export type RegistrationChallenge = CreationOptions & { challengeId: string };
 
 export const authApi = {
-  registerOptions: (body: { displayName: string; walletAddress: string }) =>
+  registerOptions: (body: { displayName: string; email: string; walletAddress: string }) =>
     apiClient.post<RegistrationChallenge>('/auth/register/options', body),
   registerVerify: (body: { challengeId: string; credential: RegistrationResponseJSON }) =>
     apiClient.post<AuthResult>('/auth/register/verify', body),

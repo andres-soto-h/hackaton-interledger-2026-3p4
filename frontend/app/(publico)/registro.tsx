@@ -34,7 +34,7 @@ export default function Register() {
 
   const { control, handleSubmit, setError } = useForm<RegisterInput, unknown, RegisterData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { displayName: '', walletName: '' },
+    defaultValues: { displayName: '', email: '', walletName: '' },
   });
 
   const submitData = handleSubmit(async (data) => {
@@ -43,7 +43,13 @@ export default function Register() {
     setFormError(null);
     setAlreadyRegistered(false);
     try {
-      setChallenge(await authApi.registerOptions({ displayName: data.displayName, walletAddress: data.walletName }));
+      setChallenge(
+        await authApi.registerOptions({
+          displayName: data.displayName,
+          email: data.email,
+          walletAddress: data.walletName,
+        }),
+      );
       setStep('passkey');
     } catch (error) {
       const code = error instanceof ApiError ? error.code : '';
@@ -53,6 +59,9 @@ export default function Register() {
         setError('walletName', { message: 'Esa wallet no está permitida por ahora.' });
       } else if (code === 'WALLET_ALREADY_REGISTERED') {
         setError('walletName', { message: 'Esa wallet ya tiene una cuenta.' });
+        setAlreadyRegistered(true);
+      } else if (code === 'EMAIL_ALREADY_REGISTERED') {
+        setError('email', { message: 'Ese correo ya tiene una cuenta.' });
         setAlreadyRegistered(true);
       } else {
         setFormError('No pudimos seguir. Revise su internet e intente de nuevo.');
@@ -97,6 +106,24 @@ export default function Register() {
                 error={fieldState.error?.message}
                 autoComplete="name"
                 textContentType="name"
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <TextField
+                label="Su correo"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+                autoComplete="email"
+                textContentType="emailAddress"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
               />
             )}
           />
