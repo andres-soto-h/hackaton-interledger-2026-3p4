@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { usePasskeySupport } from '@/features/auth/use-passkey-support';
+import { APP_VERSION } from '@/lib/version';
 import { AppHeader, AppText, Button, Card, Screen } from '@/ui';
 
 export default function Welcome() {
@@ -39,6 +40,9 @@ export default function Welcome() {
           <Button label="Ya tengo cuenta" variant="secondary" onPress={() => router.push('/ingresar')} />
         </>
       ) : null}
+      <AppText variant="caption" color="textMuted" style={{ marginTop: 24, textAlign: 'center' }}>
+        {APP_VERSION}
+      </AppText>
     </Screen>
   );
 }
