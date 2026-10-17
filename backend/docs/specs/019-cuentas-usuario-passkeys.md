@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado

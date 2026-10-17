@@ -13,8 +13,8 @@
 | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 0/9 | | |
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
-| | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 0/9 | | |
-| | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 0/9 | | |
+| | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 0/9 | |
+| | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 0/9 | |
 | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
 | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 0/10 · *tope con `interval` confirmado por Interledger (2026-10-17)* | | |
@@ -84,3 +84,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 003 | Fixtures y adapter del SDK (tareas 6–7); integrado en `develop-andres`, suite completa en verde → Hecho |
 | 2026-10-17 | 023 | Confirmado por Interledger: el grant admite límite + `interval` y se autoriza una sola vez (guía oficial enlazada); decisión pendiente 1 pasa a plan B condicionado al spike |
 | 2026-10-17 | 005 | Integrado en `develop-andres`, 277 tests en verde → Hecho |
+| 2026-10-17 | 019, 020 | Desarrollo aprobado → En desarrollo |

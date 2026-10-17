@@ -25,8 +25,21 @@ Formato:
 | Spec | Rama | Worktree | Desde | Lote actual |
 |---|---|---|---|---|
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
+| 019 | `spec/019` | `../<repo>-worktrees/spec-019` | 2026-10-17 | Cuentas, passkeys y sesiones |
+| 020 | `spec/020` | `../<repo>-worktrees/spec-020` | 2026-10-17 | Panel admin: base, configuración y `ActivityLog` |
 
 ## Decisiones
+
+### 2026-10-17 · Dueños de archivos del lote 019 + 020 y cableado de `createApp`
+- Origen: orquestador
+- Afecta: specs 019, 020 (y 021, 023 en adelante)
+- Decisión:
+  - **019:** `src/modules/auth/`, `src/modules/users/`, `src/shared/session/`, `src/shared/webauthn/`.
+  - **020:** `src/modules/admin/`, `src/shared/settings/` (extiende `SettingsProvider` sin romper su contrato actual), `src/shared/activity/` (`ActivityLog`).
+  - Nadie edita `src/app.ts`, `src/server.ts`, `src/lambda.ts` ni `src/config/env.ts`/`secrets.ts` en este lote: cada módulo exporta `createXRouter(deps)` y el orquestador los cablea al integrar. Si hace falta una variable de entorno o un secreto nuevo, va a PROPUESTAS.md.
+  - `src/shared/errors/*`, `src/shared/middlewares/*` y `src/shared/idempotency/*` (spec 005, ya Hecho): se usan tal cual; los errores nuevos son `AppError` dentro del módulo de cada spec.
+  - Dependencias nuevas las agrega el orquestador en la rama del spec antes de lanzar el worker.
+- Acción para los demás: ninguna.
 
 ### 2026-10-17 · Dueños de archivos del lote del spec 005 y puerto de idempotencia
 - Origen: orquestador
