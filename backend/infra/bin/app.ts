@@ -14,6 +14,11 @@ new BackendStack(app, `TranquiBackend-${stage}`, {
   stage,
   lambdaCode: Code.fromAsset(backendDist),
   lambdaHandler: 'lambda.handler',
+  webauthnRpId: process.env.WEBAUTHN_RP_ID,
+  webauthnOrigins: process.env.WEBAUTHN_ORIGINS,
+  frontendResultUrl: process.env.FRONTEND_RESULT_URL,
+  publicApiUrl: process.env.PUBLIC_API_URL,
+  corsAllowedOrigins: process.env.CORS_ALLOWED_ORIGINS,
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION ?? 'us-east-1'

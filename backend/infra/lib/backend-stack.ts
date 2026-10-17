@@ -39,6 +39,10 @@ export interface BackendStackProps extends StackProps {
   feePercentage?: string
   /** Enables the admin panel; defaults to `true` in `dev`, `false` elsewhere. */
   adminEnabled?: boolean
+  /** Public base URL of the API (Open Payments callback). Only passed when set. */
+  publicApiUrl?: string
+  /** Comma-separated exact origins allowed by CORS. Only passed when set. */
+  corsAllowedOrigins?: string
 }
 
 export class BackendStack extends Stack {
@@ -170,6 +174,12 @@ export class BackendStack extends Stack {
     }
     if (props.feePercentage !== undefined) {
       environment.FEE_PERCENTAGE = props.feePercentage
+    }
+    if (props.publicApiUrl !== undefined) {
+      environment.PUBLIC_API_URL = props.publicApiUrl
+    }
+    if (props.corsAllowedOrigins !== undefined) {
+      environment.CORS_ALLOWED_ORIGINS = props.corsAllowedOrigins
     }
 
     const apiFunction = new Function(this, 'ApiFunction', {
