@@ -17,7 +17,9 @@ TypeScript · Node.js · Express · Vitest + supertest · pnpm · AWS Lambda.
 
 - Toda funcionalidad tiene su propio spec en `backend/docs/specs/NNN-<nombre>.md` (o
   `frontend/docs/specs/` si es del frontend), creado desde
-  `backend/docs/specs/_TEMPLATE.md` y numerado en orden de creación (numeración global).
+  `backend/docs/specs/_TEMPLATE.md` y numerado en orden de creación. Cada carpeta
+  numera sus specs desde 001; para referirse a un spec de la otra carpeta se
+  escribe "backend NNN" o "frontend NNN".
 - Un spec nuevo nace como **Borrador**. No pasa a **Aprobado** sin aprobación
   explícita del responsable del proyecto.
 - No se escribe código de un spec sin autorización explícita para iniciar su
