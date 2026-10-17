@@ -177,15 +177,17 @@ describe('POST /api/v1/payments · cotizar', () => {
 
   it('caso 4: emisor USD y receptor MXN → ambos montos y exchangeRate', async () => {
     const seeded = await ctx.seedLinkedUser()
-    const real = ctx.gateway.createQuote.bind(ctx.gateway)
-    vi.spyOn(ctx.gateway, 'createQuote').mockImplementationOnce(async (input) => {
-      const base = await real({ ...input, debitAmount: usd('25.07') })
-      return {
-        ...base,
+    // The fake gateway refuses cross-currency quotes, so the conversion is simulated.
+    vi.spyOn(ctx.gateway, 'createQuote').mockImplementationOnce((input) =>
+      Promise.resolve({
+        id: `${input.sender.resourceServer}/quotes/q-cross-currency`,
+        walletAddress: input.sender.id,
+        receiver: input.receiver,
         debitAmount: usd('25.07'),
-        receiveAmount: { value: '430.00', assetCode: 'MXN' }
-      }
-    })
+        receiveAmount: { value: '430.00', assetCode: 'MXN' },
+        expiresAt: new Date(ctx.clock.value + 5 * 60_000)
+      })
+    )
 
     const res = await quote(seeded.token, {
       type: 'p2p',

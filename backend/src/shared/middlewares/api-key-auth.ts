@@ -29,6 +29,18 @@ const PUBLIC_ROUTES = new Set([
 const isAdminPath = (path: string): boolean =>
   path === '/admin' || path.startsWith('/admin/')
 
+/** Payments write routes use the user session, not the API key (spec 007). */
+const PAYMENT_ID = 'pay_[0-9A-Z]{26}'
+const PAYMENT_CONFIRM_PATH = new RegExp(
+  `^/api/v1/payments/${PAYMENT_ID}/(confirm/options|confirm|cancel)$`
+)
+
+const isPublicPaymentRoute = (method: string, path: string): boolean => {
+  if (method !== 'POST') return false
+  if (path === '/api/v1/payments') return true
+  return PAYMENT_CONFIRM_PATH.test(path)
+}
+
 // Hashing both values gives equal-length buffers, so the comparison takes the
 // same time whatever the length of the received key.
 const digest = (value: string): Buffer => createHash('sha256').update(value).digest()
@@ -47,7 +59,8 @@ export function apiKeyAuth(expectedApiKey: string): RequestHandler {
     }
     if (
       (req.method === 'GET' && PUBLIC_GET_PATHS.has(req.path)) ||
-      PUBLIC_ROUTES.has(`${req.method} ${req.path}`)
+      PUBLIC_ROUTES.has(`${req.method} ${req.path}`) ||
+      isPublicPaymentRoute(req.method, req.path)
     ) {
       next()
       return

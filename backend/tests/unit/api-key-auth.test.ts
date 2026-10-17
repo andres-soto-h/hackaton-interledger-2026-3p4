@@ -27,7 +27,7 @@ const expectUnauthorized = (next: ReturnType<typeof run>) => {
 describe('apiKeyAuth', () => {
   // Caso 6
   it('rechaza una ruta protegida sin x-api-key', () => {
-    expectUnauthorized(run({ method: 'POST', path: '/api/v1/payments' }))
+    expectUnauthorized(run({ method: 'POST', path: '/api/v1/payment-requests' }))
   })
 
   // Caso 7
@@ -50,7 +50,11 @@ describe('apiKeyAuth', () => {
 
   // Caso 8
   it('deja pasar una ruta protegida con la x-api-key correcta', () => {
-    const next = run({ method: 'POST', path: '/api/v1/payments', apiKey: API_KEY })
+    const next = run({
+      method: 'POST',
+      path: '/api/v1/payment-requests',
+      apiKey: API_KEY
+    })
 
     expect(next).toHaveBeenCalledOnce()
     expect(next).toHaveBeenCalledWith()

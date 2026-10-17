@@ -94,6 +94,7 @@ const challengeToItem = (challenge: Challenge): Item => {
     expiresAt: challenge.expiresAt
   }
   if (challenge.pending !== undefined) item['pending'] = challenge.pending
+  if (challenge.payment !== undefined) item['payment'] = challenge.payment
   return item
 }
 
