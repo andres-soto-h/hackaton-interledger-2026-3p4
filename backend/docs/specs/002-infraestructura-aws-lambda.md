@@ -10,10 +10,10 @@
 
 ## Estado
 
-9 / 22 tareas completadas. Plantilla IaC lista en `backend/infra/`: 10/10 tests
-en verde, typecheck y `cdk synth` correctos. Pendiente: cambios aprobados el
-2026-10-16 (tabla de pagos con índices, throttling, configuración y alarmas),
-reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
+13 / 22 tareas completadas. Plantilla IaC en `backend/infra/`: 17/17 tests en
+verde y typecheck limpio. Tareas 13–16 (tabla de pagos con índices, throttling,
+configuración y alarmas) hechas en la rama `spec/002`, pendientes de integrar.
+Pendiente: tareas 17–21 (specs 019–024), reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
 El despliegue está bloqueado por la tarea 22: reparar el bootstrap de CDK de la cuenta, pendiente de autorización.
 **Por ahora solo se trabaja la plantilla IaC (sin desplegar). No se despliega hasta tener la mayoría del código del backend** (decisión 9).
 
@@ -208,10 +208,10 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 10. [ ] **Reemplazar las llaves de la wallet personal por las de una wallet de la plataforma** (crear la wallet `tranqui-app` en la red de prueba, sin fondos; generar sus llaves y cargarlas en el secreto). Las wallets de comercios de prueba solo se crean para recibir pagos; no necesitan llaves.
 11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de la tarea 22; pospuesta hasta tener la mayoría del backend (decisión 9).*
 12. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 11).*
-13. [ ] Tabla de pagos: índices y renombre a `PAYMENTS_TABLE_NAME` (casos 12 y 14).
-14. [ ] Throttling de API Gateway (caso 13).
-15. [ ] Configuración de la Lambda para los specs de la API (caso 14).
-16. [ ] Alarmas de CloudWatch (caso 15).
+13. [x] Tabla de pagos: índices y renombre a `PAYMENTS_TABLE_NAME` (casos 12 y 14).
+14. [x] Throttling de API Gateway (caso 13).
+15. [x] Configuración de la Lambda para los specs de la API (caso 14).
+16. [x] Alarmas de CloudWatch (caso 15).
 
 *Requeridas por los specs 019–024; se implementan cuando esos specs se aprueben:*
 

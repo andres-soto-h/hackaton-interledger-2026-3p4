@@ -10,7 +10,7 @@
 
 ## Estado
 
-0 / 7 tareas completadas. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 003 (worker de DeepSeek, rama `spec/004`). Ajustado el 2026-10-16 por el monto diario
+4 / 7 tareas completadas (tipos, IDs, puerto + contrato e implementación en memoria; 62 tests en verde en la rama `spec/004`, pendiente de integrar). Siguen la implementación DynamoDB y `pnpm test:dynamo` con DynamoDB Local en Colima. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 003 (worker de DeepSeek, rama `spec/004`). Ajustado el 2026-10-16 por el monto diario
 preaprobado (spec 023) y la comisión (spec 024); Cambios aprobados el 2026-10-16. Depende del spec 001.
 
 **Qué cambió respecto a la versión aprobada:** el pago ya no guarda datos de
@@ -113,14 +113,14 @@ impredecible. Motivo en [API.md — Identificadores](../API.md#identificadores).
 | 9 | Unit | Generador de IDs | Prefijo correcto, únicos, ordenables por tiempo |
 
 Los casos de contrato se ejecutan contra memoria siempre y contra DynamoDB Local
-con `pnpm test:dynamo` (requiere Docker).
+con `pnpm test:dynamo` (requiere un runtime de contenedores: Colima + `nerdctl` o Docker).
 
 ## Tareas
 
-1. [ ] Tipos de dominio `Payment`, `PaymentRequest` y estados.
-2. [ ] Generador de IDs: caso 9.
-3. [ ] Puerto `PaymentsRepository` y tests de contrato (casos 1–8) en rojo.
-4. [ ] Implementación en memoria hasta pasar el contrato.
+1. [x] Tipos de dominio `Payment`, `PaymentRequest` y estados.
+2. [x] Generador de IDs: caso 9.
+3. [x] Puerto `PaymentsRepository` y tests de contrato (casos 1–8) en rojo.
+4. [x] Implementación en memoria hasta pasar el contrato.
 5. [ ] Implementación DynamoDB hasta pasar el contrato contra DynamoDB Local.
 6. [ ] Script `pnpm test:dynamo` y documentación.
 7. [ ] Suite completa en verde, lint y typecheck limpios.
@@ -130,7 +130,7 @@ con `pnpm test:dynamo` (requiere Docker).
 | # | Tema | Decisión |
 |---|---|---|
 | 1 | Dónde viven las transacciones | Open Payments es la fuente de verdad; DynamoDB guarda el estado del flujo y una copia (índice) de lo que hizo la API, que se refresca al leer pagos no finales (2026-10-16) |
-| 2 | Pruebas contra DynamoDB | DynamoDB Local en Docker (aprobado con el spec) |
+| 2 | Pruebas contra DynamoDB | DynamoDB Local en un contenedor (aprobado con el spec). Localmente con Colima + `nerdctl` y `--network host`, sin Docker (2026-10-16) |
 
 ## Decisiones pendientes
 

@@ -30,6 +30,41 @@ Formato:
 
 ## Decisiones
 
+### 2026-10-16 · Acceso de la Lambda a los índices de DynamoDB
+- Origen: spec 002 (propuesta del worker, aceptada por el orquestador)
+- Afecta: specs 002, 004, 008 · `backend/infra/lib/backend-stack.ts`
+- Decisión: la Lambda tiene lectura/escritura sobre la tabla de pagos **y** sus
+  índices (`tableArn` y `tableArn/index/*`) con `grantReadWriteData`. El test del
+  caso 5 se corrigió para exigir exactamente esos dos recursos.
+- Acción para los demás: el 004 puede hacer `Query` sobre `bySender` y `byReceiver`.
+
+### 2026-10-16 · Idioma del código
+- Origen: orquestador
+- Afecta: todos los specs · `backend/src/`, `backend/infra/lib/`
+- Decisión: comentarios, mensajes de error y nombres en **inglés**, como el código
+  existente. Los nombres de los tests (`it(...)`) siguen en español.
+- Acción para los demás: aplicarlo desde ya.
+
+### 2026-10-16 · Contenedores locales con Colima + nerdctl (sin Docker)
+- Origen: responsable / orquestador
+- Afecta: spec 004 (tareas 5–6) y cualquier test con contenedores
+- Decisión: no hay Docker; se usa Colima (runtime containerd) con `nerdctl`. Los
+  puertos publicados con `-p` **no** llegan a macOS: el contenedor debe correr con
+  `--network host`. `-d` y `--rm` no se pueden combinar. DynamoDB Local:
+  `nerdctl run -d --name tranqui-dynamodb --network host amazon/dynamodb-local:2.6.1 -jar DynamoDBLocal.jar -inMemory -sharedDb -port 8000`
+  → `http://localhost:8000`. Si Colima no arranca con "disk in use", el disco quedó
+  bloqueado: `LIMA_HOME=~/.colima/_lima limactl disk unlock colima` (solo si no hay VM corriendo).
+- Acción para los demás: los workers no pueden correr `nerdctl`; el orquestador
+  levanta DynamoDB Local antes de lanzar el lote y el worker corre `pnpm test:dynamo`.
+
+### 2026-10-16 · Cursor de paginación inválido
+- Origen: spec 004 (orquestador)
+- Afecta: specs 004, 008
+- Decisión: el repositorio en memoria hoy lanza un error de JSON si el cursor está
+  corrupto. El endpoint del 008 debe validar el cursor y responder
+  `400 VALIDATION_ERROR` (o el repositorio lanzar un error propio); se define en el 008.
+- Acción para los demás: ninguna en este lote.
+
 ### 2026-10-16 · Logs que alimentan las alarmas
 - Origen: spec 002 (orquestador)
 - Afecta: specs 002, 005, 023 · `backend/infra/lib/backend-stack.ts`, logs de la app
