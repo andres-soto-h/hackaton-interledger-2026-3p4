@@ -143,7 +143,7 @@ const amountMap = (defaultValue: string) =>
       return record
     })
 
-const maxPaymentAmounts = amountMap('USD:1000')
+const maxPaymentAmounts = amountMap('COP:500000,USD:1000')
 const dailySpendLimits = amountMap('COP:500000')
 
 const csv = (raw: string): string[] =>

@@ -54,7 +54,7 @@ export class BackendStack extends Stack {
     // Single hackathon environment: everything is removed with `cdk destroy`.
     const removalPolicy = RemovalPolicy.DESTROY
     const metricNamespace = `Tranqui/${props.stage}`
-    const maxPaymentAmounts = props.maxPaymentAmounts ?? 'USD:1000'
+    const maxPaymentAmounts = props.maxPaymentAmounts ?? 'COP:500000,USD:1000'
     const openPaymentsTimeoutMs = String(props.openPaymentsTimeoutMs ?? 8000)
     const throttling = props.throttling ?? { rateLimit: 10, burstLimit: 20 }
     const adminEnabled = props.adminEnabled ?? props.stage === 'dev'
