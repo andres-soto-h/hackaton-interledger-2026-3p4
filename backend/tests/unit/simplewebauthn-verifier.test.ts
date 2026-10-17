@@ -55,7 +55,7 @@ describe('SimpleWebAuthn PasskeyVerifier', () => {
         rp: { id: RP_ID, name: 'Tranqui' },
         user: { name: 'Alice', displayName: 'Alice' },
         attestation: 'none',
-        authenticatorSelection: { residentKey: 'required', userVerification: 'required' }
+        authenticatorSelection: { residentKey: 'preferred', userVerification: 'preferred' }
       })
       const user = options.user as { id: string }
       expect(Buffer.from(user.id, 'base64url').toString('utf8')).toBe(USER_ID)
@@ -67,7 +67,7 @@ describe('SimpleWebAuthn PasskeyVerifier', () => {
       const first = await verifier.createAuthenticationOptions({ rpID: RP_ID })
       const second = await verifier.createAuthenticationOptions({ rpID: RP_ID })
       expect(first.challenge).not.toBe(second.challenge)
-      expect(first).toMatchObject({ rpId: RP_ID, userVerification: 'required' })
+      expect(first).toMatchObject({ rpId: RP_ID, userVerification: 'preferred' })
       expect(first.allowCredentials ?? []).toEqual([])
     })
   })

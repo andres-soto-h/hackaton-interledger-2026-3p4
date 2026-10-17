@@ -67,7 +67,9 @@ export function createPasskeyService(
     create: async (options) => {
       guard();
       try {
-        return await deps.startRegistration({ optionsJSON: options });
+        // `hints` (L3) is not supported by every browser; drop it to be safe.
+        const { hints, ...withoutHints } = options as CreationOptions & { hints?: unknown };
+        return await deps.startRegistration({ optionsJSON: withoutHints });
       } catch (error) {
         throw translate(error);
       }

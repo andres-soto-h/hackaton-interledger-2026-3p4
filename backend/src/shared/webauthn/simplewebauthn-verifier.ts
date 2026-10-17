@@ -32,8 +32,8 @@ export function createSimpleWebAuthnVerifier(): PasskeyVerifier {
         userID: Buffer.from(input.userId, 'utf8'),
         attestationType: 'none',
         authenticatorSelection: {
-          residentKey: 'required',
-          userVerification: 'required'
+          residentKey: 'preferred',
+          userVerification: 'preferred'
         },
         supportedAlgorithmIDs: [-7, -257]
       })
@@ -43,7 +43,7 @@ export function createSimpleWebAuthnVerifier(): PasskeyVerifier {
     async createAuthenticationOptions(input) {
       const options = await generateAuthenticationOptions({
         rpID: input.rpID,
-        userVerification: 'required'
+        userVerification: 'preferred'
       })
       return options as unknown as PasskeyOptions
     },
