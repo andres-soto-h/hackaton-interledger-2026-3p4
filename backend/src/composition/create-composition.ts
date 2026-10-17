@@ -8,12 +8,16 @@ import { createAdminUsersRouter } from '../modules/admin/admin-users.routes.js'
 import { createOpenPaymentsStatusChecker } from '../modules/admin/home-summary.js'
 import { createAuthRouter } from '../modules/auth/auth.routes.js'
 import { createDevPasskeyPageRouter } from '../modules/dev/dev-passkey-page.routes.js'
-import {
-  createNoopFeeCollector,
-  createZeroFeeCalculator
-} from '../modules/payments/fee.js'
 import { createPaymentsRouter } from '../modules/payments/payments.routes.js'
 import { createPaymentsService } from '../modules/payments/payments.service.js'
+import { createFeeCalculator } from '../modules/fees/fee-calculator.js'
+import { createFeeCollector } from '../modules/fees/fee-collector.js'
+import { createFeeSummaryProvider } from '../modules/fees/fee-summary-provider.js'
+import { createPaymentStatusRouter } from '../modules/payments/payment-status.routes.js'
+import { createPaymentStatusService } from '../modules/payments/payment-status.service.js'
+import { createEmptyMerchantDirectory } from '../modules/transactions/merchant-directory.js'
+import { createTransactionsRouter } from '../modules/transactions/transactions.routes.js'
+import { createTransactionsService } from '../modules/transactions/transactions.service.js'
 import { createPaymentRequestsRouter } from '../modules/payments/payment-requests.routes.js'
 import { createPaymentRequestsService } from '../modules/payments/payment-requests.service.js'
 import { createMeRouter } from '../modules/users/me.routes.js'
@@ -101,6 +105,26 @@ export function createComposition({
     logger
   })
 
+  const fees = createFeeCalculator({
+    percentage: async () => (await settings.getEditable()).settings.feePercentage
+  })
+  const feeCollector = createFeeCollector({
+    gateway,
+    payments: storage.payments,
+    walletLinks,
+    platformWalletUrl: secrets.openPayments.walletAddressUrl,
+    now,
+    logger
+  })
+  const paymentStatus = createPaymentStatusService({
+    payments: storage.payments,
+    walletLinks,
+    gateway,
+    feeCollector,
+    now,
+    logger
+  })
+
   const routers: Router[] = [
     createAuthRouter({
       users: storage.users,
@@ -135,9 +159,8 @@ export function createComposition({
         users: storage.users,
         verifier,
         settings,
-        // Spec 024 replaces these two with the real fee calculation and collection.
-        fees: createZeroFeeCalculator(),
-        feeCollector: createNoopFeeCollector(),
+        fees,
+        feeCollector,
         webauthn: { rpID: config.webauthn.rpId, origins: config.webauthn.origins },
         now,
         logger
@@ -146,6 +169,24 @@ export function createComposition({
       sessions,
       idempotencyStore: storage.idempotencyStore,
       settings
+    }),
+    createPaymentStatusRouter({
+      service: paymentStatus,
+      users: storage.users,
+      sessions
+    }),
+    createTransactionsRouter({
+      service: createTransactionsService({
+        payments: storage.payments,
+        gateway,
+        statusService: paymentStatus,
+        // No merchant directory exists yet: counterparties show their wallet address.
+        merchants: createEmptyMerchantDirectory(),
+        now,
+        logger
+      }),
+      users: storage.users,
+      sessions
     }),
     createPaymentRequestsRouter({
       service: createPaymentRequestsService({
@@ -166,6 +207,7 @@ export function createComposition({
       settings,
       settingsStore: storage.settingsStore,
       activityLog: storage.activityLog,
+      feeSummary: createFeeSummaryProvider({ payments: storage.payments, now }),
       openPaymentsStatus: createOpenPaymentsStatusChecker({
         gateway,
         walletAddressUrl: secrets.openPayments.walletAddressUrl
