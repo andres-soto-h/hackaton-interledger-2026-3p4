@@ -254,6 +254,7 @@ pagos a medias (pago sí, comisión no):
 8. [x] Disponible, desvincular y cancelación al borrar la cuenta: casos 11–13.
 9. [x] Contrato en `openapi.yaml`.
 10. [x] Suite completa en verde, lint y typecheck limpios.
+11. [ ] Al borrar la cuenta con vinculación `PENDING_AUTHORIZATION`, cancelar el grant pendiente explícitamente (cubierto por el [spec 027](027-cancelacion-grant-cuenta.md)).
 
 ## Decisiones
 

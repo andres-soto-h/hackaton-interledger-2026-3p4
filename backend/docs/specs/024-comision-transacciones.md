@@ -13,6 +13,10 @@
 7 / 7 tareas completadas e integradas y cableadas en `develop-andres` (1051 tests, más 105 contra DynamoDB Local, typecheck y lint en verde). La decisión pendiente del orden de cobro / un solo cobro se resuelve con el valor por defecto del spec y queda registrada en [PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md). Depende de
 los specs 007, 020 y 023.
 
+> **Decisión (2026-10-17):** se mantienen los dos cobros (monto + comisión),
+> mostrados como un solo total. La alternativa de cobro único con la plataforma
+> como intermediaria se descartó.
+
 ## Contexto
 
 La plataforma cobra una comisión por cada pago o transferencia, calculada como
@@ -140,6 +144,10 @@ Campos nuevos: `feePercentage`, `fee`, `totalDebit`, `feeStatus`,
 | 1 | Quién paga la comisión | Quien hace el pago, también al pagar una solicitud; el receptor recibe el monto completo (2026-10-16) |
 
 ## Decisiones pendientes
+
+> Resueltas el 2026-10-17: se mantienen dos cobros (monto + comisión), mostrados
+> como un solo total. El cobro único con plataforma intermediaria se descartó. Se
+> conserva el análisis original.
 
 1. **Orden de cobro.** Recomendación: **primero el pago, después la comisión**.
    Si la comisión falla, el usuario igual recibe su servicio y la plataforma

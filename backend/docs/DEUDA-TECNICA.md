@@ -109,3 +109,4 @@ Cuando se aborde, se convierte en un spec.
   siguiente con el mismo grant, o que la plataforma sea el receptor y reenvíe
   al comercio (requiere liquidez y cambia la responsabilidad de la plataforma).
 - **Por qué no ahora:** la solución simple basta para la demo.
+- **Actualización 2026-10-17:** se descartó el cobro único con la plataforma como intermediaria (requiere liquidez y custodia); se mantienen los dos cobros del spec 024. La deuda sigue abierta.

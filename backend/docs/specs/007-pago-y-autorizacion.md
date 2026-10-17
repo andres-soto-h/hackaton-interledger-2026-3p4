@@ -24,6 +24,10 @@ pagos una sola vez, con un monto diario (spec 023). Cambios aprobados el 2026-10
   `PENDING_AUTHORIZATION` y `REJECTED`.
 - La cotización incluye la comisión (spec 024) y el disponible del día.
 
+> **Cambio pendiente (2026-10-17):** el `p2m` pasa a recibir
+> `receiverWalletAddress` + `amount` y solo en COP ([spec 026](026-pago-comercio-cop.md)).
+> Es un borrador: este spec describe el comportamiento vigente.
+
 ## Contexto
 
 El usuario ya aprobó en su wallet un monto diario al vincularla (spec 023). Para

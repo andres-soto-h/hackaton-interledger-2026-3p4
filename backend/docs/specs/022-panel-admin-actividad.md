@@ -10,7 +10,7 @@
 
 ## Estado
 
-0 / 6 tareas completadas. Ajustado el 2026-10-16: eventos de la vinculación,
+5 / 6 tareas completadas e integradas en `develop-andres` (2026-10-17): 1107 tests en verde, typecheck y lint limpios. **Solo falta la prueba manual del caso 8** (actividad en vivo con pagos reales en la red de prueba, parte de la tarea 5), que es una acción del responsable ([PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md)). Ajustado el 2026-10-16: eventos de la vinculación,
 la confirmación y la comisión (specs 007, 023 y 024); Cambios aprobados el 2026-10-16. Depende de
 los specs 008 y 020.
 
@@ -136,12 +136,12 @@ reanudar.
 
 ## Tareas
 
-1. [ ] Tipos de eventos de pago y cuentas con sus campos permitidos (caso 3).
-2. [ ] Emitir eventos desde los servicios de pagos y cuentas (casos 1, 2 y 4).
-3. [ ] Endpoint `feed` (caso 5) y página con polling.
-4. [ ] Lista y detalle de pagos (caso 6).
-5. [ ] Protección de rutas (caso 7) y prueba manual (caso 8).
-6. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Tipos de eventos de pago y cuentas con sus campos permitidos (caso 3).
+2. [x] Emitir eventos desde los servicios de pagos y cuentas (casos 1, 2 y 4).
+3. [x] Endpoint `feed` (caso 5) y página con polling.
+4. [x] Lista y detalle de pagos (caso 6).
+5. [~] Protección de rutas (caso 7) y prueba manual (caso 8) — falta la prueba manual.
+6. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
