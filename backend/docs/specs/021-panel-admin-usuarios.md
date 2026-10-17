@@ -4,13 +4,14 @@
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16 |
+| Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
+0 / 7 tareas completadas. Ajustado el 2026-10-16 por el monto diario
+preaprobado (spec 023); Cambios aprobados el 2026-10-16. Depende de
 los specs 019 y 020 (usa su `ActivityLog`).
 
 ## Contexto
@@ -30,7 +31,10 @@ flujo que usan los servicios con passkeys para recuperar cuentas.
 **Incluye**
 - Lista de usuarios con búsqueda (nombre o wallet) y paginación.
 - Detalle: datos, passkeys (fecha de creación, último uso, si está
-  sincronizado) y últimos pagos de su wallet.
+  sincronizado), vinculación de la wallet (estado, monto diario, gastado hoy) y
+  últimos pagos de su wallet.
+- Revocar la vinculación de la wallet (cancela el grant; el usuario debe volver
+  a vincular para pagar).
 - Crear usuario: nombre y wallet; devuelve un enlace de registro del passkey.
 - Editar nombre, wallet y estado (`ACTIVE` · `BLOCKED`).
 - Borrar usuario (mismo efecto que `DELETE /me` del spec 019).

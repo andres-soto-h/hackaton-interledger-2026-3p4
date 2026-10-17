@@ -4,13 +4,18 @@
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16 |
+| Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 9 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
+0 / 9 tareas completadas. Ajustado el 2026-10-16 por el monto diario
+preaprobado (spec 023); Cambios aprobados el 2026-10-16.
+
+**Qué cambió respecto a la versión aprobada:** después de registrarse, el
+usuario vincula su wallet (spec 023), y eso verifica que la wallet es suya;
+borrar la cuenta cancela ese permiso; los pagos y las consultas exigen la sesión. Depende de
 los specs 001, 004 y 005. Requiere cambios de infraestructura en el spec 002.
 
 ## Contexto
@@ -29,9 +34,11 @@ en la web (escritorio y Chrome en Android, que guarda el passkey en el
 Administrador de contraseñas de Google y lo sincroniza). Los passkeys nativos
 dentro de la app Android quedan como deuda técnica (TD-003).
 
-**Esto no cambia cómo se aprueban los pagos:** cada pago se sigue aprobando en
-la wallet del emisor (spec 007). La sesión identifica a la persona en la app;
-no da acceso a sus fondos.
+**Registro completo = cuenta + vinculación de la wallet.** Después de crear el
+passkey, la app lleva al usuario a aprobar el monto diario en su wallet (spec
+023). Hasta entonces la cuenta existe pero no puede pagar. La sesión por sí sola
+no da acceso a fondos: los pagos usan el permiso aprobado en la wallet y la
+confirmación del usuario (spec 007).
 
 ## Alcance
 
@@ -44,7 +51,7 @@ no da acceso a sus fondos.
 - Cambios de infraestructura listados en [Impacto en infraestructura](#impacto-en-infraestructura).
 
 **No incluye**
-- Verificar que la wallet registrada es del usuario (TD-002).
+- Vincular la wallet y verificar que es del usuario (spec 023; resuelve TD-002).
 - Recuperar la cuenta sin un passkey (TD-004).
 - Passkeys nativos en la app Android (TD-003).
 - Usar la sesión en los endpoints de pagos y transacciones (ver
@@ -130,7 +137,7 @@ En el registro, la wallet pasa por `assertSafeWalletUrl` y `getWalletAddress`
 |---|---|---|
 | `User` | `usr_<ulid>` | displayName, walletAddress, walletAssetCode, status (`ACTIVE` · `BLOCKED`), createdAt, updatedAt |
 | `Credential` | `cred_<credentialId>` | userId, publicKey, counter, transports, deviceType, backedUp, createdAt, lastUsedAt |
-| `Challenge` | `chl_<ulid>` | challenge, type (`register` · `login`), datos pendientes del registro, expiresAt (TTL) |
+| `Challenge` | `chl_<ulid>` | challenge, type (`register` · `login` · `payment_confirmation`, spec 007), datos pendientes del registro, expiresAt (TTL) |
 | Unicidad de wallet | `wal_<sha256(walletAddress)>` | userId (se crea en la misma transacción que el usuario) |
 
 Todas llevan `entityType` y `createdAt` para el índice `byType` (listar usuarios
@@ -172,10 +179,10 @@ Cambios en el spec 002 (tareas 17–19):
   usa `userAuth`).
 - **005:** `CORS_ALLOWED_ORIGINS` debe incluir el origen del frontend; el log
   redacta `authorization` (ya incluido).
-- **007 y 008 (propuesta, fuera de este spec):** aceptar también sesión de
-  usuario; con sesión, el emisor y el historial salen de la wallet de la cuenta
-  en vez del body. Mientras no se verifique la propiedad de la wallet (TD-002),
-  el historial sigue con el mismo riesgo que hoy.
+- **007 y 008:** los pagos y las consultas exigen la sesión; el emisor y el
+  historial salen de la wallet de la cuenta.
+- **023:** `DELETE /me` cancela el grant de la vinculación en Open Payments
+  antes de borrar la cuenta.
 
 ## Casos de prueba
 
@@ -220,18 +227,17 @@ adapter se prueba con respuestas de WebAuthn grabadas.
 |---|---|---|
 | 1 | Mecanismo | Passkeys con SimpleWebAuthn (2026-10-16) |
 | 2 | Sesión | JWT propio con secreto de firma en Secrets Manager (2026-10-16) |
-| 3 | Aprobación de pagos | Sigue siendo por pago en la wallet (2026-10-16) |
+| 3 | Aprobación de pagos | Una vez al vincular la wallet, con monto diario (spec 023); cada pago se confirma con el passkey (spec 007) |
 | 4 | PIN | El del dispositivo; la app no tiene PIN propio |
 | 5 | Dónde guarda el frontend la sesión | En memoria y `sessionStorage` (2026-10-16) |
-| 6 | Plan B si no hay dominio | Volver a autenticación con PIN (menos segura, aceptable para la demo) |
+| 6 | Dominio (`WEBAUTHN_RP_ID`) | El de la distribución de **CloudFront** que sirve el frontend web (`dXXXX.cloudfront.net`), sin comprar dominio (2026-10-16). La distribución no se debe destruir: si su nombre cambia, todos los passkeys dejan de servir |
+| 7 | Confirmación de pagos | El mismo passkey firma cada confirmación de pago (spec 007) |
 
 ## Decisiones pendientes
 
-1. **Dominio del frontend web (`WEBAUTHN_RP_ID`).** Los passkeys quedan atados a
-   ese dominio: si cambia, todos dejan de servir. Hay que fijarlo antes de
-   registrar usuarios reales. En local se usa `localhost`. Se evalúa usar un
-   dominio gratuito de AWS (CloudFront o Amplify); si no es viable, se vuelve a
-   un PIN (ver la nota en la decisión 6).
+Ninguna. El nombre exacto de la distribución de CloudFront se configura en
+`WEBAUTHN_RP_ID` y `WEBAUTHN_ORIGINS` cuando se cree (lo define el despliegue
+del frontend); en local se usa `localhost`.
 
 ## Notas
 

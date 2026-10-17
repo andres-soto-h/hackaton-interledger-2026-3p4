@@ -4,13 +4,14 @@
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16 |
+| Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 9 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
+0 / 9 tareas completadas. Ajustado el 2026-10-16: configuración del monto
+diario (spec 023) y del porcentaje de comisión (spec 024); Cambios aprobados el 2026-10-16. Depende de
 los specs 003, 004 y 005. Requiere cambios de infraestructura en el spec 002.
 
 ## Contexto
@@ -101,7 +102,9 @@ Las rutas `/admin` no usan la API key (spec 001): tienen su propio middleware
 | `walletProviderBaseUrl` | `WALLET_PROVIDER_BASE_URL` | `https`, sin IP privada ni `localhost`, puerto 443, sin credenciales ni query |
 | `allowedWalletHosts` | `ALLOWED_WALLET_HOSTS` | Lista de hosts con las mismas reglas |
 | `maxPaymentAmounts` | `MAX_PAYMENT_AMOUNTS` | `CODIGO:monto` por moneda, montos positivos |
-| `paymentAuthTtlSeconds` | `PAYMENT_AUTH_TTL_SECONDS` | 60–3600 |
+| `dailySpendLimits` | `DAILY_SPEND_LIMITS` | `CODIGO:monto` por moneda; aplica a las vinculaciones nuevas (spec 023) |
+| `feePercentage` | `FEE_PERCENTAGE` (`0`) | 0–10, hasta 3 decimales; aplica a las cotizaciones nuevas (spec 024) |
+| `linkAuthTtlSeconds` | `LINK_AUTH_TTL_SECONDS` | 60–3600; tiempo para aprobar la vinculación en la wallet |
 | `frontendResultUrl` | `FRONTEND_RESULT_URL` | `https` o vacío |
 | `paymentsEnabled` | `true` | Interruptor: en `false`, `POST /payments` y `POST /payment-requests` responden `503 PAYMENTS_DISABLED` |
 

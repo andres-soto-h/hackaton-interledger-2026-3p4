@@ -4,13 +4,14 @@
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16 |
+| Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 6 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende de
+0 / 6 tareas completadas. Ajustado el 2026-10-16: eventos de la vinculación,
+la confirmación y la comisión (specs 007, 023 y 024); Cambios aprobados el 2026-10-16. Depende de
 los specs 008 y 020.
 
 ## Contexto
@@ -82,10 +83,13 @@ consulta los nuevos cada 2 segundos (polling, igual que el agente en el spec
 | Tipo | Nivel | Spec que lo emite |
 |---|---|---|
 | `payment_request.created` | info | 006 |
-| `payment.initiated`, `payment.quote_created`, `payment.authorization_requested` | info | 007 |
-| `payment.callback_received`, `payment.authorized`, `payment.outgoing_created` | info | 007 |
-| `payment.rejected`, `payment.expired` | warn | 007 |
-| `payment.callback_invalid` (hash no coincide, callback repetido) | warn | 007 |
+| `payment.quoted`, `payment.confirmed`, `payment.outgoing_created` | info | 007 |
+| `payment.cancelled`, `payment.expired`, `payment.daily_limit_exceeded` | warn | 007 |
+| `fee.collected` / `fee.failed` | info / error | 024 |
+| `wallet_link.requested`, `wallet_link.callback_received`, `wallet_link.active` | info | 023 |
+| `wallet_link.rejected`, `wallet_link.expired`, `wallet_link.revoked` | warn | 023 |
+| `wallet_link.callback_invalid` (hash no coincide, callback repetido) | warn | 023 |
+| `wallet_link.token_rotated` | info | 023 |
 | `payment.failed` (con `error.code`) | error | 007, 008 |
 | `payment.completed` | info | 008 |
 | `user.registered`, `user.deleted`, `user.*` del panel | info | 019, 021 |
@@ -122,7 +126,7 @@ reanudar.
 | # | Tipo | Caso | Esperado |
 |---|---|---|---|
 | 1 | Integration | Flujo de pago completo con fakes | Eventos esperados en orden, con `paymentId` y `requestId` |
-| 2 | Integration | Callback con hash inválido | `payment.callback_invalid` nivel `warn` |
+| 2 | Integration | Callback de vinculación con hash inválido | `wallet_link.callback_invalid` nivel `warn` |
 | 3 | Unit | Eventos de pago construidos con datos que incluyen tokens, nonces o `hash` | No aparecen en el evento guardado |
 | 4 | Integration | `ActivityLog` que falla | El pago continúa y responde normal |
 | 5 | Integration | `feed` con y sin cursor, con filtros | Solo eventos nuevos y filtrados; máx. 100 |
