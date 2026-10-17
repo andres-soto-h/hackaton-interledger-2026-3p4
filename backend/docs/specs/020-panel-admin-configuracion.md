@@ -10,6 +10,8 @@
 
 ## Estado
 
+Lote 1 integrado en `develop-andres` (2026-10-17): tareas 1, 3, 5, 6 y 8 hechas; 2 y 4 solo en memoria (`[~]`). Falta el lote 2: implementaciones DynamoDB de `ActivityLog` y del almacén de configuración, y la página de inicio (tarea 7).
+
 0 / 9 tareas completadas. Ajustado el 2026-10-16: configuración del monto
 diario (spec 023) y del porcentaje de comisión (spec 024); Cambios aprobados el 2026-10-16. Depende de
 los specs 003, 004 y 005. Requiere cambios de infraestructura en el spec 002.
@@ -146,14 +148,14 @@ configurado responde.
 
 ## Tareas
 
-1. [ ] Función `html` con escape y plantilla común (caso 10).
-2. [ ] Puerto `ActivityLog` con campos permitidos por evento, en memoria y DynamoDB (casos 14–15).
-3. [ ] Login, logout, `adminAuth`, CSRF y bloqueo por intentos (casos 1–5, 12).
-4. [ ] `SettingsProvider` en DynamoDB con caché y tests de contrato (caso 13).
-5. [ ] Página de configuración con validación, conflicto e historial (casos 6–8).
-6. [ ] Interruptor `paymentsEnabled` (caso 9).
+1. [x] Función `html` con escape y plantilla común (caso 10).
+2. [~] Puerto `ActivityLog` con campos permitidos por evento, en memoria y DynamoDB (casos 14–15).
+3. [x] Login, logout, `adminAuth`, CSRF y bloqueo por intentos (casos 1–5, 12).
+4. [~] `SettingsProvider` en DynamoDB con caché y tests de contrato (caso 13).
+5. [x] Página de configuración con validación, conflicto e historial (casos 6–8).
+6. [x] Interruptor `paymentsEnabled` (caso 9).
 7. [ ] Página de inicio con resumen y estado de Open Payments.
-8. [ ] Headers de seguridad del panel (caso 11).
+8. [x] Headers de seguridad del panel (caso 11).
 9. [ ] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones

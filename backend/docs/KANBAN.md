@@ -14,7 +14,7 @@
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
 | | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 4/9 · *lote 1 integrado; falta DynamoDB, adapter WebAuthn, OpenAPI y página de prueba* | |
-| | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 0/9 | |
+| | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 5/9 · *lote 1 integrado; falta DynamoDB y página de inicio* | |
 | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
 | | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 0/10 · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
@@ -89,3 +89,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 006 | Integrado en `develop-andres`, 416 tests en verde → Hecho |
 | 2026-10-17 | 019 | Lote 1 integrado (tareas 3–6; 1 y 7 parciales) |
 | 2026-10-17 | 023 | Desarrollo aprobado → En desarrollo (spike de la tarea 1 queda como pendiente del responsable) |
+| 2026-10-17 | 020 | Lote 1 integrado (tareas 1, 3, 5, 6, 8; 2 y 4 en memoria) |
