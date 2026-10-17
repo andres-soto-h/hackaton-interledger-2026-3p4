@@ -23,9 +23,11 @@
 | admin (020, 021) | `/admin/*` | Sesión del panel (cookie + CSRF), sin API key. `ADMIN_ENABLED=false` lo desmonta |
 | dev (019) | `/dev/passkeys*` | **Solo runtime local**; nunca en Lambda |
 
-**Pagos (spec 007) todavía no está cableado.** Punto de extensión: `extraRouters` de
-`createComposition` (se montan después de los módulos). Al integrar el 007 se agrega su
-router ahí, con `FeeCalculator`/`FeeCollector` por defecto (sin comisión) hasta el 024.
+| payments (007) | `POST /api/v1/payments`, `…/{id}/confirm/options`, `…/{id}/confirm`, `…/{id}/cancel` | Sesión del usuario (no API key); idempotencia, `paymentsEnabled` del panel, passkey y vinculación del 023 |
+
+`FeeCalculator`/`FeeCollector` están cableados con las implementaciones por defecto (sin
+comisión) hasta que el spec 024 las reemplace en `createComposition`. `extraRouters` sigue
+disponible como punto de extensión para specs futuros.
 
 ## Variables de entorno
 

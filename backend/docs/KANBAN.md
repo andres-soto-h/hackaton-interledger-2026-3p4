@@ -9,11 +9,11 @@
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
 | | | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 5/5 |
+| | | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 9/9 |
 | | | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 7/7 |
 | | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 9/9 |
 | | | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 9/9 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
-| | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 7/9 · *falta cableado y OpenAPI* | |
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
@@ -100,3 +100,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | — | Cableado de los módulos 006, 019, 020, 021 y 023 en `createApp` (`src/composition/`, ver [CABLEADO](CABLEADO.md)); almacén de idempotencia en DynamoDB; configuración y secretos nuevos. El router de pagos (007) se monta después vía `extraRouters` |
 | 2026-10-17 | 007 | Lote 1 integrado (tareas 1–7), 914 tests en verde |
 | 2026-10-17 | 024 | Desarrollo aprobado → En desarrollo |
+| 2026-10-17 | 007 | Cableado en la composición y contrato OpenAPI; 932 tests en verde → Hecho |

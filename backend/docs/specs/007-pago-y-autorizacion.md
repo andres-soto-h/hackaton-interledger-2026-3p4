@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 (versión con aprobación en la wallet por pago); cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | 2026-10-17 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-7 / 9 tareas completadas (lote 1 integrado en `develop-andres`, 914 tests en verde; quedan el cableado en la composición, tarea 8 OpenAPI y 9). Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/007`. Reescrito el 2026-10-16 por la decisión de aprobar los
+9 / 9 tareas completadas e integradas en `develop-andres` (932 tests, más 101 contra DynamoDB Local, typecheck y lint en verde). Router y servicio cableados en la composición con comisión cero hasta el spec 024; contrato en `openapi.yaml`. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar todos los specs hasta el 024); rama `spec/007`. Reescrito el 2026-10-16 por la decisión de aprobar los
 pagos una sola vez, con un monto diario (spec 023). Cambios aprobados el 2026-10-16. Depende de los specs 003, 004, 005, 019 y 023.
 
 **Qué cambió respecto a la versión aprobada:**
@@ -243,8 +243,8 @@ Salen de este spec (pasan al 023): `CALLBACK_INVALID`, `CALLBACK_ALREADY_USED`,
 5. [x] Rutas de opciones y confirmación con idempotencia.
 6. [x] Cancelar: caso 14.
 7. [x] Rutas protegidas por sesión (caso 16).
-8. [ ] Contrato en `openapi.yaml`.
-9. [ ] Suite completa en verde, lint y typecheck limpios.
+8. [x] Contrato en `openapi.yaml`.
+9. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
