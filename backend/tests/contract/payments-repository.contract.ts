@@ -114,6 +114,56 @@ export function runPaymentsRepositoryContract(
       })
     })
 
+    // Spec 022: lista de pagos del panel admin (de todas las wallets, más recientes primero).
+    describe('listAllPayments', () => {
+      const seed = async () => {
+        await repo.createPayment(buildPayment({ id: extraId(1), createdAt: at(1) }))
+        await repo.createPayment(
+          buildPayment({
+            id: extraId(2),
+            createdAt: at(2),
+            senderWalletAddress: BOB,
+            receiverWalletAddress: ALICE,
+            status: 'COMPLETED'
+          })
+        )
+        await repo.createPayment(
+          buildPayment({ id: extraId(3), createdAt: at(3), status: 'FAILED' })
+        )
+        await repo.createPaymentRequest(buildPaymentRequest())
+      }
+
+      it('devuelve solo pagos (no solicitudes) de todas las wallets, del más reciente al más antiguo', async () => {
+        await seed()
+        const result = await repo.listAllPayments({ limit: 10 })
+        expect(ids(result.items)).toEqual([extraId(3), extraId(2), extraId(1)])
+        expect(result.nextCursor).toBeUndefined()
+      })
+
+      it('filtra por estado', async () => {
+        await seed()
+        const result = await repo.listAllPayments({ status: 'COMPLETED', limit: 10 })
+        expect(ids(result.items)).toEqual([extraId(2)])
+      })
+
+      it('pagina con cursor opaco sin repetir ni saltar pagos', async () => {
+        await seed()
+        const first = await repo.listAllPayments({ limit: 2 })
+        expect(ids(first.items)).toEqual([extraId(3), extraId(2)])
+        expect(first.nextCursor).toBeDefined()
+        const second = await repo.listAllPayments({
+          limit: 2,
+          cursor: first.nextCursor
+        })
+        expect(ids(second.items)).toEqual([extraId(1)])
+        expect(second.nextCursor).toBeUndefined()
+      })
+
+      it('sin pagos devuelve una lista vacía', async () => {
+        expect(await repo.listAllPayments({ limit: 10 })).toEqual({ items: [] })
+      })
+    })
+
     // Caso 1
     it('guarda y lee un pago y una solicitud tal como se guardaron', async () => {
       const payment = buildPayment()

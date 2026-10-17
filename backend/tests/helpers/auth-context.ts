@@ -8,6 +8,8 @@ import type { WalletAddress } from '../../src/integrations/open-payments/gateway
 import { newUserId } from '../../src/shared/ids/ids.js'
 import { createLogger } from '../../src/shared/logger.js'
 import { createSessionService } from '../../src/shared/session/session.service.js'
+import type { ActivityLog } from '../../src/shared/activity/activity-log.js'
+import { createActivityEmitter } from '../../src/shared/activity/activity-emitter.js'
 import { createFakePasskeyVerifier } from './fake-passkey-verifier.js'
 import { testConfig, testSecrets, TEST_API_KEY } from './app.js'
 
@@ -29,7 +31,9 @@ export const wallet = (name: string, assetCode = 'USD'): WalletAddress => ({
  * The whole account stack with in-memory parts: repository, fake WebAuthn
  * verifier, fake Open Payments gateway and a controllable clock.
  */
-export function buildAuthContext(options: { sessionTtlSeconds?: number } = {}) {
+export function buildAuthContext(
+  options: { sessionTtlSeconds?: number; activityLog?: ActivityLog } = {}
+) {
   const clock = { value: START }
   const now = () => clock.value
   const users = createInMemoryUsersRepository()
@@ -62,9 +66,14 @@ export function buildAuthContext(options: { sessionTtlSeconds?: number } = {}) {
         gateway,
         settings,
         webauthn: { rpID: RP_ID, rpName: 'Tranqui', origins: ORIGINS },
-        now
+        now,
+        activity: createActivityEmitter({ log: options.activityLog })
       }),
-      createMeRouter({ users, sessions })
+      createMeRouter({
+        users,
+        sessions,
+        activity: createActivityEmitter({ log: options.activityLog })
+      })
     ]
   })
 

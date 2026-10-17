@@ -17,6 +17,8 @@ import { createInMemoryWalletLinksRepository } from '../../src/modules/wallet-li
 import { createWalletLinksService } from '../../src/modules/wallet-links/wallet-links.service.js'
 import { createInMemoryIdempotencyStore } from '../../src/shared/idempotency/in-memory-store.js'
 import { newUserId } from '../../src/shared/ids/ids.js'
+import type { ActivityLog } from '../../src/shared/activity/activity-log.js'
+import { createActivityEmitter } from '../../src/shared/activity/activity-emitter.js'
 import { createLogger } from '../../src/shared/logger.js'
 import { createTokenCipher } from '../../src/shared/security/token-cipher.js'
 import { createSessionService } from '../../src/shared/session/session.service.js'
@@ -78,8 +80,16 @@ export function buildPaymentsContext(
     settings?: Partial<EditableSettings>
     /** `real` wires the spec 024 calculator and collector over the settings (default `fake`). */
     fees?: 'fake' | 'real'
+    /** Spec 022: business activity log the services emit to (default none). */
+    activityLog?: ActivityLog
+    /** Technical logger that receives the warnings of a failing activity log. */
+    activityLogger?: { warn: (...args: unknown[]) => void }
   } = {}
 ) {
+  const activity = createActivityEmitter({
+    log: options.activityLog,
+    logger: options.activityLogger
+  })
   const clock = { value: START }
   const now = () => clock.value
   const users = createInMemoryUsersRepository()
@@ -103,7 +113,8 @@ export function buildPaymentsContext(
     cipher: createTokenCipher(TOKEN_SECRET),
     dailyLimits: createStaticDailyLimitProvider(DAILY_LIMITS),
     apiBaseUrl: API_BASE_URL,
-    now
+    now,
+    activity
   })
 
   const editable: EditableSettings = { ...DEFAULT_SETTINGS, ...options.settings }
@@ -125,7 +136,8 @@ export function buildPaymentsContext(
         payments,
         walletLinks,
         platformWalletUrl: PLATFORM_WALLET.id,
-        now
+        now,
+        activity
       })
     : {
         collect: vi.fn(() => Promise.resolve()),
@@ -146,7 +158,8 @@ export function buildPaymentsContext(
       : createFakeFeeCalculator(),
     feeCollector,
     webauthn: { rpID: RP_ID, origins: ORIGINS },
-    now
+    now,
+    activity
   })
 
   const app = createApp({
@@ -223,6 +236,7 @@ export function buildPaymentsContext(
     walletLinks,
     feeCollector,
     editable,
+    activityLog: options.activityLog,
     seedUser,
     seedLinkedUser,
     advanceSeconds: (seconds: number) => {
