@@ -14,6 +14,8 @@ permission:
   edit:
     "*": allow
     "backend/tests/**": deny
+    "backend/infra/test/**": deny
+    "backend/infra/cdk.out/**": deny
     "backend/docs/**": deny
     "frontend/**": deny
     "AI/**": deny
@@ -37,6 +39,9 @@ permission:
     "cd backend && pnpm lint*": allow
     "cd backend && pnpm format*": allow
     "cd backend && pnpm exec vitest*": allow
+    "cd backend/infra && pnpm test*": allow
+    "cd backend/infra && pnpm typecheck*": allow
+    "cd backend/infra && pnpm exec vitest*": allow
     "pnpm add *": deny
     "ls*": allow
     "cat .orquestacion/*": allow
@@ -77,7 +82,9 @@ de integrarlo.
 - No agregues dependencias. Si necesitas una, pídela en el reporte.
 - No hagas commits: el orquestador revisa el diff y commitea.
 - Corre los comandos desde `backend/`: `pnpm test`, `pnpm typecheck` y `pnpm lint`.
-  Terminas solo cuando los tres pasen o cuando estés bloqueado.
+  Para la infraestructura (`backend/infra/`, proyecto aparte): `pnpm test` y
+  `pnpm typecheck` desde `backend/infra`. Terminas solo cuando pasen o cuando
+  estés bloqueado.
 
 ## Decisiones
 

@@ -67,8 +67,8 @@ OPENCODE_CONFIG_DIR=$PWD/.opencode opencode agent list | grep backend-worker
 - **Modelo:** `deepseek/deepseek-v4-pro`, temperatura 0.1, máximo 150 pasos.
   Para tareas mecánicas se puede cambiar por `ORQ_MODEL=deepseek/deepseek-flash`.
 - **Puede:** leer todo el repo, editar código y correr `pnpm test | typecheck |
-  lint | format`, `git status | diff | log`, `ls` y `cat .orquestacion/*`.
-- **No puede:** editar `backend/tests/`, `backend/docs/`, `frontend/`, `AI/`,
+  lint | format` (y `test | typecheck` en `backend/infra`), `git status | diff | log`, `ls` y `cat .orquestacion/*`.
+- **No puede:** editar `backend/tests/`, `backend/infra/test/`, `backend/docs/`, `frontend/`, `AI/`,
   `orquestacion/`, `CLAUDE.md`, `AGENTS.md`, `.opencode/`, `.claude/`, `backend/keys/`, `.env*` ni
   el ejemplo `backend/src/api/index.js`. Tampoco puede correr otro bash
   (incluidos `git commit` y `pnpm add`), salir del worktree, usar subagentes,

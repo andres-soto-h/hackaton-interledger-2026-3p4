@@ -65,9 +65,12 @@ ensure_worktree() {
     fi
   fi
   sync_one "$spec"
-  if [ ! -d "$wt/backend/node_modules" ]; then
-    (cd "$wt/backend" && pnpm install --frozen-lockfile --prefer-offline >&2)
-  fi
+  local pkg
+  for pkg in backend backend/infra; do
+    if [ -f "$wt/$pkg/package.json" ] && [ ! -d "$wt/$pkg/node_modules" ]; then
+      (cd "$wt/$pkg" && pnpm install --frozen-lockfile --prefer-offline >&2)
+    fi
+  done
 }
 
 run_worker() {
