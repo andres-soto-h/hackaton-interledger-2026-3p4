@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-16 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 8 tareas completadas. Ajustado el 2026-10-16 por el monto diario
+0 / 8 tareas completadas. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 004 (worker de DeepSeek, rama `spec/003`). Ajustado el 2026-10-16 por el monto diario
 preaprobado (spec 023); Cambios aprobados el 2026-10-16. Depende del spec 001.
 
 **Qué cambió respecto a la versión aprobada:** el grant de outgoing payment se
