@@ -19,7 +19,11 @@ export function createPaymentStatusRouter(deps: {
   router.get('/api/v1/payments/:id', session, async (req, res, next) => {
     try {
       const { user } = getSessionUser(res)
-      res.status(200).json(await deps.service.getStatus(user, req.params.id as string))
+      const status = await deps.service.getStatus(user, req.params.id as string)
+      if (!status.isFinal) {
+        res.set('Retry-After', status.status === 'AWAITING_CONFIRMATION' ? '5' : '2')
+      }
+      res.status(200).json(status)
     } catch (error) {
       next(error)
     }

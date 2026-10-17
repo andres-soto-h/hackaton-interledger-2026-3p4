@@ -32,8 +32,8 @@ export function createWalletLinksController(
     try {
       const { user } = getSessionUser(res)
       const result = await service.getLatest(user.id)
-      if (result.status === 'PENDING_AUTHORIZATION') {
-        res.set('Retry-After', '2')
+      if (!result.isFinal) {
+        res.set('Retry-After', '5')
       }
       res.status(200).json(result)
     } catch (error) {

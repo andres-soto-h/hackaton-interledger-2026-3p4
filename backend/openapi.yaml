@@ -139,6 +139,12 @@ paths:
       responses:
         '200':
           description: Estado del pago con la comisión; `stale` solo cuando no se pudo refrescar.
+          headers:
+            Retry-After:
+              description: Segundos sugeridos antes de consultar de nuevo; ausente en estados finales.
+              schema:
+                type: integer
+                enum: [2, 5]
           content:
             application/json:
               schema:
@@ -563,6 +569,12 @@ paths:
       responses:
         '200':
           description: Estado de la vinculación; `Retry-After` mientras está pendiente.
+          headers:
+            Retry-After:
+              description: Segundos sugeridos antes de consultar de nuevo; ausente en estados finales.
+              schema:
+                type: integer
+                enum: [2, 5]
           content:
             application/json:
               schema:
@@ -818,6 +830,7 @@ components:
             - REVOKED
         isFinal:
           type: boolean
+          description: `true` cuando la vinculación ya no va a cambiar; dejar de consultar.
         walletVerified:
           type: boolean
         dailyLimit:
@@ -1120,6 +1133,7 @@ components:
         - paymentId
         - type
         - status
+        - isFinal
         - senderWalletAddress
         - receiverWalletAddress
         - debitAmount
@@ -1141,6 +1155,9 @@ components:
         status:
           type: string
           enum: [AWAITING_CONFIRMATION, PROCESSING, COMPLETED, FAILED, CANCELLED, EXPIRED]
+        isFinal:
+          type: boolean
+          description: `true` en COMPLETED, FAILED, CANCELLED y EXPIRED; dejar de consultar.
         senderWalletAddress:
           type: string
         receiverWalletAddress:

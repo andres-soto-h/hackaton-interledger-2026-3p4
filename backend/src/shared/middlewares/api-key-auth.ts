@@ -30,7 +30,7 @@ const isAdminPath = (path: string): boolean =>
   path === '/admin' || path.startsWith('/admin/')
 
 /** Payments write routes use the user session, not the API key (spec 007). */
-const PAYMENT_ID = 'pay_[0-9A-Z]{26}'
+const PAYMENT_ID = 'pay_[^/]+'
 const PAYMENT_CONFIRM_PATH = new RegExp(
   `^/api/v1/payments/${PAYMENT_ID}/(confirm/options|confirm|cancel)$`
 )
