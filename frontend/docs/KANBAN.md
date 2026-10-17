@@ -13,7 +13,7 @@
 | | | [003 — Registro y vinculación de la wallet](specs/003-registro.md) · 6/7 · *falta la verificación manual (red de prueba)* | |
 | | | [002 — Inicio de sesión y mi cuenta](specs/002-inicio-sesion.md) · 6/7 · *falta la verificación manual con passkeys reales* | |
 | | | [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 10/11 · *falta la verificación manual (web y Android)* | |
-| | [009 — Agente por voz](specs/009-agente-voz.md) · 0/3 · *pendiente de definición técnica* | | |
+| | [009 — Agente por voz](specs/009-agente-voz.md) · 1/9 · *diseño propuesto, pendiente de aprobación* | | |
 
 **Orden de desarrollo:** 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009.
 Los specs se desarrollan contra la API simulada (MSW); la integración con el
@@ -51,3 +51,4 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-17 | 006 | Desarrollo aprobado → En desarrollo. Pantalla de confirmación con passkey, cuenta regresiva y manejo de errores; 262 tests en verde. Faltan las pruebas manuales (tareas 1 y 6) |
 | 2026-10-17 | 007 | Hecho: pantalla de resultado con polling según `Retry-After`, tope de 2 min y un texto por estado; 274 tests en verde |
 | 2026-10-17 | 008 | Desarrollo aprobado → En desarrollo. Chat con burbujas, acciones del agente (elegir comercio, confirmar pago, estado) contra MSW; 295 tests en verde. Falta registrar el contrato con el backend (tarea 5) |
+| 2026-10-17 | 009 | Diseño técnico propuesto: voz en el dispositivo (Web Speech API) con el mismo contrato del chat y TTS del navegador; Chirp 3 HD y Gemini Live como alternativas. Pendiente de aprobación |
