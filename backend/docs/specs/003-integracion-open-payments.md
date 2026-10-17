@@ -25,12 +25,15 @@ reglas generales en [API.md](../API.md).
 **Incluye**
 - Puerto `OpenPaymentsGateway` y un fake en memoria para los tests de otros specs.
 - Adapter con el SDK `@interledger/open-payments` y el cliente autenticado.
-- `shared/money`: conversión decimal ↔ unidad mínima y reglas de monedas.
+- `shared/money`: conversión decimal ↔ unidad mínima y **soporte de distintas
+  monedas** (qué monto queda fijo, límites por moneda).
 - `shared/security/assertSafeWalletUrl` (anti-SSRF).
 - `toApiError`: errores del SDK y de red → errores de la API.
 - Timeouts y reintentos.
-- Configuración: `OPEN_PAYMENTS_TIMEOUT_MS`,
+- Configuración: `OPEN_PAYMENTS_TIMEOUT_MS`, `WALLET_PROVIDER_BASE_URL`,
   `ALLOWED_WALLET_HOSTS`, `MAX_PAYMENT_AMOUNTS`.
+- Puerto `SettingsProvider` para la configuración que el panel de administración
+  podrá editar (spec 020). Este spec solo implementa la versión que lee del entorno.
 
 **No incluye**
 - Endpoints (specs 006–008).
@@ -91,22 +94,61 @@ interface OpenPaymentsGateway {
 | `quote` | No interactivo | `create`, `read` | Emisor |
 | `outgoing-payment` | Interactivo | `create`, `read` + `limits.debitAmount` + `identifier` | Emisor |
 
-### Montos y monedas
+### Montos
 
-Reglas en [API.md — Montos y monedas](../API.md#montos-y-monedas):
 - `toMinorUnits("10.50", 2) → "1050"` y `fromMinorUnits("1050", 2) → "10.50"` con
-  aritmética de enteros (`BigInt`).
-- `resolveFixedAmount(amount, sender, receiver)` decide si el monto fijo es lo
-  que recibe el receptor o lo que sale del emisor, o lanza `ASSET_MISMATCH`.
-- `assertWithinLimit(debitAmount)` aplica `MAX_PAYMENT_AMOUNTS` por moneda del
-  emisor (`AMOUNT_EXCEEDS_LIMIT` / `CURRENCY_NOT_SUPPORTED`).
+  aritmética de enteros (`BigInt`). Formato en [API.md — Montos y monedas](../API.md#montos-y-monedas).
+
+### Soporte de distintas monedas
+
+El emisor y el receptor pueden tener monedas distintas. **La conversión la hacen
+ILP y el proveedor de la wallet**: el quote devuelve cuánto se debita al emisor
+en su moneda y cuánto recibe el receptor en la suya, con la tasa y las
+comisiones incluidas. La API no convierte ni maneja tasas. Lo que sí define:
+
+1. **Qué monto queda fijo.** Si piden "envía 10 USD" a una wallet en MXN, hay que
+   saber si los 10 USD son lo que sale o lo que llega.
+   `resolveFixedAmount(amount, sender, receiver)` aplica la regla:
+
+   | `amount.assetCode` coincide con | Monto fijo | Cómo se pide a Open Payments |
+   |---|---|---|
+   | La moneda del receptor | El receptor recibe exactamente ese monto | Incoming payment con `incomingAmount`; el quote calcula el débito |
+   | Solo la moneda del emisor | Sale exactamente ese monto del emisor | Incoming payment sin monto; quote con `debitAmount` |
+   | Ninguna | — | `ASSET_MISMATCH` |
+
+   Si ambos usan la misma moneda, el monto es lo que recibe el receptor. Una
+   solicitud de pago siempre fija lo que recibe el receptor, en su moneda.
+2. **Mostrar la conversión antes de aprobar.** La respuesta de `POST /payments`
+   incluye ambos montos y la tasa (`exchangeRate = receiveAmount / debitAmount`,
+   calculada con enteros y redondeada a 6 decimales solo para mostrar). Lo
+   implementa el spec 007; la función `exchangeRate` vive aquí.
+3. **La tasa vence con el quote**, normalmente en pocos minutos. El usuario debe
+   aprobar antes: el tiempo para autorizar es el menor entre
+   `PAYMENT_AUTH_TTL_SECONDS` y la expiración del quote (spec 007).
+4. **El límite por pago va por moneda**, porque "1000" no significa lo mismo en
+   todas. `MAX_PAYMENT_AMOUNTS` (p. ej. `USD:1000,MXN:20000`) define un máximo
+   por moneda del emisor. `assertWithinLimit(debitAmount)` lo aplica al
+   `debitAmount` del quote: `AMOUNT_EXCEEDS_LIMIT` si lo supera,
+   `CURRENCY_NOT_SUPPORTED` si la moneda no tiene límite configurado.
+
+### Proveedor de wallets
+
+- `WALLET_PROVIDER_BASE_URL` (por defecto `https://ilp.interledger-test.dev`) es
+  la URL raíz del proveedor. Su host siempre está permitido; `ALLOWED_WALLET_HOSTS`
+  agrega hosts adicionales (opcional).
+- Permite recibir un *handle* corto: `alice` → `{WALLET_PROVIDER_BASE_URL}/alice`.
+- Se lee a través de `SettingsProvider`, igual que `ALLOWED_WALLET_HOSTS` y
+  `MAX_PAYMENT_AMOUNTS`, para que el panel de administración (spec 020) pueda
+  cambiarlos sin redesplegar.
 
 ### Anti-SSRF (`assertSafeWalletUrl`)
 
 Rechaza con `WALLET_NOT_ALLOWED`: esquema distinto de `https`, host fuera de
-`ALLOWED_WALLET_HOSTS`, `localhost`, IPs literales privadas o link-local,
-puertos distintos de 443, credenciales en la URL. Acepta `$host/path`
-(payment pointer) convirtiéndolo a `https://host/path`.
+los hosts permitidos (el de `WALLET_PROVIDER_BASE_URL` más `ALLOWED_WALLET_HOSTS`),
+`localhost`, IPs literales privadas o link-local, puertos distintos de 443,
+credenciales en la URL. Acepta `$host/path` (payment pointer) convirtiéndolo a
+`https://host/path`, y un handle sin esquema (`alice`) resolviéndolo contra
+`WALLET_PROVIDER_BASE_URL`.
 
 ### Errores
 
@@ -144,12 +186,14 @@ puertos distintos de 443, credenciales en la URL. Acepta `$host/path`
 | 12 | Adapter | Lectura que falla por red dos veces y luego responde | Éxito al tercer intento |
 | 13 | Adapter | Creación que falla por red | Sin reintento; `OPEN_PAYMENTS_UNAVAILABLE` |
 | 14 | Unit | El fake del gateway cumple los mismos contratos básicos que el adapter | Mismos tipos y errores |
+| 15 | Unit | `assertSafeWalletUrl` con handle `alice` y con `WALLET_PROVIDER_BASE_URL` cambiado a otro host | `{base}/alice`; el host nuevo queda permitido y el anterior no |
+| 16 | Unit | `exchangeRate` con montos de distinta escala (USD scale 2, MXN scale 2, JPY scale 0) | Tasa exacta, sin punto flotante |
 
 ## Tareas
 
 1. [ ] Configuración nueva en `config/env.ts` y validación del secreto de Open Payments (caso 8).
-2. [ ] `shared/money`: casos 1–4 en rojo → implementación.
-3. [ ] `shared/security/assertSafeWalletUrl`: casos 5–6 → implementación.
+2. [ ] `shared/money` y soporte de distintas monedas: casos 1–4 y 16 en rojo → implementación.
+3. [ ] `SettingsProvider` (desde el entorno) y `assertSafeWalletUrl`: casos 5–6 y 15 → implementación.
 4. [ ] Puerto `OpenPaymentsGateway`, tipos propios y fake (caso 14).
 5. [ ] `toApiError`: caso 7 → implementación.
 6. [ ] Fixtures HTTP de Open Payments a partir de respuestas reales de la red de prueba.
