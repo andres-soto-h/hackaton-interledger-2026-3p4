@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec en borrador, pendiente de aprobación.
+0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
 
 > 2026-10-16: el usuario **ya no aprueba cada pago en su wallet**. Aprueba una
 > sola vez al vincular la wallet en el registro (spec 003, backend 023) y cada

@@ -5,15 +5,15 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 0/11 | | | |
-| [002 — Inicio de sesión y mi cuenta](specs/002-inicio-sesion.md) · 0/7 | | | |
-| [003 — Registro](specs/003-registro.md) · 0/6 | | | |
-| [004 — Inicio y transacciones](specs/004-inicio-transacciones.md) · 0/6 | | | |
-| [005 — Pago de servicios](specs/005-pago-servicios.md) · 0/6 | | | |
-| [006 — Confirmación y aprobación](specs/006-confirmacion-aprobacion.md) · 0/6 | | | |
-| [007 — Resultado de la transacción](specs/007-resultado-transaccion.md) · 0/5 | | | |
-| [008 — Agente por chat](specs/008-agente-chat.md) · 0/6 | | | |
-| [009 — Agente por voz](specs/009-agente-voz.md) · 0/3 · *pendiente de definición técnica* | | | |
+| | [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 0/11 | | |
+| | [002 — Inicio de sesión y mi cuenta](specs/002-inicio-sesion.md) · 0/7 | | |
+| | [003 — Registro y vinculación de la wallet](specs/003-registro.md) · 0/7 | | |
+| | [004 — Inicio y transacciones](specs/004-inicio-transacciones.md) · 0/6 | | |
+| | [005 — Pago de servicios](specs/005-pago-servicios.md) · 0/6 | | |
+| | [006 — Confirmación del pago](specs/006-confirmacion-aprobacion.md) · 0/7 · *tarea 1: probar el pago sin autorización en la wallet* | | |
+| | [007 — Resultado de la transacción](specs/007-resultado-transaccion.md) · 0/4 | | |
+| | [008 — Agente por chat](specs/008-agente-chat.md) · 0/6 | | |
+| | [009 — Agente por voz](specs/009-agente-voz.md) · 0/3 · *pendiente de definición técnica* | | |
 
 **Orden de desarrollo:** 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009.
 Los specs se desarrollan contra la API simulada (MSW); la integración con el
@@ -35,3 +35,7 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-16 | 001–009 | Renumerados desde 001 (antes 010–018; numeración propia del frontend). Sesión pasa a 002 y registro a 003 para que el orden de desarrollo sea el numérico |
 | 2026-10-16 | — | Plan del frontend aprobado con sus decisiones (stack, comisión, carriles independientes, retorno en Android, mockups fuera del repo) |
 | 2026-10-16 | 009 | Voz pendiente de definición técnica: SDK de agentes de Gemini y TTS de Google Cloud; impacta 008 |
+| 2026-10-16 | 002, 003 | Autenticación con passkeys, sin PIN; el registro incluye vincular la wallet con monto diario (backend 019 y 023) |
+| 2026-10-16 | 005–008 | Los pagos se confirman en la app con el passkey, sin aprobar cada pago en la wallet; el 006 suma la tarea de probarlo |
+| 2026-10-16 | 004, 005 | Decisiones resueltas: filtro de un estado, datos completos de la transacción desde el backend, comercios en Google Cloud, referencia en `description` |
+| 2026-10-16 | 001–009 | Specs aprobados → Aprobado; pendiente autorizar el desarrollo |

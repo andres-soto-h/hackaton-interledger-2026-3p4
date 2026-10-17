@@ -2,9 +2,9 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** · *pendiente de definición técnica* |
+| Estado | **Aprobado** · *pendiente de definición técnica* |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
@@ -13,8 +13,8 @@
 0 / 3 tareas completadas. **Pendiente de definición:** la voz se integra con el
 SDK de agentes de Gemini y el texto a voz (TTS) se hace con modelos de Google
 Cloud. Este spec fija lo que el usuario debe poder hacer; el diseño técnico se
-escribe cuando se defina la integración (tarea 1) y entonces el spec queda
-listo para aprobación.
+escribe cuando se defina la integración (tarea 1); los cambios se vuelven a
+aprobar.
 
 ## Contexto
 
@@ -86,7 +86,7 @@ Se definen con el diseño. Los criterios de aceptación de arriba son la base.
 
 1. [ ] Definir la integración con el SDK de agentes de Gemini y el TTS de Google Cloud (responder las preguntas del diseño) y completar diseño, casos de prueba y tareas de este spec.
 2. [ ] Ajustar el spec 008 si la definición cambia el contrato del chat.
-3. [ ] Pasar el spec a revisión para aprobación.
+3. [ ] Pasar los cambios del diseño a revisión para aprobación.
 
 ## Decisiones pendientes
 
