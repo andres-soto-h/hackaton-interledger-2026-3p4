@@ -22,7 +22,7 @@ describe('Ingreso con passkey', () => {
     const app = await renderApp({ initialUrl: '/ingresar' });
     await fireEvent.press(await screen.findByRole('button', { name: 'Ingresar con mi passkey' }));
 
-    expect(await screen.findByText(/Hola, bienvenida a TuTranqui/)).toBeTruthy();
+    expect(await screen.findByText(/¿Qué pagamos hoy\?/)).toBeTruthy();
     expect(verifyBody.challengeId).toBe('chl_login');
     expect(verifyBody.credential?.id).toBe('cred-1');
     expect(app.passkeys.calls.authenticate).toHaveLength(1);
@@ -39,7 +39,7 @@ describe('Ingreso con passkey', () => {
     });
     await fireEvent.press(await screen.findByRole('button', { name: 'Ingresar con mi passkey' }));
     expect(await screen.findByText('No se completó el ingreso. Intente de nuevo')).toBeTruthy();
-    expect(screen.queryByText(/Hola, bienvenida/)).toBeNull();
+    expect(screen.queryByText(/¿Qué pagamos hoy\?/)).toBeNull();
   });
 
   it.each([
@@ -72,7 +72,7 @@ describe('Guards de rutas', () => {
 
   it('con sesión, una ruta pública lleva al inicio', async () => {
     await renderApp({ initialUrl: '/ingresar', session });
-    expect(await screen.findByText(/Hola, bienvenida a TuTranqui/)).toBeTruthy();
+    expect(await screen.findByText(/¿Qué pagamos hoy\?/)).toBeTruthy();
   });
 
   it('la bienvenida lleva a ingresar con "Ya tengo cuenta"', async () => {
@@ -94,8 +94,8 @@ describe('Mi cuenta', () => {
     expect(await screen.findByText('Claudia Pérez')).toBeTruthy();
     expect(screen.getByText('https://ilp.interledger-test.dev/claudia')).toBeTruthy();
     expect(await screen.findByText('Permiso activo')).toBeTruthy();
-    expect(screen.getByText('US$200,00')).toBeTruthy();
-    expect(screen.getByText('US$154,50')).toBeTruthy();
+    expect(screen.getByText('$500.000')).toBeTruthy();
+    expect(screen.getByText('$454.500')).toBeTruthy();
   });
 
   it('sin vinculación (404) ofrece vincular', async () => {

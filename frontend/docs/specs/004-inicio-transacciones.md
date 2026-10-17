@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
-| Finalizado | — |
+| Desarrollo aprobado | 2026-10-17 |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-0 / 6 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+6 / 6 tareas completadas en `develop-andres` (167 tests en verde, lint y typecheck limpios). Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 ## Contexto
 
@@ -92,12 +92,12 @@ usePayment(paymentId)                       // GET /payments/{id}, compartido co
 
 ## Tareas
 
-1. [ ] Handlers MSW de `/transactions` (paginado y filtros) y `/payments/{id}` con fixtures por estado.
-2. [ ] Casos 1–2 en rojo → utilidades de fecha y filtros.
-3. [ ] Caso 3 en rojo → `TransactionItem`.
-4. [ ] Casos 4–5 en rojo → inicio.
-5. [ ] Casos 6–10 en rojo → lista y detalle.
-6. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Handlers MSW de `/transactions` (paginado y filtros) y `/payments/{id}` con fixtures por estado.
+2. [x] Casos 1–2 en rojo → utilidades de fecha y filtros.
+3. [x] Caso 3 en rojo → `TransactionItem`.
+4. [x] Casos 4–5 en rojo → inicio.
+5. [x] Casos 6–10 en rojo → lista y detalle.
+6. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
@@ -105,3 +105,10 @@ usePayment(paymentId)                       // GET /payments/{id}, compartido co
 |---|---|---|
 | 1 | Filtro por varios estados | No: un solo `status` por consulta (2026-10-16) |
 | 2 | Nombre del comercio | Lo devuelve el backend, con todos los datos de la transacción en lotes paginados para *lazy loading* (backend 008, 2026-10-16) |
+| 3 | Nombre en el detalle | `GET /payments/{id}` no trae el nombre del comercio: el detalle lo toma de la lista ya cargada y, si no está, muestra host y ruta de la wallet (2026-10-17) |
+| 4 | Fechas | Se muestran en hora de Bogotá (`America/Bogota`), igual que el día del monto diario del backend (2026-10-17) |
+| 5 | Pruebas con timers | `expo-router/testing-library` usa timers falsos: los tests de polling avanzan el reloj con `jest.advanceTimersByTimeAsync` (2026-10-17) |
+
+## Pendientes del backend (para validar con el responsable)
+
+- `GET /payments/{id}` debería incluir `counterparty` (nombre del comercio) para que el detalle no dependa de la lista cargada.
