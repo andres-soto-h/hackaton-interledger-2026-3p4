@@ -29,8 +29,15 @@ Formato:
 
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
 | 023 | `spec/023` | `../<repo>-worktrees/spec-023` | 2026-10-17 | Vinculación de wallet y monto diario (con fakes) |
+| 021 | `spec/021` | `../<repo>-worktrees/spec-021` | 2026-10-17 | Panel admin: gestión de usuarios |
 
 ## Decisiones
+
+### 2026-10-17 · Dueños de archivos del spec 021
+- Origen: orquestador
+- Afecta: specs 020 (lote 2), 021, 023
+- Decisión: el **021** es dueño de `src/modules/users/` (extiende `UsersRepository` y sus dos implementaciones, ya sin 019 activo), de `src/modules/admin/admin-users.*` (archivos nuevos: rutas, vistas, servicio; exporta `createAdminUsersRouter(deps)` que se monta bajo `/admin/users`) y del enlace de registro en `auth`. No edita `admin.routes.ts` (020), ni app.ts/server.ts/lambda.ts/config. Si necesita un hook del panel (menú, layout) lo pide a PROPUESTAS.md. El 020 lote 2 es dueño de `modules/admin/admin-home.*`, `shared/activity/dynamo-*` y `shared/settings/dynamo-*`; el 023 de `modules/wallet-links/` y `integrations/open-payments/`.
+- Acción para los demás: ninguna.
 
 ### 2026-10-17 · Archivos compartidos que toca el 023 (y el 019 lote 2 y 020)
 - Origen: orquestador (aviso del agente del 023)

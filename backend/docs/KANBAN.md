@@ -15,7 +15,7 @@
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
 | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 5/9 · *lote 1 integrado; falta DynamoDB y página de inicio* | |
-| | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | | |
+| | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
 | | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 0/10 · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
 | | [024 — Comisión por transacción](specs/024-comision-transacciones.md) · 0/7 · *decisión pendiente: orden / un solo cobro* | | |
@@ -91,3 +91,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 023 | Desarrollo aprobado → En desarrollo (spike de la tarea 1 queda como pendiente del responsable) |
 | 2026-10-17 | 020 | Lote 1 integrado (tareas 1, 3, 5, 6, 8; 2 y 4 en memoria) |
 | 2026-10-17 | 019 | Lote 2 integrado (DynamoDB, adapter SimpleWebAuthn, OpenAPI, página de prueba); 585 tests en verde → Hecho |
+| 2026-10-17 | 021 | Desarrollo aprobado → En desarrollo |
