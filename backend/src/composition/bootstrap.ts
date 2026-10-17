@@ -1,6 +1,7 @@
 import type { Express } from 'express'
 import type { Config } from '../config/env.js'
 import type { Secrets } from '../config/secrets.js'
+import { createLambdaAgentGateway } from '../integrations/agent/lambda-agent-gateway.js'
 import { createOpenPaymentsGateway } from '../integrations/open-payments/adapter.js'
 import { loadPrivateKey } from '../integrations/open-payments/private-key.js'
 import type { Logger } from '../shared/logger.js'
@@ -48,6 +49,10 @@ export async function bootstrap({
     gateway,
     verifier: createSimpleWebAuthnVerifier(),
     storage: createStorage(config),
-    publicApiUrl
+    publicApiUrl,
+    agent:
+      config.agentFunctionName !== undefined
+        ? createLambdaAgentGateway({ functionName: config.agentFunctionName })
+        : null
   })
 }

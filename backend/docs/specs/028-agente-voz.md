@@ -10,7 +10,7 @@
 
 ## Estado
 
-0 / 9 tareas completadas. Sin iniciar. **Spec aprobado el 2026-10-17** con las decisiones de abajo; **Desarrollo aprobado el 2026-10-17**; se trabaja en la rama `develop-local`.
+7 / 9 tareas completadas. La 8 (pruebas) queda diferida por la directiva de no tests; falta la 9 (despliegue y prueba manual). **Spec aprobado el 2026-10-17** con las decisiones de abajo; **Desarrollo aprobado el 2026-10-17**; se trabaja en la rama `develop-local`. Código listo (`agent/`, módulo `agent` del backend, CDK, OpenAPI y docs); **sin desplegar**: faltan habilitar el acceso al modelo en Bedrock, cargar la llave de ElevenLabs y la prueba manual.
 
 ## Contexto
 
@@ -210,14 +210,14 @@ Mínimos, con modelo y ElevenLabs falsos (sin llamar a Bedrock ni a ElevenLabs e
 
 ## Tareas
 
-- [ ] 1. Elegir y fijar la forma del agente (lenguaje del SDK y empaquetado, ver decisión 1) y crear `agent/` con el esqueleto de la Lambda.
-- [ ] 2. Cliente HTTP de las tools hacia la API (token del usuario, `Idempotency-Key`, errores) y las tres tools con sus esquemas.
-- [ ] 3. Agente de Strands con Bedrock (`AGENT_MODEL_ID`), prompt del sistema versionado y construcción de `actions` desde los resultados de las tools.
-- [ ] 4. Integración con ElevenLabs (`integrations/elevenlabs`) con tiempo máximo y degradación a solo texto.
-- [ ] 5. Endpoint `POST /api/v1/agent/messages` (routes → controller → service): validación, `userAuth`, límite por usuario, historial corto en DynamoDB e invocación de la Lambda.
-- [ ] 6. CDK: Lambda del agente, permisos de Bedrock, secreto de ElevenLabs, variables y ampliación de la política de despliegue.
-- [ ] 7. `openapi.yaml`, `API.md` y `SEGURIDAD.md` (tercero ElevenLabs, límites del agente).
-- [ ] 8. Pruebas mínimas 1–6.
+- [x] 1. Elegir y fijar la forma del agente (lenguaje del SDK y empaquetado, ver decisión 1) y crear `agent/` con el esqueleto de la Lambda.
+- [x] 2. Cliente HTTP de las tools hacia la API (token del usuario, `Idempotency-Key`, errores) y las tres tools con sus esquemas.
+- [x] 3. Agente de Strands con Bedrock (`AGENT_MODEL_ID`), prompt del sistema versionado y construcción de `actions` desde los resultados de las tools.
+- [x] 4. Integración con ElevenLabs (`integrations/elevenlabs`) con tiempo máximo y degradación a solo texto.
+- [x] 5. Endpoint `POST /api/v1/agent/messages` (routes → controller → service): validación, `userAuth`, límite por usuario, historial corto en DynamoDB e invocación de la Lambda.
+- [x] 6. CDK: Lambda del agente, permisos de Bedrock, secreto de ElevenLabs, variables y ampliación de la política de despliegue.
+- [x] 7. `openapi.yaml`, `API.md` y `SEGURIDAD.md` (tercero ElevenLabs, límites del agente).
+- [ ] 8. Pruebas mínimas 1–6. *(Diferida: directiva de no tests vigente. Las tools se verificaron con un script de humo fuera del repo.)*
 - [ ] 9. Despliegue en `dev`, habilitar el acceso al modelo en Bedrock, cargar la llave de ElevenLabs y prueba manual 7 junto con el frontend 008 y 009.
 
 ## Decisiones

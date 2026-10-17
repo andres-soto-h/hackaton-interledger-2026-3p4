@@ -76,6 +76,33 @@ servicios internos, por ejemplo al endpoint de metadata de AWS.
 | Llave KMS propia (CMK) para secretos y tabla, si se requiere auditoría de uso | Recomendación |
 | No usar la cuenta **root** de AWS para desplegar: usuario o rol IAM con MFA y permisos mínimos | Usuario `tranqui-deployer` (ver [Permisos de despliegue](#permisos-de-despliegue-aws)); falta MFA |
 
+## Agente de IA y voz (spec 028)
+
+- **El agente nunca confirma pagos.** No existe una tool de confirmación y confirmar exige la firma del
+  passkey del usuario, que el agente no tiene. Como máximo deja un pago en `AWAITING_CONFIRMATION`.
+- **El agente actúa como el usuario, no por encima de él.** Sus tools llaman a la API con el token de
+  sesión del usuario, así que aplican el tope por pago, el monto diario, la comisión, solo COP en comercios
+  y la wallet vinculada. Un modelo manipulado no puede hacer más que el usuario desde la app.
+- **Las acciones que ve la app las arma el código, no el modelo.** El `paymentId` sale del resultado de
+  `POST /payments`; si el modelo escribe otro en su texto, se ignora. Lo que el usuario aprueba es lo que
+  dice la API (pantalla 006), no lo que dice el LLM.
+- **El pago usa la wallet y el monto del directorio**, nunca los que escriba el usuario o el modelo; un
+  comercio con monto fijo siempre cobra ese monto.
+- **Inyección de instrucciones** (en lo que escribe el usuario o en nombres de comercios): se mitiga con
+  límites duros fuera del modelo (tools mínimas, validación en la API, passkey), no con el prompt.
+  Los resultados de las tools se tratan como datos y los textos de terceros se recortan.
+- **El token del usuario** viaja solo en el payload de invocación (API → Lambda del agente), no se guarda
+  ni se registra. La Lambda del agente no tiene URL pública: solo la API puede invocarla.
+- **Tercero: ElevenLabs.** Solo recibe el texto de la respuesta del agente (comercio y monto), nunca
+  documentos, credenciales ni el token. La llave está en Secrets Manager (`tranqui/<stage>/elevenlabs`) y
+  solo la lee la Lambda del agente. Si falla, la respuesta de texto se entrega igual.
+- **Costo y abuso:** límite de 20 mensajes por minuto y usuario (en memoria por instancia: no es una cuota
+  global), máximo de 6 llamadas a tools por turno, tokens de salida acotados y la limitación (throttling) del API Gateway.
+- **Registros:** solo `userId`, `conversationId`, tools que dejaron acciones y duración; nunca el texto de la
+  conversación ni el token.
+- **Permisos de Bedrock:** la Lambda del agente solo puede `InvokeModel`/`InvokeModelWithResponseStream`
+  sobre modelos Anthropic y perfiles de inferencia de la cuenta.
+
 ## Permisos de despliegue (AWS)
 
 Cuenta `340464868186`, región `us-east-1`. El despliegue con CDK usa dos niveles de permisos:

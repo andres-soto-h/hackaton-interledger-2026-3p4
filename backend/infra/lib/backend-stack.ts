@@ -3,7 +3,8 @@ import { CfnStage, HttpApi } from 'aws-cdk-lib/aws-apigatewayv2'
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations'
 import { Alarm, ComparisonOperator, Metric, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch'
 import { AttributeType, BillingMode, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb'
-import { type Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda'
+import { Architecture, type Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda'
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam'
 import { FilterPattern, LogGroup, MetricFilter, RetentionDays } from 'aws-cdk-lib/aws-logs'
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager'
 import type { Construct } from 'constructs'
@@ -45,6 +46,18 @@ export interface BackendStackProps extends StackProps {
   corsAllowedOrigins?: string
   /** Skips WebAuthn verification (register, login, payment confirm). Local/testing only. */
   passkeyBypass?: boolean
+  /**
+   * Spec 028: packaged agent (`agent/dist/package`). Without it the stack has no
+   * agent and `POST /agent/messages` answers 503. Requires `publicApiUrl`.
+   */
+  agentCode?: Code
+  /** Bedrock model or inference profile ID used by the agent. */
+  agentModelId?: string
+  /** ARNs the agent may invoke; defaults to Anthropic models and inference profiles. */
+  agentModelArns?: string[]
+  /** ElevenLabs voice ID and model ID for the agent's voice. */
+  elevenLabsVoiceId?: string
+  elevenLabsModelId?: string
 }
 
 export class BackendStack extends Stack {
@@ -140,6 +153,7 @@ export class BackendStack extends Stack {
       removalPolicy
     })
 
+    let agentInvoker: Function | undefined
     const environment: Record<string, string> = {
       OPEN_PAYMENTS_SECRET_ARN: openPaymentsSecret.secretArn,
       API_KEY_SECRET_ARN: apiKeySecret.secretArn,
@@ -187,6 +201,54 @@ export class BackendStack extends Stack {
       environment.PASSKEY_BYPASS = 'true'
     }
 
+    // Spec 028: the agent (Strands + Bedrock + ElevenLabs) is its own Lambda, invoked
+    // by the API and with no public URL. It calls the API with the user's token.
+    if (props.agentCode !== undefined) {
+      if (props.publicApiUrl === undefined) {
+        throw new Error('agentCode requires publicApiUrl: the agent calls the API with it')
+      }
+      // Created empty on purpose: the key is loaded with the AWS CLI, never in the repo.
+      const elevenLabsSecret = new Secret(this, 'ElevenLabsSecret', {
+        secretName: `tranqui/${props.stage}/elevenlabs`,
+        description: 'ElevenLabs API key for the agent voice',
+        removalPolicy
+      })
+      const agentLogGroup = new LogGroup(this, 'AgentFunctionLogs', {
+        retention: RetentionDays.TWO_WEEKS,
+        removalPolicy
+      })
+      const agentFunction = new Function(this, 'AgentFunction', {
+        runtime: Runtime.PYTHON_3_12,
+        architecture: Architecture.ARM_64,
+        code: props.agentCode,
+        handler: 'handler.handler',
+        memorySize: 512,
+        // API Gateway cuts at 30 s and the API Lambda at 29 s: the agent must finish before.
+        timeout: Duration.seconds(25),
+        logGroup: agentLogGroup,
+        environment: {
+          AGENT_MODEL_ID: props.agentModelId ?? 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+          API_BASE_URL: props.publicApiUrl,
+          ELEVENLABS_SECRET_ARN: elevenLabsSecret.secretArn,
+          ELEVENLABS_VOICE_ID: props.elevenLabsVoiceId ?? 'JddqVF50ZSIR7SRbJE6u',
+          ELEVENLABS_MODEL_ID: props.elevenLabsModelId ?? 'eleven_flash_v2_5'
+        }
+      })
+      elevenLabsSecret.grantRead(agentFunction)
+      // Only InvokeModel (what Converse needs) on Anthropic models and inference profiles.
+      agentFunction.addToRolePolicy(
+        new PolicyStatement({
+          actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
+          resources: props.agentModelArns ?? [
+            'arn:aws:bedrock:*::foundation-model/anthropic.*',
+            `arn:aws:bedrock:*:${this.account}:inference-profile/*`
+          ]
+        })
+      )
+      environment.AGENT_FUNCTION_NAME = agentFunction.functionName
+      agentInvoker = agentFunction
+    }
+
     const apiFunction = new Function(this, 'ApiFunction', {
       runtime: Runtime.NODEJS_22_X,
       code: props.lambdaCode,
@@ -200,6 +262,7 @@ export class BackendStack extends Stack {
     // Minimum privilege: read/write (including Query) on the payments table and
     // its indexes only; grants the table ARN and `tableArn/index/*`, nothing else.
     paymentsTable.grantReadWriteData(apiFunction)
+    agentInvoker?.grantInvoke(apiFunction)
     openPaymentsSecret.grantRead(apiFunction)
     apiKeySecret.grantRead(apiFunction)
     sessionSigningKeySecret.grantRead(apiFunction)

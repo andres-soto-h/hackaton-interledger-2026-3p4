@@ -399,6 +399,53 @@ paths:
                 error:
                   code: PAYMENT_NOT_CANCELLABLE
                   message: Payment cannot be cancelled
+  /api/v1/agent/messages:
+    post:
+      summary: Un turno con el agente (texto o voz)
+      description: >
+        Spec 028. El agente (Strands Agents + Amazon Bedrock) responde con texto y,
+        si `speak` es `true`, con audio de ElevenLabs. Sus tools solo crean pagos
+        sin confirmar, consultan el directorio de comercios y el historial del usuario:
+        **nunca confirma un pago** (eso exige el passkey, spec 007). Las `actions` salen
+        de los resultados reales de las tools, no del texto del modelo.
+      operationId: sendAgentMessage
+      tags:
+        - Agent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentMessageRequest'
+      responses:
+        '200':
+          description: Respuesta del agente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentMessageResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Sesión inválida o ausente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Demasiados mensajes (`AGENT_RATE_LIMITED`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: El agente no está disponible (`AGENT_UNAVAILABLE`); no se creó ningún pago a medias.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/auth/register/options:
     post:
       summary: Opciones de registro con passkey
@@ -775,6 +822,85 @@ components:
         type: string
         pattern: '^pay_[0-9A-Z]{26}$'
   schemas:
+    AgentMessageRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+      properties:
+        conversationId:
+          type: string
+          nullable: true
+          description: Id de la conversación; `null` o ausente inicia una nueva.
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+        inputMode:
+          type: string
+          enum: [text, voice]
+          default: text
+        speak:
+          type: boolean
+          default: false
+          description: Incluir el audio de la respuesta (`reply.audio`).
+    AgentAction:
+      oneOf:
+        - type: object
+          required: [type, paymentId]
+          properties:
+            type:
+              type: string
+              enum: [confirm_payment, payment_status]
+            paymentId:
+              type: string
+        - type: object
+          required: [type, options]
+          properties:
+            type:
+              type: string
+              enum: [choose_merchant]
+            options:
+              type: array
+              items:
+                type: object
+                required: [merchantId, label]
+                properties:
+                  merchantId:
+                    type: string
+                  label:
+                    type: string
+    AgentMessageResponse:
+      type: object
+      required: [conversationId, reply, actions]
+      properties:
+        conversationId:
+          type: string
+        reply:
+          type: object
+          required: [id, text]
+          properties:
+            id:
+              type: string
+            text:
+              type: string
+            audio:
+              type: object
+              description: Solo se incluye cuando la petición trae speak en true.
+              required: [format, base64]
+              properties:
+                format:
+                  type: string
+                  enum: [mp3]
+                base64:
+                  type: string
+            audioUnavailable:
+              type: boolean
+              description: Se pidió audio pero no se pudo generar; el texto llega igual.
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentAction'
     Amount:
       type: object
       required:

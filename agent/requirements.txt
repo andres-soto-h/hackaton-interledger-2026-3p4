@@ -1,0 +1,3 @@
+# Strands Agents (framework de orquestación). boto3 ya viene en el runtime de Lambda,
+# pero Strands lo declara como dependencia y se empaqueta igual.
+strands-agents>=1.0.0

@@ -126,6 +126,8 @@ Los estados solo avanzan; `COMPLETED`, `FAILED`, `CANCELLED` y `EXPIRED` son fin
 | `GET /api/v1/auth/callback` | 023 | Pública | Vuelta desde la wallet al vincular |
 | `POST /api/v1/auth/register/options` · `/verify` | 019 | Pública | Crear cuenta con passkey |
 | `POST /api/v1/auth/login/options` · `/verify` | 019 | Pública | Iniciar sesión con passkey |
+| `POST /api/v1/auth/login/options` acepta `email` opcional | 019 | Pública | Con correo, el desafío solo admite los passkeys de esa cuenta |
+| `POST /api/v1/agent/messages` | 028 | Sesión | Un turno con el agente (texto o voz); sus tools no pueden confirmar pagos |
 | `GET /api/v1/me` · `DELETE /api/v1/me` | 019 | Sesión de usuario | Ver o borrar la cuenta |
 | `/admin/*` | 020–022 | Sesión de administrador (cookie) | Panel de administración (HTML) |
 

@@ -6,6 +6,10 @@ import type { OpenPaymentsGateway } from '../integrations/open-payments/gateway.
 import { createAdminRouter } from '../modules/admin/admin.routes.js'
 import { createAdminUsersRouter } from '../modules/admin/admin-users.routes.js'
 import { createOpenPaymentsStatusChecker } from '../modules/admin/home-summary.js'
+import { createAgentRouter } from '../modules/agent/agent.routes.js'
+import { createAgentService } from '../modules/agent/agent.service.js'
+import type { AgentGateway } from '../modules/agent/agent.types.js'
+import { createRateLimiter } from '../modules/agent/rate-limit.js'
 import { createAuthRouter } from '../modules/auth/auth.routes.js'
 import { createDevPasskeyPageRouter } from '../modules/dev/dev-passkey-page.routes.js'
 import { createPaymentsRouter } from '../modules/payments/payments.routes.js'
@@ -43,6 +47,8 @@ export interface CompositionDeps {
   storage: Storage
   /** Public base URL of the API, without trailing slash (Open Payments finish URI). */
   publicApiUrl: string
+  /** Agent function (spec 028); `null` or absent: the endpoint answers 503. */
+  agent?: AgentGateway | null
   /** Milliseconds since the epoch; tests inject a fake clock. */
   now?: () => number
   /**
@@ -83,6 +89,7 @@ export function createComposition({
   verifier,
   storage,
   publicApiUrl,
+  agent = null,
   now = Date.now,
   extraRouters = []
 }: CompositionDeps): Express {
@@ -149,6 +156,18 @@ export function createComposition({
       beforeDeleteAccount: (userId) => walletLinks.revokeForUser(userId)
     }),
     createMerchantsRouter({ sessions, users: storage.users }),
+    createAgentRouter({
+      service: createAgentService({
+        gateway: agent,
+        conversations: storage.conversations,
+        // 20 messages per minute and user: bounds model and voice cost.
+        allow: createRateLimiter({ max: 20, windowMs: 60_000, now }),
+        now,
+        logger
+      }),
+      users: storage.users,
+      sessions
+    }),
     createWalletLinksRouter({
       service: walletLinks,
       users: storage.users,

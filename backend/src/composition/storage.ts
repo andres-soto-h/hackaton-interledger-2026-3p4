@@ -1,6 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import type { Config } from '../config/env.js'
+import { createDynamoConversationsRepository } from '../modules/agent/dynamo-conversations.repository.js'
+import { createInMemoryConversationsRepository } from '../modules/agent/in-memory-conversations.repository.js'
+import type { ConversationsRepository } from '../modules/agent/conversations.repository.js'
 import { createDynamoPaymentsRepository } from '../modules/payments/dynamo-payments.repository.js'
 import { createInMemoryPaymentsRepository } from '../modules/payments/in-memory-payments.repository.js'
 import type { PaymentsRepository } from '../modules/payments/payments.repository.js'
@@ -28,6 +31,7 @@ export interface Storage {
   settingsStore: SettingsStore
   activityLog: ActivityLog
   idempotencyStore: IdempotencyStore
+  conversations: ConversationsRepository
 }
 
 /** Ephemeral storage for local runs and tests. Lost on restart. */
@@ -38,7 +42,8 @@ export function createMemoryStorage(): Storage {
     walletLinks: createInMemoryWalletLinksRepository(),
     settingsStore: createInMemorySettingsStore(),
     activityLog: createInMemoryActivityLog(),
-    idempotencyStore: createInMemoryIdempotencyStore()
+    idempotencyStore: createInMemoryIdempotencyStore(),
+    conversations: createInMemoryConversationsRepository()
   }
 }
 
@@ -53,7 +58,8 @@ export function createDynamoStorage(options: {
     walletLinks: createDynamoWalletLinksRepository(options),
     settingsStore: createDynamoSettingsStore(options),
     activityLog: createDynamoActivityLog(options),
-    idempotencyStore: createDynamoIdempotencyStore(options)
+    idempotencyStore: createDynamoIdempotencyStore(options),
+    conversations: createDynamoConversationsRepository(options)
   }
 }
 

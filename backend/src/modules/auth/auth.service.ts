@@ -310,7 +310,9 @@ export function createAuthService(deps: AuthDeps): AuthService {
         id: challengeId,
         challenge: options.challenge,
         type: 'login',
-        ...(email !== undefined && email !== '' ? { loginUserId: account?.id ?? '' } : {}),
+        ...(email !== undefined && email !== ''
+          ? { loginUserId: account?.id ?? '' }
+          : {}),
         expiresAt: nowSeconds() + CHALLENGE_TTL_SECONDS
       })
       return { challengeId, options }
@@ -366,7 +368,10 @@ export function createAuthService(deps: AuthDeps): AuthService {
       }
 
       // A challenge issued for an email only accepts that account's passkeys.
-      if (challenge.loginUserId !== undefined && stored.userId !== challenge.loginUserId) {
+      if (
+        challenge.loginUserId !== undefined &&
+        stored.userId !== challenge.loginUserId
+      ) {
         throw passkeyFailed()
       }
 

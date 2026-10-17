@@ -31,7 +31,8 @@ function encodeRandom(): string {
   return encoded
 }
 
-export type IdPrefix = 'pay' | 'pr' | 'idem' | 'usr' | 'chl' | 'evt' | 'wl'
+export type IdPrefix =
+  'pay' | 'pr' | 'idem' | 'usr' | 'chl' | 'evt' | 'wl' | 'conv' | 'msg'
 
 /** `${prefix}_${ulid}`: a time-sortable ULID with a domain prefix. */
 export function newId(prefix: IdPrefix, now: number = Date.now()): string {
@@ -56,4 +57,12 @@ export function newChallengeId(now?: number): string {
 
 export function newWalletLinkId(now?: number): string {
   return newId('wl', now)
+}
+
+export function newConversationId(now?: number): string {
+  return newId('conv', now)
+}
+
+export function newMessageId(now?: number): string {
+  return newId('msg', now)
 }

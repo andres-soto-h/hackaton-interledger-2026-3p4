@@ -33,6 +33,8 @@ interface BaseConfig {
   feePercentage: string
   /** Public base URL of the API; derived from the request when absent (Lambda). */
   publicApiUrl?: string
+  /** Name of the agent Lambda (spec 028); without it the agent endpoint answers 503. */
+  agentFunctionName?: string
   storage: 'memory' | 'dynamo'
   paymentsTableName?: string
   /** DynamoDB endpoint override (DynamoDB Local). */
@@ -220,7 +222,8 @@ const sharedAppSchema = {
   DAILY_SPEND_LIMITS: dailySpendLimits,
   DAILY_LIMIT_TIMEZONE: dailyLimitTimezone,
   FEE_PERCENTAGE: feePercentage,
-  PUBLIC_API_URL: httpsUrlOrEmpty
+  PUBLIC_API_URL: httpsUrlOrEmpty,
+  AGENT_FUNCTION_NAME: z.string().min(1).optional()
 }
 
 // Keys follow the order of the spec's variable table, so errors list them in that order.
@@ -340,6 +343,9 @@ function sharedConfig(
     feePercentage: data.FEE_PERCENTAGE,
     ...(data.PUBLIC_API_URL !== undefined
       ? { publicApiUrl: data.PUBLIC_API_URL.replace(/\/+$/, '') }
+      : {}),
+    ...(data.AGENT_FUNCTION_NAME !== undefined
+      ? { agentFunctionName: data.AGENT_FUNCTION_NAME }
       : {})
   }
 }
