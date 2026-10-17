@@ -2,20 +2,25 @@ import { App } from 'aws-cdk-lib'
 import { Match, Template } from 'aws-cdk-lib/assertions'
 import { Code } from 'aws-cdk-lib/aws-lambda'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { BackendStack } from '../lib/backend-stack.js'
+import { BackendStack, type BackendStackProps } from '../lib/backend-stack.js'
 
 type Statement = { Action: string | string[]; Resource: unknown }
 
 let template: Template
 
-beforeAll(() => {
+const synth = (props: Partial<BackendStackProps> = {}): Template => {
   const app = new App()
   const stack = new BackendStack(app, 'TestBackendStack', {
     stage: 'dev',
     lambdaCode: Code.fromInline('exports.handler = async () => ({})'),
-    lambdaHandler: 'lambda.handler'
+    lambdaHandler: 'lambda.handler',
+    ...props
   })
-  template = Template.fromStack(stack)
+  return Template.fromStack(stack)
+}
+
+beforeAll(() => {
+  template = synth()
 })
 
 const logicalId = (type: string, props: Record<string, unknown>): string => {
@@ -64,7 +69,7 @@ describe('BackendStack', () => {
   })
 
   // Caso 3
-  it('crea la tabla de grants pendientes on-demand y con TTL', () => {
+  it('crea la tabla de pagos on-demand y con TTL', () => {
     template.hasResourceProperties('AWS::DynamoDB::Table', {
       BillingMode: 'PAY_PER_REQUEST',
       KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
@@ -72,8 +77,8 @@ describe('BackendStack', () => {
     })
   })
 
-  // Caso 4
-  it('crea los secretos y la Lambda solo puede leer esos dos', () => {
+  // Casos 4 y 16
+  it('crea los secretos y la Lambda solo puede leer los suyos', () => {
     const opSecret = logicalId('AWS::SecretsManager::Secret', {
       Name: 'tranqui/dev/open-payments'
     })
@@ -95,25 +100,37 @@ describe('BackendStack', () => {
     const readable = secretStatements
       .filter((s) => actionsOf(s).includes('secretsmanager:GetSecretValue'))
       .map((s) => s.Resource)
-    expect(readable).toEqual(
-      expect.arrayContaining([{ Ref: opSecret }, { Ref: apiKeySecret }])
+    const generated = ['session-signing-key', 'admin-password', 'token-encryption-key'].map(
+      (name) => logicalId('AWS::SecretsManager::Secret', { Name: `tranqui/dev/${name}` })
     )
-    expect(readable).toHaveLength(2)
+    expect(readable).toEqual(
+      expect.arrayContaining(
+        [opSecret, apiKeySecret, ...generated].map((id) => ({ Ref: id }))
+      )
+    )
+    expect(readable).toHaveLength(5)
   })
 
   // Caso 5
-  it('limita el acceso de DynamoDB a la tabla de grants', () => {
+  it('limita el acceso de DynamoDB a la tabla de pagos y sus índices', () => {
     const tableId = logicalId('AWS::DynamoDB::Table', {})
+    const tableArn = { 'Fn::GetAtt': [tableId, 'Arn'] }
+    // Queries on bySender / byReceiver need the index ARNs too.
+    const indexesArn = { 'Fn::Join': ['', [tableArn, '/index/*']] }
     const dynamoStatements = lambdaStatements().filter((s) =>
       actionsOf(s).some((a) => a.startsWith('dynamodb:'))
     )
     expect(dynamoStatements.length).toBeGreaterThan(0)
-    for (const s of dynamoStatements) {
-      const resources = [s.Resource].flat().filter(
-        (r) => JSON.stringify(r) !== JSON.stringify({ Ref: 'AWS::NoValue' })
-      )
-      expect(resources).toEqual([{ 'Fn::GetAtt': [tableId, 'Arn'] }])
+    const resources = dynamoStatements.flatMap((s) =>
+      [s.Resource]
+        .flat()
+        .filter((r) => JSON.stringify(r) !== JSON.stringify({ Ref: 'AWS::NoValue' }))
+    )
+    expect(resources).toEqual(expect.arrayContaining([tableArn, indexesArn]))
+    for (const r of resources) {
+      expect([tableArn, indexesArn]).toContainEqual(r)
     }
+    expect(dynamoStatements.flatMap(actionsOf)).toContain('dynamodb:Query')
   })
 
   // Caso 6
@@ -130,7 +147,7 @@ describe('BackendStack', () => {
     expect(env).toMatchObject({
       OPEN_PAYMENTS_SECRET_ARN: { Ref: opSecret },
       API_KEY_SECRET_ARN: { Ref: apiKeySecret },
-      GRANTS_TABLE_NAME: { Ref: logicalId('AWS::DynamoDB::Table', {}) }
+      PAYMENTS_TABLE_NAME: { Ref: logicalId('AWS::DynamoDB::Table', {}) }
     })
     const serialized = JSON.stringify(env)
     expect(serialized).not.toContain('PRIVATE KEY')
@@ -167,6 +184,223 @@ describe('BackendStack', () => {
         expect(r.DeletionPolicy).toBe('Delete')
       }
     }
+  })
+
+  // Caso 12
+  it('crea los índices bySender y byReceiver con createdAt como sort key', () => {
+    template.hasResourceProperties('AWS::DynamoDB::Table', {
+      GlobalSecondaryIndexes: Match.arrayWith([
+        Match.objectLike({
+          IndexName: 'bySender',
+          KeySchema: [
+            { AttributeName: 'senderWalletAddress', KeyType: 'HASH' },
+            { AttributeName: 'createdAt', KeyType: 'RANGE' }
+          ],
+          Projection: { ProjectionType: 'ALL' }
+        }),
+        Match.objectLike({
+          IndexName: 'byReceiver',
+          KeySchema: [
+            { AttributeName: 'receiverWalletAddress', KeyType: 'HASH' },
+            { AttributeName: 'createdAt', KeyType: 'RANGE' }
+          ],
+          Projection: { ProjectionType: 'ALL' }
+        })
+      ])
+    })
+  })
+
+  // Caso 13
+  it('configura throttling en el stage por defecto de la HTTP API', () => {
+    template.hasResourceProperties('AWS::ApiGatewayV2::Stage', {
+      StageName: '$default',
+      DefaultRouteSettings: { ThrottlingRateLimit: 10, ThrottlingBurstLimit: 20 }
+    })
+  })
+
+  it('permite cambiar el throttling con las propiedades del stack', () => {
+    synth({ throttling: { rateLimit: 5, burstLimit: 8 } }).hasResourceProperties(
+      'AWS::ApiGatewayV2::Stage',
+      {
+        StageName: '$default',
+        DefaultRouteSettings: { ThrottlingRateLimit: 5, ThrottlingBurstLimit: 8 }
+      }
+    )
+  })
+
+  // Caso 14
+  it('pasa a la Lambda la tabla de pagos y la configuración de Open Payments', () => {
+    const fn = template.findResources('AWS::Lambda::Function')[apiFunctionId()]!
+    const env: Record<string, unknown> = fn.Properties.Environment.Variables
+
+    expect(env).toMatchObject({
+      PAYMENTS_TABLE_NAME: { Ref: logicalId('AWS::DynamoDB::Table', {}) },
+      OPEN_PAYMENTS_TIMEOUT_MS: '8000',
+      MAX_PAYMENT_AMOUNTS: 'USD:1000'
+    })
+    expect(env).not.toHaveProperty('GRANTS_TABLE_NAME')
+    // Optional values are left out so the backend applies its own defaults.
+    expect(env).not.toHaveProperty('ALLOWED_WALLET_HOSTS')
+    expect(env).not.toHaveProperty('FRONTEND_RESULT_URL')
+  })
+
+  it('pasa a la Lambda la configuración definida en las propiedades del stack', () => {
+    const custom = synth({
+      maxPaymentAmounts: 'USD:500,MXN:9000',
+      allowedWalletHosts: 'wallet.example,pay.example',
+      frontendResultUrl: 'https://app.example/result',
+      openPaymentsTimeoutMs: 5000
+    })
+    custom.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'lambda.handler',
+      Environment: {
+        Variables: Match.objectLike({
+          MAX_PAYMENT_AMOUNTS: 'USD:500,MXN:9000',
+          ALLOWED_WALLET_HOSTS: 'wallet.example,pay.example',
+          FRONTEND_RESULT_URL: 'https://app.example/result',
+          OPEN_PAYMENTS_TIMEOUT_MS: '5000'
+        })
+      }
+    })
+  })
+
+  // Caso 15
+  it('crea filtros de métricas sobre los logs para 401 y CALLBACK_INVALID', () => {
+    const logGroup = logicalId('AWS::Logs::LogGroup', { RetentionInDays: 14 })
+    template.hasResourceProperties('AWS::Logs::MetricFilter', {
+      LogGroupName: { Ref: logGroup },
+      FilterPattern: '{ $.statusCode = 401 }',
+      MetricTransformations: [
+        Match.objectLike({ MetricNamespace: 'Tranqui/dev', MetricName: 'Unauthorized' })
+      ]
+    })
+    template.hasResourceProperties('AWS::Logs::MetricFilter', {
+      LogGroupName: { Ref: logGroup },
+      FilterPattern: '{ $.errorCode = "CALLBACK_INVALID" }',
+      MetricTransformations: [
+        Match.objectLike({ MetricNamespace: 'Tranqui/dev', MetricName: 'CallbackInvalid' })
+      ]
+    })
+  })
+
+  it('crea las alarmas de 5xx, 401 y CALLBACK_INVALID', () => {
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+      Namespace: 'AWS/ApiGateway',
+      MetricName: '5xx',
+      Dimensions: [{ Name: 'ApiId', Value: Match.anyValue() }]
+    })
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+      Namespace: 'Tranqui/dev',
+      MetricName: 'Unauthorized'
+    })
+    template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+      Namespace: 'Tranqui/dev',
+      MetricName: 'CallbackInvalid'
+    })
+    for (const alarm of Object.values(template.findResources('AWS::CloudWatch::Alarm'))) {
+      expect(alarm.Properties.ComparisonOperator).toBe(
+        'GreaterThanOrEqualToThreshold'
+      )
+      expect(alarm.Properties.TreatMissingData).toBe('notBreaching')
+    }
+  })
+
+  // Caso 16
+  it('genera en AWS los secretos de sesión, del administrador y de cifrado de tokens', () => {
+    for (const [name, length] of [
+      ['session-signing-key', 64],
+      ['admin-password', 32],
+      ['token-encryption-key', 64]
+    ] as const) {
+      template.hasResourceProperties('AWS::SecretsManager::Secret', {
+        Name: `tranqui/dev/${name}`,
+        GenerateSecretString: Match.objectLike({
+          ExcludePunctuation: true,
+          PasswordLength: length
+        }),
+        SecretString: Match.absent()
+      })
+    }
+  })
+
+  // Caso 17
+  it('crea los índices byType, byUser y byPayment con createdAt como sort key', () => {
+    const indexes = [
+      ['byType', 'entityType'],
+      ['byUser', 'userId'],
+      ['byPayment', 'paymentId']
+    ].map(([indexName, hashKey]) =>
+      Match.objectLike({
+        IndexName: indexName,
+        KeySchema: [
+          { AttributeName: hashKey, KeyType: 'HASH' },
+          { AttributeName: 'createdAt', KeyType: 'RANGE' }
+        ],
+        Projection: { ProjectionType: 'ALL' }
+      })
+    )
+    template.hasResourceProperties('AWS::DynamoDB::Table', {
+      GlobalSecondaryIndexes: Match.arrayWith(indexes)
+    })
+  })
+
+  // Caso 18
+  it('pasa a la Lambda las referencias a los secretos nuevos y activa el panel en dev', () => {
+    const fn = template.findResources('AWS::Lambda::Function')[apiFunctionId()]!
+    const env: Record<string, unknown> = fn.Properties.Environment.Variables
+    const secretRef = (name: string) => ({
+      Ref: logicalId('AWS::SecretsManager::Secret', { Name: `tranqui/dev/${name}` })
+    })
+
+    expect(env).toMatchObject({
+      SESSION_SECRET_ARN: secretRef('session-signing-key'),
+      ADMIN_PASSWORD_SECRET_ARN: secretRef('admin-password'),
+      TOKEN_KEY_SECRET_ARN: secretRef('token-encryption-key'),
+      ADMIN_ENABLED: 'true'
+    })
+    // Without stack props the backend applies its own defaults.
+    for (const name of [
+      'WEBAUTHN_RP_ID',
+      'WEBAUTHN_ORIGINS',
+      'WALLET_PROVIDER_BASE_URL',
+      'DAILY_SPEND_LIMITS',
+      'DAILY_LIMIT_TIMEZONE',
+      'FEE_PERCENTAGE'
+    ]) {
+      expect(env).not.toHaveProperty(name)
+    }
+  })
+
+  it('pasa la configuración de passkeys, proveedor de wallets, monto diario y comisión', () => {
+    synth({
+      webauthnRpId: 'd111111abcdef8.cloudfront.net',
+      webauthnOrigins: 'https://d111111abcdef8.cloudfront.net',
+      walletProviderBaseUrl: 'https://wallet.example',
+      dailySpendLimits: 'USD:200,MXN:4000',
+      dailyLimitTimezone: 'America/Bogota',
+      feePercentage: '1.5',
+      adminEnabled: false
+    }).hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'lambda.handler',
+      Environment: {
+        Variables: Match.objectLike({
+          WEBAUTHN_RP_ID: 'd111111abcdef8.cloudfront.net',
+          WEBAUTHN_ORIGINS: 'https://d111111abcdef8.cloudfront.net',
+          WALLET_PROVIDER_BASE_URL: 'https://wallet.example',
+          DAILY_SPEND_LIMITS: 'USD:200,MXN:4000',
+          DAILY_LIMIT_TIMEZONE: 'America/Bogota',
+          FEE_PERCENTAGE: '1.5',
+          ADMIN_ENABLED: 'false'
+        })
+      }
+    })
+  })
+
+  it('desactiva el panel por defecto fuera de dev', () => {
+    synth({ stage: 'prod' }).hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'lambda.handler',
+      Environment: { Variables: Match.objectLike({ ADMIN_ENABLED: 'false' }) }
+    })
   })
 
   it('publica la URL de la API como output', () => {
