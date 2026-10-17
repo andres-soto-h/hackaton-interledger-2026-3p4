@@ -5,7 +5,8 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| | | [008 — Agente por chat](specs/008-agente-chat.md) · 5/6 · *tarea 5: contrato del agente pendiente del backend y del SDK de Gemini* | |
+| | | [009 — Agente por voz](specs/009-agente-voz.md) · 7/9 · *faltan la verificación manual y las pruebas (diferidas)* | |
+| | | [008 — Agente por chat](specs/008-agente-chat.md) · 6/6 · *contrato registrado en backend 028; falta la verificación manual con el agente real* | |
 | | | [006 — Confirmación del pago](specs/006-confirmacion-aprobacion.md) · 5/7 · *faltan 2 pruebas manuales contra la red de prueba* | |
 | | | [005 — Pago de servicios](specs/005-pago-servicios.md) · 5/6 · *tarea 5 es un pendiente del backend (comercios en Google Cloud)* | |
 | | | | [007 — Resultado de la transacción](specs/007-resultado-transaccion.md) · 4/4 |
@@ -13,7 +14,6 @@
 | | | [003 — Registro y vinculación de la wallet](specs/003-registro.md) · 6/7 · *falta la verificación manual (red de prueba)* | |
 | | | [002 — Inicio de sesión y mi cuenta](specs/002-inicio-sesion.md) · 6/7 · *falta la verificación manual con passkeys reales* | |
 | | | [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 10/11 · *falta la verificación manual (web y Android)* | |
-| | [009 — Agente por voz](specs/009-agente-voz.md) · 1/9 · *diseño propuesto, pendiente de aprobación* | | |
 
 **Orden de desarrollo:** 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009.
 Los specs se desarrollan contra la API simulada (MSW); la integración con el
@@ -54,3 +54,5 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-17 | 009 | Diseño técnico propuesto: voz en el dispositivo (Web Speech API) con el mismo contrato del chat y TTS del navegador; Chirp 3 HD y Gemini Live como alternativas. Pendiente de aprobación |
 | 2026-10-17 | 003 | El registro pide solo el **nombre** de la wallet (handle), no la URL completa; el host lo aporta `WALLET_PROVIDER_BASE_URL` y lo resuelve el backend. Ajustados schema, pantalla, tests, mock API y README |
 | 2026-10-17 | 008, 009 | Impacto del backend 028 aceptado: el agente responde con `speak`, `reply.audio` y `audioUnavailable`; el TTS pasa a ElevenLabs vía backend (el del navegador queda de respaldo). Se ajustan los specs al desarrollarlos |
+| 2026-10-17 | 008, 009 | Ajuste al backend 028: el chat envía `speak` y reproduce `reply.audio` (ElevenLabs) con respaldo de la voz del navegador; entrada por voz con Web Speech API (`es-CO`); "Repítamelo" lee el resumen. 009 → En desarrollo (7/9) |
+| 2026-10-17 | 009 | El micrófono del inicio abre un panel inferior sobre el inicio (orbe animado, transcripción y caja de texto) en vez de navegar a `/agente` |

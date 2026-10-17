@@ -6,6 +6,7 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
   type ReactNode,
 } from 'react';
 import { agentApi } from './api';
@@ -15,7 +16,8 @@ import {
   initialConversation,
   type ConversationState,
 } from './conversation';
-import { parseActions } from './types';
+import { createWebSpeechOutput } from '@/features/voice/speech-output';
+import { parseActions, type ChatMessage } from './types';
 
 type AgentContextValue = {
   messages: ConversationState['messages'];
@@ -23,6 +25,12 @@ type AgentContextValue = {
   send: (text: string, inputMode?: 'text' | 'voice') => Promise<void>;
   retry: () => Promise<void>;
   reset: () => void;
+  /** Respuestas habladas: se activan al hablar y se pueden silenciar. */
+  spokenReplies: boolean;
+  setSpokenReplies: (on: boolean) => void;
+  /** Escucha de nuevo una respuesta (audio de ElevenLabs o, sin audio, la voz del dispositivo). */
+  speak: (message: ChatMessage) => void;
+  stopSpeaking: () => void;
   /** Recuerda que el pago salió del chat para mostrar su estado al volver. */
   markFromChat: (paymentId: string) => void;
   isFromChat: (paymentId: string) => boolean;
@@ -39,6 +47,9 @@ export function AgentProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+  const output = useMemo(() => createWebSpeechOutput(), []);
+  const [spokenReplies, setSpoken] = useState(false);
+  const spokenRef = useRef(false);
   const counter = useRef(0);
   const fromChat = useRef(new Set<string>());
   const reported = useRef(new Set<string>());
@@ -46,7 +57,12 @@ export function AgentProvider({ children }: { children: ReactNode }) {
 
   const ask = useCallback(async (pendingId: string, text: string, inputMode: 'text' | 'voice') => {
     try {
-      const res = await agentApi.send({ conversationId: stateRef.current.conversationId, text, inputMode });
+      const res = await agentApi.send({
+        conversationId: stateRef.current.conversationId,
+        text,
+        inputMode,
+        speak: spokenRef.current,
+      });
       dispatch({
         type: 'reply',
         pendingId,
@@ -54,21 +70,52 @@ export function AgentProvider({ children }: { children: ReactNode }) {
         id: res.reply.id,
         text: res.reply.text,
         actions: parseActions(res.actions),
+        audio: res.reply.audio?.base64,
       });
+      if (spokenRef.current) {
+        // El audio de ElevenLabs es lo normal; sin audio se lee con la voz del dispositivo.
+        const played = res.reply.audio
+          ? output.playAudio(res.reply.audio.base64)
+          : Promise.reject(new Error('sin audio'));
+        // Si el navegador bloquea la reproducción, queda el botón "Escuchar" en la burbuja.
+        played.catch(() => {
+          if (!res.reply.audio) output.speakText(res.reply.text);
+        });
+      }
     } catch {
       dispatch({ type: 'fail', pendingId });
     }
-  }, []);
+  }, [output]);
+
+  const setSpokenReplies = useCallback(
+    (on: boolean) => {
+      spokenRef.current = on;
+      setSpoken(on);
+      if (!on) output.stop();
+    },
+    [output],
+  );
+
+  const speak = useCallback(
+    (message: ChatMessage) => {
+      if (message.audio) output.playAudio(message.audio).catch(() => output.speakText(message.text));
+      else output.speakText(message.text);
+    },
+    [output],
+  );
 
   const send = useCallback(
     async (text: string, inputMode: 'text' | 'voice' = 'text') => {
       const clean = text.trim();
       if (!clean || clean.length > 500 || stateRef.current.status === 'sending') return;
+      // Hablar activa las respuestas habladas; la persona las puede silenciar.
+      if (inputMode === 'voice') setSpokenReplies(true);
+      output.stop();
       const pendingId = nextId('pending');
       dispatch({ type: 'send', userId: nextId('user'), pendingId, text: clean });
       await ask(pendingId, clean, inputMode);
     },
-    [ask],
+    [ask, output, setSpokenReplies],
   );
 
   const retry = useCallback(async () => {
@@ -85,7 +132,12 @@ export function AgentProvider({ children }: { children: ReactNode }) {
       status: state.status,
       send,
       retry,
+      spokenReplies,
+      setSpokenReplies,
+      speak,
+      stopSpeaking: output.stop,
       reset: () => {
+        output.stop();
         fromChat.current.clear();
         reported.current.clear();
         dispatch({ type: 'reset' });
@@ -103,7 +155,7 @@ export function AgentProvider({ children }: { children: ReactNode }) {
         });
       },
     }),
-    [state.messages, state.status, send, retry],
+    [state.messages, state.status, send, retry, spokenReplies, setSpokenReplies, speak, output],
   );
 
   return <AgentContext.Provider value={value}>{children}</AgentContext.Provider>;

@@ -8,7 +8,15 @@ export type ConversationState = {
 
 export type ConversationEvent =
   | { type: 'send'; userId: string; pendingId: string; text: string }
-  | { type: 'reply'; pendingId: string; conversationId: string; id: string; text: string; actions: AgentAction[] }
+  | {
+      type: 'reply';
+      pendingId: string;
+      conversationId: string;
+      id: string;
+      text: string;
+      actions: AgentAction[];
+      audio?: string;
+    }
   | { type: 'fail'; pendingId: string }
   | { type: 'retry'; pendingId: string }
   | { type: 'add-agent'; id: string; text: string; actions?: AgentAction[] }
@@ -36,7 +44,7 @@ export function conversationReducer(state: ConversationState, event: Conversatio
         status: 'idle',
         messages: state.messages.map((m) =>
           m.id === event.pendingId
-            ? { id: event.id, role: 'agent', text: event.text, actions: event.actions }
+            ? { id: event.id, role: 'agent', text: event.text, actions: event.actions, audio: event.audio }
             : m,
         ),
       };

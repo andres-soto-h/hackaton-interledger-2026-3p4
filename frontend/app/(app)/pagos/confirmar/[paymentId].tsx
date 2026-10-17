@@ -11,6 +11,7 @@ import { buildBreakdown, buildSpokenSummary, toConfirmationView, type QuoteSourc
 import { cancelPayment, confirmErrorKind, confirmPayment, type ConfirmErrorKind } from '@/features/payments/confirm';
 import { formatCountdown, useCountdown } from '@/features/payments/use-countdown';
 import { usePayment } from '@/features/transactions/hooks';
+import { createWebSpeechOutput } from '@/features/voice/speech-output';
 import { formatMoney } from '@/lib/money';
 import { colors, spacing } from '@/theme';
 import { AmountRow, AppHeader, AppText, Button, Card, ErrorState, IconBadge, Screen, StepIndicator } from '@/ui';
@@ -33,6 +34,7 @@ export default function ConfirmPayment() {
   const view = useMemo(() => (source ? toConfirmationView(source) : null), [source]);
   const { secondsLeft, expired: timeUp } = useCountdown(view?.confirmBy);
   const spoken = useMemo(() => (view ? buildSpokenSummary(view) : ''), [view]);
+  const output = useMemo(() => createWebSpeechOutput(), []);
 
   const [busy, setBusy] = useState(false);
   const [kind, setKind] = useState<ConfirmErrorKind | null>(null);
@@ -174,7 +176,12 @@ export default function ConfirmPayment() {
             loading={busy}
             disabled={kind === 'relink'}
           />
-          <Button label="Repítamelo" icon="volume-high" variant="secondary" onPress={() => AccessibilityInfo.announceForAccessibility(spoken)} />
+          <Button label="Repítamelo" icon="volume-high" variant="secondary" onPress={() => {
+              AccessibilityInfo.announceForAccessibility(spoken);
+              // En web, además, se lee en voz alta (respaldo del dispositivo; sin llamar al agente).
+              output.speakText(spoken);
+            }}
+          />
         </>
       )}
       <Button label="No pagar" variant="ghost" onPress={dontPay} disabled={busy} />

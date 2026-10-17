@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** · *diseño propuesto, pendiente de aprobación* |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-1 / 9 tareas completadas. El diseño técnico quedó **propuesto** el 2026-10-17 (voz en el dispositivo, mismo contrato del chat; ver [Diseño](#diseño)) y espera la aprobación del responsable. No se escribe código hasta entonces.
+7 / 9 tareas completadas (typecheck, lint y export web en verde; **sin ejecutar tests** por la directiva vigente). Desarrollo aprobado el 2026-10-17 con el ajuste del [backend 028](../../../backend/docs/specs/028-agente-voz.md): voz a texto en el dispositivo (Web Speech API) y respuestas con el audio de ElevenLabs que manda el backend. Faltan la verificación manual (tarea 8) y escribir las pruebas (tarea 9), diferidas.
 
 ## Contexto
 
@@ -120,14 +120,14 @@ interface SpeechOutput {
 ## Tareas
 
 1. [x] Definir la integración (esta propuesta) y completar diseño, casos de prueba y tareas.
-2. [ ] Spec 008: agregar `inputMode: "voice"` al hook de envío y al contrato (ya está en el contrato; verificar el reducer).
-3. [ ] Aprobación de este diseño por el responsable (y autorización del desarrollo).
-4. [ ] Interfaces `SpeechInput` / `SpeechOutput` con fakes y adaptadores web (casos 1–4).
-5. [ ] `MicButton`, estados y permisos (casos 5 y 7).
-6. [ ] Integración con el chat y lectura de respuestas (casos 6, 8 y 9).
-7. [ ] "Repítamelo" y lectura en la confirmación (caso 10).
-8. [ ] Verificación manual en Chrome y Chrome en Android (caso 11).
-9. [ ] Suite completa en verde, lint y typecheck limpios.
+2. [x] Spec 008: agregar `inputMode: "voice"` al hook de envío y al contrato (ya está en el contrato; verificar el reducer).
+3. [x] Aprobación de este diseño por el responsable (y autorización del desarrollo).
+4. [x] Interfaces `SpeechInput` / `SpeechOutput` y adaptadores web en `src/features/voice/` (los fakes y casos 1–4 quedan para cuando se reactiven las pruebas).
+5. [x] `MicButton`, estados (escuchando, permiso negado, no se entendió, sin soporte) y permisos.
+6. [x] Integración con el chat: `speak: true` al hablar, reproducción de `reply.audio`, respaldo con la voz del navegador, "Silenciar respuestas" y "Escuchar"; el micrófono del inicio **ya no abre otra pantalla**: despliega un panel inferior (`AssistantSheet`) sobre el inicio, con un orbe animado de escucha (ondas y barras de voz, respeta "reducir movimiento"), la transcripción en vivo, la conversación y la caja de texto. "Prefiero escribir" abre el mismo panel sin escuchar. La conversación vive en `AgentProvider`, así que cerrar el panel no la pierde; `/agente` sigue como pantalla completa.
+7. [x] "Repítamelo" lee el resumen en voz alta en la confirmación (voz del dispositivo).
+8. [ ] Verificación manual en Chrome y Chrome en Android (caso 11), con el backend 028 desplegado.
+9. [ ] Escribir y ejecutar las pruebas 1–10 y dejar la suite en verde. *(Diferida: directiva de no tests.)*
 
 ## Referencias
 

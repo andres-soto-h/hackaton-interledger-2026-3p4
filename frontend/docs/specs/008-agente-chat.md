@@ -121,7 +121,7 @@ en un reducer testeable. Al volver del 007, el resultado agrega una acción
 2. [x] Casos 1–2 en rojo → reducer y parser de acciones.
 3. [x] Casos 3–4 en rojo → burbujas y tarjeta de pago.
 4. [x] Casos 5–10 en rojo → pantalla de chat.
-5. [~] Proponer el contrato al backend/agente (spec por escribir) y registrar diferencias.
+5. [x] Contrato registrado en el [backend 028](../../../backend/docs/specs/028-agente-voz.md) (desplegado en `dev`): el front envía `speak` y lee `reply.audio` / `reply.audioUnavailable`. Sin diferencias con lo propuesto.
 6. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes

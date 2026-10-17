@@ -5,7 +5,14 @@ export type AgentAction =
 
 export type AgentReply = {
   conversationId: string;
-  reply: { id: string; text: string };
+  reply: {
+    id: string;
+    text: string;
+    /** Voz de ElevenLabs (backend 028); solo con `speak: true`. */
+    audio?: { format: 'mp3'; base64: string };
+    /** Se pidió audio y no se pudo generar: el texto llega igual. */
+    audioUnavailable?: boolean;
+  };
   actions?: unknown[];
 };
 
@@ -14,6 +21,8 @@ export type ChatMessage = {
   role: 'user' | 'agent';
   text: string;
   actions?: AgentAction[];
+  /** Audio mp3 (base64) de la respuesta; permite "Escuchar" si el navegador bloqueó la reproducción. */
+  audio?: string;
   /** El agente está "escribiendo…". */
   pending?: boolean;
   /** El mensaje del usuario no obtuvo respuesta (se puede reintentar). */
