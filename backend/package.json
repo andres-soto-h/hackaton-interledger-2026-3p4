@@ -10,6 +10,7 @@
     "dev": "tsx watch src/server.ts",
     "test": "vitest run",
     "test:dynamo": "vitest run --config vitest.dynamo.config.ts",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier --check src tests",

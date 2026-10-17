@@ -76,6 +76,44 @@ export function runPaymentsRepositoryContract(
       repo = await createRepository()
     })
 
+    // Spec 008: las solicitudes de pago pasan a COMPLETED / EXPIRED al refrescarse.
+    describe('updatePaymentRequest', () => {
+      it('cambia el estado de una solicitud PENDING y actualiza updatedAt', async () => {
+        const request = buildPaymentRequest()
+        await repo.createPaymentRequest(request)
+
+        const updated = await repo.updatePaymentRequest(
+          request.id,
+          { status: 'COMPLETED', updatedAt: at(7) },
+          { expectedStatus: 'PENDING' }
+        )
+
+        expect(updated).toEqual({ ...request, status: 'COMPLETED', updatedAt: at(7) })
+        expect(await repo.getPaymentRequest(request.id)).toEqual(updated)
+      })
+
+      it('lanza ConflictError si el estado guardado no es el esperado o no existe', async () => {
+        const request = buildPaymentRequest({ status: 'EXPIRED' })
+        await repo.createPaymentRequest(request)
+
+        await expect(
+          repo.updatePaymentRequest(
+            request.id,
+            { status: 'COMPLETED' },
+            { expectedStatus: 'PENDING' }
+          )
+        ).rejects.toBeInstanceOf(ConflictError)
+        await expect(
+          repo.updatePaymentRequest(
+            'pr_01JBBBBBBBBBBBBBBBBBBBBBBB',
+            { status: 'COMPLETED' },
+            { expectedStatus: 'PENDING' }
+          )
+        ).rejects.toBeInstanceOf(ConflictError)
+        expect((await repo.getPaymentRequest(request.id))?.status).toBe('EXPIRED')
+      })
+    })
+
     // Caso 1
     it('guarda y lee un pago y una solicitud tal como se guardaron', async () => {
       const payment = buildPayment()

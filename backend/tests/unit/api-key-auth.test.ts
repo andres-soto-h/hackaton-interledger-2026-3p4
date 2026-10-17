@@ -38,7 +38,7 @@ describe('apiKeyAuth', () => {
     ['valor vacío', ''],
     ['header repetido', [API_KEY, API_KEY]]
   ])('rechaza una ruta protegida con x-api-key incorrecta (%s)', (_name, apiKey) => {
-    expectUnauthorized(run({ method: 'GET', path: '/api/v1/transactions', apiKey }))
+    expectUnauthorized(run({ method: 'POST', path: '/api/v1/payment-requests', apiKey }))
   })
 
   it('usa el mismo mensaje si falta la key o si es incorrecta', () => {
@@ -73,5 +73,28 @@ describe('apiKeyAuth', () => {
 
   it('exige la key en las rutas públicas con otro método', () => {
     expectUnauthorized(run({ method: 'POST', path: '/health' }))
+  })
+
+  // Spec 008: las consultas de pagos y transacciones usan la sesión del usuario.
+  it.each([
+    '/api/v1/transactions',
+    '/api/v1/payments/pay_01JCSTATUSSTATUSSTATUSST00',
+    '/api/v1/payments/pay_01J9Z8X7Q6W5E4R3T2Y1U0I9O8'
+  ])('deja pasar GET %s sin API key (lo protege la sesión)', (path) => {
+    const next = run({ method: 'GET', path })
+
+    expect(next).toHaveBeenCalledOnce()
+    expect(next).toHaveBeenCalledWith()
+  })
+
+  it.each([
+    ['GET', '/api/v1/payments'],
+    ['GET', '/api/v1/payments/not-a-payment-id'],
+    ['GET', '/api/v1/payments/pay_01JCSTATUSSTATUSSTATUSST00/extra'],
+    ['GET', '/api/v1/transactions/extra'],
+    ['POST', '/api/v1/transactions'],
+    ['DELETE', '/api/v1/payments/pay_01JCSTATUSSTATUSSTATUSST00']
+  ])('exige la key en %s %s', (method, path) => {
+    expectUnauthorized(run({ method, path }))
   })
 })

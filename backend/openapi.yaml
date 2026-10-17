@@ -126,6 +126,87 @@ paths:
                   message: Payments are disabled
         '504':
           $ref: '#/components/responses/OpenPaymentsTimeout'
+  /api/v1/payments/{id}:
+    get:
+      summary: Estado de un pago (se refresca contra Open Payments si no es final)
+      operationId: getPaymentStatus
+      tags:
+        - Payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+      responses:
+        '200':
+          description: Estado del pago con la comisión; `stale` solo cuando no se pudo refrescar.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatus'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+        '404':
+          description: Pago inexistente o de otro usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: PAYMENT_NOT_FOUND
+                  message: Payment not found
+  /api/v1/transactions:
+    get:
+      summary: Historial de pagos y solicitudes de la cuenta (paginado con cursor)
+      operationId: listTransactions
+      tags:
+        - Payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [incoming, outgoing, all]
+            default: all
+        - name: kind
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [payment, payment-request, all]
+            default: all
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Página de transacciones, de la más reciente a la más antigua.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionPage'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
   /api/v1/payments/{id}/confirm/options:
     post:
       summary: Opciones WebAuthn para confirmar el pago con la passkey
@@ -1033,6 +1114,158 @@ components:
         status:
           type: string
           enum: [PROCESSING]
+    PaymentStatus:
+      type: object
+      required:
+        - paymentId
+        - type
+        - status
+        - senderWalletAddress
+        - receiverWalletAddress
+        - debitAmount
+        - receiveAmount
+        - sentAmount
+        - fee
+        - feeStatus
+        - totalDebit
+        - description
+        - error
+        - createdAt
+        - updatedAt
+      properties:
+        paymentId:
+          type: string
+        type:
+          type: string
+          enum: [p2p, p2m]
+        status:
+          type: string
+          enum: [AWAITING_CONFIRMATION, PROCESSING, COMPLETED, FAILED, CANCELLED, EXPIRED]
+        senderWalletAddress:
+          type: string
+        receiverWalletAddress:
+          type: string
+        debitAmount:
+          $ref: '#/components/schemas/Amount'
+        receiveAmount:
+          $ref: '#/components/schemas/Amount'
+        sentAmount:
+          $ref: '#/components/schemas/Amount'
+          nullable: true
+        fee:
+          allOf:
+            - $ref: '#/components/schemas/Amount'
+            - type: object
+              properties:
+                percentage:
+                  type: string
+        feeStatus:
+          type: string
+          enum: [NONE, PENDING, PROCESSING, COLLECTED, FAILED]
+        totalDebit:
+          $ref: '#/components/schemas/Amount'
+        description:
+          type: string
+          nullable: true
+        error:
+          type: object
+          nullable: true
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+        stale:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Counterparty:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        walletAddress:
+          type: string
+        merchantId:
+          type: string
+          nullable: true
+    TransactionItem:
+      type: object
+      required:
+        - id
+        - kind
+        - direction
+        - type
+        - status
+        - counterparty
+        - debitAmount
+        - receiveAmount
+        - fee
+        - totalDebit
+        - description
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [payment, payment-request]
+        direction:
+          type: string
+          enum: [incoming, outgoing]
+        type:
+          type: string
+          enum: [p2p, p2m]
+        status:
+          type: string
+        counterparty:
+          $ref: '#/components/schemas/Counterparty'
+          nullable: true
+        debitAmount:
+          $ref: '#/components/schemas/Amount'
+          nullable: true
+        receiveAmount:
+          $ref: '#/components/schemas/Amount'
+          nullable: true
+        fee:
+          allOf:
+            - $ref: '#/components/schemas/Amount'
+            - type: object
+              properties:
+                percentage:
+                  type: string
+          nullable: true
+        totalDebit:
+          $ref: '#/components/schemas/Amount'
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TransactionPage:
+      type: object
+      required:
+        - items
+        - nextCursor
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionItem'
+        nextCursor:
+          type: string
+          nullable: true
   responses:
     ValidationError:
       description: Cuerpo inválido.

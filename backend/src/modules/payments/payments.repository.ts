@@ -1,4 +1,9 @@
-import type { Payment, PaymentRequest, PaymentStatus } from './payment.types.js'
+import type {
+  Payment,
+  PaymentRequest,
+  PaymentRequestStatus,
+  PaymentStatus
+} from './payment.types.js'
 
 export interface ListByWalletQuery {
   walletAddress: string
@@ -19,6 +24,11 @@ export interface PaymentsRepository {
   ): Promise<Payment>
   createPaymentRequest(r: PaymentRequest): Promise<void>
   getPaymentRequest(id: string): Promise<PaymentRequest | null>
+  updatePaymentRequest(
+    id: string,
+    changes: Partial<PaymentRequest>,
+    opts: { expectedStatus: PaymentRequestStatus }
+  ): Promise<PaymentRequest>
   listByWallet(q: ListByWalletQuery): Promise<{
     items: (Payment | PaymentRequest)[]
     nextCursor?: string
