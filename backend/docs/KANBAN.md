@@ -17,7 +17,7 @@
 | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 5/9 · *lote 1 integrado; falta DynamoDB y página de inicio* | |
 | | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
-| | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 0/10 · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
+| | | [023 — Vinculación de wallet y monto diario](specs/023-vinculacion-wallet-monto-diario.md) · 6/10 · *lote 1 integrado; falta DynamoDB y OpenAPI; spike pendiente del responsable* · *tope con `interval` confirmado por Interledger (2026-10-17)* | |
 | | [024 — Comisión por transacción](specs/024-comision-transacciones.md) · 0/7 · *decisión pendiente: orden / un solo cobro* | | |
 
 **Orden de desarrollo:** 001 → (003, 004) → 005 → 019 → 023 → 006 → 007 → 024 →
@@ -92,3 +92,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 020 | Lote 1 integrado (tareas 1, 3, 5, 6, 8; 2 y 4 en memoria) |
 | 2026-10-17 | 019 | Lote 2 integrado (DynamoDB, adapter SimpleWebAuthn, OpenAPI, página de prueba); 585 tests en verde → Hecho |
 | 2026-10-17 | 021 | Desarrollo aprobado → En desarrollo |
+| 2026-10-17 | 023 | Lote 1 integrado (tareas 2, 3, 5–8; 4 en memoria) |
