@@ -9,6 +9,7 @@ import { usePaymentStatus } from '@/features/payments/use-payment-status';
 import { formatClock, formatRelativeDate } from '@/features/transactions/format';
 import { merchantNameFrom } from '@/features/payments/confirmation';
 import { formatMoney } from '@/lib/money';
+import { hapticError, hapticSuccess } from '@/ui/haptics';
 import { AmountRow, AppHeader, AppText, Button, Card, ErrorState, Screen } from '@/ui';
 
 export default function PaymentResult() {
@@ -25,6 +26,8 @@ export default function PaymentResult() {
   useEffect(() => {
     if (phase !== 'final' || !status) return;
     AccessibilityInfo.announceForAccessibility(TITLES[status]);
+    if (status === 'COMPLETED') void hapticSuccess();
+    else if (status === 'FAILED') void hapticError();
     // La lista y el inicio deben ver el pago ya terminado.
     void queryClient.invalidateQueries({ queryKey: ['transactions'] });
     // Si el pago salió del chat, el chat muestra su estado final al volver.
