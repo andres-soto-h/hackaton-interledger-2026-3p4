@@ -63,12 +63,133 @@ paths:
           $ref: '#/components/responses/OpenPaymentsUnavailable'
         '504':
           $ref: '#/components/responses/OpenPaymentsTimeout'
+  /api/v1/auth/register/options:
+    post:
+      summary: Opciones de registro con passkey
+      operationId: registerPasskeyOptions
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterOptionsRequest'
+      responses:
+        '200':
+          description: Opciones de WebAuthn para crear la passkey, con su `challengeId`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeOptions'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/WalletAlreadyRegistered'
+        '422':
+          $ref: '#/components/responses/WalletNotFound'
+  /api/v1/auth/register/verify:
+    post:
+      summary: Verificar el registro de la passkey
+      operationId: registerPasskeyVerify
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyCredentialRequest'
+      responses:
+        '201':
+          description: Cuenta creada y sesión emitida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/PasskeyError'
+        '409':
+          $ref: '#/components/responses/WalletAlreadyRegistered'
+  /api/v1/auth/login/options:
+    post:
+      summary: Opciones de inicio de sesión con passkey
+      operationId: loginPasskeyOptions
+      tags:
+        - Auth
+      security: []
+      responses:
+        '200':
+          description: Opciones de WebAuthn para firmar con la passkey, con su `challengeId`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeOptions'
+  /api/v1/auth/login/verify:
+    post:
+      summary: Verificar el inicio de sesión con passkey
+      operationId: loginPasskeyVerify
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyCredentialRequest'
+      responses:
+        '200':
+          description: Sesión emitida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/PasskeyError'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+  /api/v1/me:
+    get:
+      summary: Datos de la cuenta autenticada
+      operationId: getMe
+      tags:
+        - Account
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Datos públicos de la cuenta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicUser'
+        '401':
+          $ref: '#/components/responses/SessionInvalid'
+    delete:
+      summary: Borrar la cuenta autenticada y sus passkeys
+      operationId: deleteMe
+      tags:
+        - Account
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Cuenta borrada; los pagos se conservan.
+        '401':
+          $ref: '#/components/responses/ReauthRequired'
 components:
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
       in: header
       name: x-api-key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     IdempotencyKey:
       name: Idempotency-Key
@@ -186,6 +307,84 @@ components:
                     type: string
                   message:
                     type: string
+    PublicUser:
+      type: object
+      required:
+        - id
+        - displayName
+        - walletAddress
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: usr_01J...
+        displayName:
+          type: string
+        walletAddress:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Session:
+      type: object
+      required:
+        - token
+        - expiresAt
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    AuthSession:
+      type: object
+      required:
+        - user
+        - session
+      properties:
+        user:
+          $ref: '#/components/schemas/PublicUser'
+        session:
+          $ref: '#/components/schemas/Session'
+    ChallengeOptions:
+      type: object
+      required:
+        - challengeId
+        - options
+      properties:
+        challengeId:
+          type: string
+        options:
+          type: object
+          description: Opciones de WebAuthn (JSON) para pasar al navegador.
+    RegisterOptionsRequest:
+      type: object
+      required:
+        - displayName
+        - walletAddress
+      properties:
+        displayName:
+          type: string
+          maxLength: 60
+        walletAddress:
+          type: string
+          maxLength: 2048
+    VerifyCredentialRequest:
+      type: object
+      required:
+        - challengeId
+        - credential
+      properties:
+        challengeId:
+          type: string
+        credential:
+          type: object
+          description: Credencial WebAuthn opaca tal como la devuelve el navegador.
+          required:
+            - id
+          properties:
+            id:
+              type: string
   responses:
     ValidationError:
       description: Cuerpo inválido.
@@ -247,3 +446,72 @@ components:
             error:
               code: OPEN_PAYMENTS_TIMEOUT
               message: Open Payments request timed out
+    WalletAlreadyRegistered:
+      description: La wallet address ya pertenece a otra cuenta.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: WALLET_ALREADY_REGISTERED
+              message: Wallet address already registered
+    WalletNotFound:
+      description: La wallet no existe o no está permitida.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            walletNotFound:
+              value:
+                error:
+                  code: WALLET_NOT_FOUND
+                  message: Wallet address not found
+            walletNotAllowed:
+              value:
+                error:
+                  code: WALLET_NOT_ALLOWED
+                  message: Wallet address is not allowed
+    PasskeyError:
+      description: Verificación de la passkey fallida o challenge inválido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            challengeExpired:
+              value:
+                error:
+                  code: CHALLENGE_EXPIRED
+                  message: Challenge expired, used or invalid
+            passkeyVerificationFailed:
+              value:
+                error:
+                  code: PASSKEY_VERIFICATION_FAILED
+                  message: Passkey verification failed
+            validationError:
+              value:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Invalid request
+    SessionInvalid:
+      description: Sin sesión, JWT inválido o cuenta borrada o bloqueada.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: SESSION_INVALID
+              message: Invalid or expired session
+    ReauthRequired:
+      description: Se requiere reautenticación con la passkey (sesión de más de 5 minutos).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: REAUTH_REQUIRED
+              message: Recent authentication required
