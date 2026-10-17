@@ -33,6 +33,16 @@ Formato:
 
 ## Decisiones
 
+### 2026-10-17 · Archivos compartidos que toca el 023 (y el 019 lote 2 y 020)
+- Origen: orquestador (aviso del agente del 023)
+- Afecta: specs 019 (lote 2), 020, 023 · `api-key-auth.ts`, `ids.ts`, `modules/users/me.routes.ts`, `users.service.ts`, `integrations/open-payments/errors.ts`
+- Decisión: cambios aditivos y mínimos, el orquestador resuelve conflictos al integrar:
+  - **023**: `api-key-auth.ts` suma rutas públicas de wallet-link y allowance; `ids.ts` suma `wl`; `createMeRouter` gana el hook opcional `beforeDeleteAccount`; `toApiError` suma `OPEN_PAYMENTS_UNAUTHORIZED` (502) y `GRANT_REVOKED` (409).
+  - **019 lote 2**: `api-key-auth.ts` suma `GET /dev/passkeys*`.
+  - **020**: `api-key-auth.ts`/`json-body.ts` para `/admin/*`; `ids.ts` suma `evt`.
+  - El estado `AUTHORIZING` del WalletLink es interno; la API expone `PENDING_AUTHORIZATION`.
+- Acción para los demás: no reordenar ni reformatear esos archivos.
+
 ### 2026-10-17 · Contratos publicados por 006 y 019 (lote 1) para los demás
 - Origen: orquestador
 - Afecta: specs 007, 008, 009, 020, 021, 023, 024
