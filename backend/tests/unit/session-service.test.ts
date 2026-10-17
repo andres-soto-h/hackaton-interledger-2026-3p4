@@ -60,9 +60,31 @@ describe('SessionService.verify', () => {
     const service = sessions()
     expect(service.verify(service.issue('usr_1').token)).toEqual({
       userId: 'usr_1',
+      sessionVersion: 0,
       iat: NOW_S,
       exp: NOW_S + 3600
     })
+  })
+
+  // Spec 021: cutting sessions with the user's `sessionVersion`.
+  it('sin sessionVersion el token no lleva `sv` y se verifica como versión 0', () => {
+    const service = sessions()
+    const token = service.issue('usr_1').token
+    expect(decodeJwtPayload(token)).not.toHaveProperty('sv')
+    expect(service.verify(token).sessionVersion).toBe(0)
+  })
+
+  it('emite `sv` con la versión dada y la devuelve al verificar', () => {
+    const service = sessions()
+    const token = service.issue('usr_1', 3).token
+    expect(decodeJwtPayload(token)).toMatchObject({ sv: 3 })
+    expect(service.verify(token).sessionVersion).toBe(3)
+  })
+
+  it('rechaza un `sv` que no es un entero no negativo', async () => {
+    await expectInvalid(signJwt(claims({ sv: -1 }), KEY))
+    await expectInvalid(signJwt(claims({ sv: 'uno' }), KEY))
+    await expectInvalid(signJwt(claims({ sv: 1.5 }), KEY))
   })
 
   it('acepta un token hecho a mano con la misma llave', () => {

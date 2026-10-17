@@ -166,3 +166,33 @@ describe('DELETE /api/v1/me', () => {
     expect(bodyOf<{ challengeId: string }>(res).challengeId).toMatch(/^chl_/)
   })
 })
+
+// Spec 021: la versión de sesión corta las sesiones previas.
+describe('sessionVersion en userAuth', () => {
+  it('un token con la versión actual del usuario funciona y uno anterior deja de servir', async () => {
+    const { user, token } = await ctx.seedUser()
+    expect((await getMe(`Bearer ${token}`)).status).toBe(200)
+
+    const version = await ctx.users.bumpSessionVersion(user.id, user.updatedAt)
+    expect(version).toBe(1)
+
+    const old = await getMe(`Bearer ${token}`)
+    expect(old.status).toBe(401)
+    expect(errorOf(old).code).toBe('SESSION_INVALID')
+
+    const fresh = ctx.sessions.issue(user.id, version).token
+    expect((await getMe(`Bearer ${fresh}`)).status).toBe(200)
+  })
+
+  it('un token con versión mayor que la del usuario tampoco sirve', async () => {
+    const { user } = await ctx.seedUser()
+    const forged = ctx.sessions.issue(user.id, 5).token
+    expect((await getMe(`Bearer ${forged}`)).status).toBe(401)
+  })
+
+  it('un usuario bloqueado recibe 401 aunque la versión coincida', async () => {
+    const { user, token } = await ctx.seedUser()
+    await ctx.users.setUserStatus(user.id, 'BLOCKED', user.updatedAt)
+    expect((await getMe(`Bearer ${token}`)).status).toBe(401)
+  })
+})
