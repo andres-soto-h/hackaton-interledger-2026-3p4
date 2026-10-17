@@ -8,6 +8,7 @@ import {
   AtkinsonHyperlegible_700Bold,
 } from '@expo-google-fonts/atkinson-hyperlegible';
 import { useFonts } from 'expo-font';
+import { AgentProvider } from '@/features/agent/agent-context';
 import { PasskeysProvider } from '@/features/auth/passkeys-context';
 import { SessionProvider } from '@/features/auth/session';
 
@@ -35,8 +36,10 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <PasskeysProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false }} />
+          <AgentProvider>
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false }} />
+          </AgentProvider>
         </PasskeysProvider>
       </SessionProvider>
     </QueryClientProvider>

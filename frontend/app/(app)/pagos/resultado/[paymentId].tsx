@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAgent } from '@/features/agent/agent-context';
 import { authApi } from '@/features/auth/api';
 import { failureDetail } from '@/features/payments/result-text';
 import { usePaymentStatus } from '@/features/payments/use-payment-status';
@@ -15,6 +16,7 @@ export default function PaymentResult() {
   const queryClient = useQueryClient();
   const { paymentId } = useLocalSearchParams<{ paymentId: string }>();
   const { payment, phase, isError, retry, refetch } = usePaymentStatus(paymentId);
+  const agent = useAgent();
   const completed = payment?.status === 'COMPLETED';
   const allowance = useQuery({ queryKey: ['me', 'allowance'], queryFn: authApi.getAllowance, enabled: completed });
 
@@ -25,7 +27,10 @@ export default function PaymentResult() {
     AccessibilityInfo.announceForAccessibility(TITLES[status]);
     // La lista y el inicio deben ver el pago ya terminado.
     void queryClient.invalidateQueries({ queryKey: ['transactions'] });
-  }, [phase, status, queryClient]);
+    // Si el pago salió del chat, el chat muestra su estado final al volver.
+    agent.reportPaymentStatus(paymentId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, status, queryClient, paymentId]);
 
   if (phase === 'notFound') {
     return (
@@ -107,6 +112,9 @@ export default function PaymentResult() {
               ) : (
                 <Button label="Pagar algo más" onPress={() => router.replace('/pagos')} />
               )}
+              {agent.isFromChat(paymentId) ? (
+                <Button label="Volver al chat" onPress={() => router.replace('/agente')} />
+              ) : null}
               <Button label="Ver mis transacciones" variant="secondary" onPress={() => router.replace('/transacciones')} />
               <Button label="Ir al inicio" variant="ghost" onPress={() => router.replace('/')} />
             </>

@@ -2,6 +2,7 @@ import { Slot } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ComponentType } from 'react';
+import { AgentProvider } from '@/features/agent/agent-context';
 import { PasskeysProvider } from '@/features/auth/passkeys-context';
 import { SessionProvider } from '@/features/auth/session';
 import { createMemorySessionStore } from '@/features/auth/storage';
@@ -37,6 +38,7 @@ const baseScreens = (): Screens => ({
   '(app)/pagos/[merchantId]/validacion': require('../../app/(app)/pagos/[merchantId]/validacion').default,
   '(app)/pagos/confirmar/[paymentId]': require('../../app/(app)/pagos/confirmar/[paymentId]').default,
   '(app)/pagos/resultado/[paymentId]': require('../../app/(app)/pagos/resultado/[paymentId]').default,
+  '(app)/agente': require('../../app/(app)/agente').default,
   '(app)/cuenta': require('../../app/(app)/cuenta').default,
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -54,7 +56,9 @@ export async function renderApp({ initialUrl, session = null, passkeys, screens,
     <QueryClientProvider client={queryClient}>
       <SessionProvider store={store}>
         <PasskeysProvider service={fakePasskeys}>
-          <Slot />
+          <AgentProvider>
+            <Slot />
+          </AgentProvider>
         </PasskeysProvider>
       </SessionProvider>
     </QueryClientProvider>

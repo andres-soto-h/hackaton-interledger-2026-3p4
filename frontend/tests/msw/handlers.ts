@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'msw';
+import { agentHandlers } from './agent';
 import { authHandlers } from './auth';
 import { confirmHandlers, paymentHandlers } from './payments';
 import { registerHandlers } from './register';
@@ -7,4 +8,4 @@ import { transactionHandlers } from './transactions';
 export { API } from './config';
 
 // Los specs agregan aquí sus handlers con los contratos del backend (ver tests/msw/auth.ts, etc.).
-export const handlers: RequestHandler[] = [...authHandlers, ...registerHandlers, ...transactionHandlers, ...paymentHandlers, ...confirmHandlers];
+export const handlers: RequestHandler[] = [...authHandlers, ...registerHandlers, ...transactionHandlers, ...paymentHandlers, ...confirmHandlers, ...agentHandlers];
