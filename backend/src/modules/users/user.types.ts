@@ -1,3 +1,5 @@
+import type { Amount } from '../../shared/money/types.js'
+
 export type UserStatus = 'ACTIVE' | 'BLOCKED'
 
 export interface User {
@@ -56,6 +58,12 @@ export interface Challenge {
     walletAssetCode: string
     /** Present when the registration uses an enrollment link. */
     enrollmentTokenHash?: string
+  }
+  /** Payment being confirmed, kept until the challenge is consumed. */
+  payment?: {
+    paymentId: string
+    userId: string
+    totalDebit: Amount
   }
   /** TTL in epoch seconds. */
   expiresAt: number
