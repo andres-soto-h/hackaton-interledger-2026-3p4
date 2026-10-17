@@ -28,7 +28,6 @@ Formato:
 
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
 | 023 | `spec/023` | `../<repo>-worktrees/spec-023` | 2026-10-17 | Vinculación de wallet y monto diario (con fakes) |
-| 009 | `spec/009` | `../<repo>-worktrees/spec-009` | 2026-10-17 | `isFinal` y `Retry-After` en estados; guía de polling |
 | 022 | `spec/022` | `../<repo>-worktrees/spec-022` | 2026-10-17 | Actividad en vivo del panel |
 
 ## Decisiones

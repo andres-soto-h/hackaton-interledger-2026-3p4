@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 (polling; versión con aprobación en la wallet por pago); cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | 2026-10-17 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-0 / 5 tareas completadas. Revisado el 2026-10-16 por el cambio a un monto
+4 / 5 tareas completadas e integradas en `develop-andres` (1070 tests, typecheck y lint en verde); la 5 es una decisión posterior del responsable. Se corrigió además el estado `AUTHORIZING` de las vinculaciones, que marcaba `isFinal: true` por error. Revisado el 2026-10-16 por el cambio a un monto
 diario preaprobado (spec 023); Cambios aprobados el 2026-10-16. Depende de los
 specs 008 y 023.
 
@@ -104,11 +104,11 @@ consultando el outgoing payment (spec 008).
 
 ## Tareas
 
-1. [ ] Casos 1–3 en rojo → `isFinal` y `Retry-After`.
-2. [ ] Actualizar `openapi.yaml`.
-3. [ ] Guía de polling (`backend/docs/guia-polling.md`) con ejemplos para el frontend y el agente.
-4. [ ] Suite completa en verde, lint y typecheck limpios.
-5. [ ] Revisar si el webhook (fase 2) hace falta después del hackatón.
+1. [x] Casos 1–3 en rojo → `isFinal` y `Retry-After`.
+2. [x] Actualizar `openapi.yaml`.
+3. [x] Guía de polling (`backend/docs/guia-polling.md`) con ejemplos para el frontend y el agente.
+4. [x] Suite completa en verde, lint y typecheck limpios.
+5. [~] Revisar si el webhook (fase 2) hace falta después del hackatón → decisión del responsable, registrada en [PENDIENTES-RESPONSABLE](../PENDIENTES-RESPONSABLE.md) (no bloquea).
 
 ## Decisiones
 

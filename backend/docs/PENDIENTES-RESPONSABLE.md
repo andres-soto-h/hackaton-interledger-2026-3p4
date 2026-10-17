@@ -7,6 +7,7 @@
 | Fecha | Spec | Pendiente | Qué se necesita | Estado |
 |---|---|---|---|---|
 | 2026-10-17 | 008 | Ejecución manual del caso 12 (flujo completo contra la red de prueba) y `pnpm test:e2e` contra red real | Ejecutarlo con las wallets de prueba y la llave de la plataforma | Abierto |
+| 2026-10-17 | 009 | ¿Hace falta el webhook hacia el agente (fase 2) después del hackatón? | Decidir; hoy el seguimiento es solo por polling | Abierto (no bloquea) |
 | 2026-10-17 | 022 | Prueba manual del caso 8 (actividad en vivo con pagos reales) | Ejecutarla con el panel y la red de prueba | Abierto |
 | 2026-10-17 | 024 | Decisiones del spec sin resolver: orden de cobro y un solo cobro vs dos | Se desarrolla con las recomendaciones del spec (primero el pago, después la comisión; dos cobros mostrados como un solo total). Confirmar o cambiar | Abierto (desarrollo continúa con el valor por defecto) |
 | 2026-10-17 | cableado | Monto diario por defecto `USD:200` (valor asumido por el orquestador) | Confirmar o cambiar el valor (editable luego desde el panel, spec 020) | Abierto |
