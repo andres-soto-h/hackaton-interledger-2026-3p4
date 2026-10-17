@@ -70,3 +70,6 @@ backend/keys/*
 # Orquestación con workers de DeepSeek (orquestacion/README.md)
 .orquestacion/
 orquestacion/runs/
+
+# Archify generated diagrams (scratch)
+.archify/
