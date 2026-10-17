@@ -15,6 +15,7 @@ en verde, typecheck y `cdk synth` correctos. Pendiente: cambios aprobados el
 2026-10-16 (tabla de pagos con índices, throttling, configuración y alarmas),
 reemplazo de llaves por las de la wallet de la plataforma y despliegue en `dev` (requiere el spec [001](001-bootstrap-api.md)).
 El despliegue está bloqueado por la tarea 22: reparar el bootstrap de CDK de la cuenta, pendiente de autorización.
+**Por ahora solo se trabaja la plantilla IaC (sin desplegar). No se despliega hasta tener la mayoría del código del backend** (decisión 9).
 
 > 2026-10-16: aprobados los cambios que piden los specs de la API (003–009).
 > La evaluación de JWT pasó a deuda técnica ([TD-001](../DEUDA-TECNICA.md#td-001--autenticación-de-la-api-más-fuerte-que-la-api-key)).
@@ -205,7 +206,7 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 8. [x] Definir log group con retención hasta pasar el test 7.
 9. [x] Documentar dónde y cómo se guardan las llaves privadas en el despliegue (formato del secreto, carga, rotación) en el README.
 10. [ ] **Reemplazar las llaves de la wallet personal por las de una wallet de la plataforma** (crear la wallet `tranqui-app` en la red de prueba, sin fondos; generar sus llaves y cargarlas en el secreto). Las wallets de comercios de prueba solo se crean para recibir pagos; no necesitan llaves.
-11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de la tarea 22.*
+11. [ ] Desplegar en `dev` y verificar los casos 10–11. *Depende del spec 001 y de la tarea 22; pospuesta hasta tener la mayoría del backend (decisión 9).*
 12. [ ] Documentar despliegue, destrucción y carga de secretos en el README. *Escrito en `backend/infra/README.md`; se valida al desplegar (tarea 11).*
 13. [ ] Tabla de pagos: índices y renombre a `PAYMENTS_TABLE_NAME` (casos 12 y 14).
 14. [ ] Throttling de API Gateway (caso 13).
@@ -252,6 +253,7 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 | 6 | Región de AWS | `us-east-1` por defecto, configurable con `CDK_DEFAULT_REGION` |
 | 7 | Cuenta y credenciales de despliegue | Cuenta `340464868186`; se despliega con el perfil `tranqui-deployer` (`AWS_PROFILE=tranqui-deployer pnpm cdk deploy`) (2026-10-16) |
 | 8 | Permisos de CloudFormation | Bootstrap de CDK con `tranqui-cfn-exec-policy` (limitada a `TranquiBackend-*` y `tranqui/*`) en lugar de `AdministratorAccess`; se acepta el riesgo de `iam:PutRolePolicy` sin permissions boundary (2026-10-16, ver [SEGURIDAD.md](../SEGURIDAD.md#permisos-de-despliegue-aws)) |
+| 9 | Momento del despliegue | Se construye y prueba la plantilla IaC (`cdk synth` y tests de assertions) sin desplegar; el primer despliegue en `dev` espera a que esté la mayoría del código del backend (2026-10-16) |
 
 ## Notas
 
