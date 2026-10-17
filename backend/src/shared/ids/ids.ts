@@ -31,7 +31,7 @@ function encodeRandom(): string {
   return encoded
 }
 
-export type IdPrefix = 'pay' | 'pr' | 'idem'
+export type IdPrefix = 'pay' | 'pr' | 'idem' | 'evt'
 
 /** `${prefix}_${ulid}`: a time-sortable ULID with a domain prefix. */
 export function newId(prefix: IdPrefix, now: number = Date.now()): string {
