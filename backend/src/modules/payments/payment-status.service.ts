@@ -188,11 +188,17 @@ export function createPaymentStatusService(
       )
 
       if (outgoing.failed) {
+        // Nothing was sent → the wallet had no funds (or liquidity) for this
+        // payment. Use a specific error so the app can explain it clearly.
+        const nothingSent = !/[1-9]/.test(outgoing.sentAmount.value)
+        const error = nothingSent
+          ? { code: 'INSUFFICIENT_FUNDS', message: 'Insufficient funds' }
+          : { code: 'OUTGOING_PAYMENT_FAILED', message: 'Outgoing payment failed' }
         const result = await updateOrReread(
           payment,
           {
             status: 'FAILED',
-            error: { code: 'OUTGOING_PAYMENT_FAILED', message: 'Outgoing payment failed' }
+            error
           },
           'PROCESSING'
         )
