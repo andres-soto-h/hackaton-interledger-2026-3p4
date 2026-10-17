@@ -31,6 +31,7 @@ describe('loadConfig', () => {
 
     expect(config).toEqual({
       ...openPaymentsDefaults,
+      dailySpendLimits: { COP: '500000' },
       runtime: 'local',
       nodeEnv: 'development',
       logLevel: 'info',
@@ -67,6 +68,7 @@ describe('loadConfig', () => {
 
     expect(config).toEqual({
       ...openPaymentsDefaults,
+      dailySpendLimits: { COP: '500000' },
       storage: 'dynamo',
       runtime: 'lambda',
       nodeEnv: 'production',
