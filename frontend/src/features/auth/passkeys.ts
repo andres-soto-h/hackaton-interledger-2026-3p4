@@ -35,6 +35,18 @@ export class PasskeyAlreadyRegistered extends Error {
 export type CreationOptions = PublicKeyCredentialCreationOptionsJSON;
 export type RequestOptions = PublicKeyCredentialRequestOptionsJSON;
 
+/**
+ * El backend responde `{ challengeId, options: {...} }` (OpenAPI `ChallengeOptions`); la app trabaja
+ * con las opciones planas más `challengeId`. Acepta también la forma plana (mock local).
+ */
+export function flattenChallenge<T extends object>(raw: unknown): T & { challengeId: string } {
+  const body = raw as { challengeId: string; options?: object };
+  if (body.options && typeof body.options === 'object') {
+    return { ...body.options, challengeId: body.challengeId } as T & { challengeId: string };
+  }
+  return raw as T & { challengeId: string };
+}
+
 export interface PasskeyService {
   isSupported(): Promise<boolean>;
   create(options: CreationOptions): Promise<RegistrationResponseJSON>;

@@ -1,6 +1,6 @@
 import { apiClient, ApiError } from '@/api/client';
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from '@simplewebauthn/browser';
-import type { CreationOptions, RequestOptions } from './passkeys';
+import { flattenChallenge, type CreationOptions, type RequestOptions } from './passkeys';
 import type { Allowance, AuthResult, User, WalletLink } from './types';
 
 /** Opciones de WebAuthn + el id del desafío, tal como las devuelve el backend. */
@@ -10,10 +10,11 @@ export type RegistrationChallenge = CreationOptions & { challengeId: string };
 
 export const authApi = {
   registerOptions: (body: { displayName: string; email: string; walletAddress: string }) =>
-    apiClient.post<RegistrationChallenge>('/auth/register/options', body),
+    apiClient.post<unknown>('/auth/register/options', body).then((raw) => flattenChallenge<CreationOptions>(raw)),
   registerVerify: (body: { challengeId: string; credential: RegistrationResponseJSON }) =>
     apiClient.post<AuthResult>('/auth/register/verify', body),
-  loginOptions: () => apiClient.post<ChallengeOptions>('/auth/login/options'),
+  loginOptions: () =>
+    apiClient.post<unknown>('/auth/login/options').then((raw) => flattenChallenge<RequestOptions>(raw)),
   loginVerify: (body: { challengeId: string; credential: AuthenticationResponseJSON }) =>
     apiClient.post<AuthResult>('/auth/login/verify', body),
   getMe: () => apiClient.get<User>('/me'),

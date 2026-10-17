@@ -1,5 +1,5 @@
 import { apiClient, ApiError } from '@/api/client';
-import { PasskeyCancelled, type PasskeyService, type RequestOptions } from '@/features/auth/passkeys';
+import { flattenChallenge, PasskeyCancelled, type PasskeyService, type RequestOptions } from '@/features/auth/passkeys';
 import { newIdempotencyKey } from '@/lib/uuid';
 
 type ConfirmChallenge = RequestOptions & { challengeId: string };
@@ -8,7 +8,9 @@ export type ConfirmResult = { paymentId: string; status: string };
 /** Desafío → passkey → confirmación (backend 007). La firma exige que la persona desbloquee su dispositivo. */
 export async function confirmPayment(paymentId: string, passkeys: PasskeyService): Promise<ConfirmResult> {
   const id = encodeURIComponent(paymentId);
-  const { challengeId, ...options } = await apiClient.post<ConfirmChallenge>(`/payments/${id}/confirm/options`);
+  const { challengeId, ...options } = flattenChallenge<ConfirmChallenge>(
+    await apiClient.post<unknown>(`/payments/${id}/confirm/options`),
+  );
   const credential = await passkeys.authenticate(options);
   // Llave nueva por intento: el body cambia (otro desafío) y la API ya impide el doble pago.
   return apiClient.post<ConfirmResult>(

@@ -84,6 +84,7 @@ export default function Register() {
       await signIn(await authApi.registerVerify({ challengeId, credential }));
       router.replace('/vincular');
     } catch (error) {
+      console.error('[passkey] registro', error);
       setPasskeyError(passkeyErrorMessage(error));
     } finally {
       setLoading(false);
