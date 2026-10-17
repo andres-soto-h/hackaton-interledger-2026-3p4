@@ -32,11 +32,11 @@ export class BackendStack extends Stack {
       removalPolicy
     })
 
-    // Created empty on purpose: merchant keys are loaded with the AWS CLI so
+    // Created empty on purpose: the client keys are loaded with the AWS CLI so
     // they never pass through the repo or the CloudFormation template.
     const openPaymentsSecret = new Secret(this, 'OpenPaymentsSecret', {
       secretName: `tranqui/${props.stage}/open-payments`,
-      description: 'Open Payments merchant wallet addresses, key IDs and private keys',
+      description: 'Open Payments client wallet address, key ID and private key',
       removalPolicy
     })
 

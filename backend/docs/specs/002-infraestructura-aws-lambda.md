@@ -33,8 +33,12 @@ autenticación. En esta fase se usa una **API key enviada en un header**; más
 adelante se evaluará un mecanismo más seguro (p. ej. JWT).
 
 Hoy las llaves privadas de Open Payments son las de la wallet personal del
-responsable del proyecto. Deben reemplazarse por llaves de comercios ficticios y
-guardarse en un servicio de secretos, nunca en el código ni en la imagen de la Lambda.
+responsable del proyecto. La API necesita **una sola identidad de cliente**: una
+wallet de la plataforma, sin fondos, creada solo para registrar sus llaves. Los
+comercios y personas no entregan llaves: reciben con grants no interactivos y
+pagan aprobando un grant interactivo en su wallet
+([API.md — Identidad de la API](../API.md#identidad-de-la-api-cliente-open-payments)).
+La llave se guarda en un servicio de secretos, nunca en el código ni en la imagen de la Lambda.
 
 ## Alcance
 
@@ -144,13 +148,9 @@ dependencia circular entre la Lambda y la API (ver decisión pendiente del spec 
 
   ```json
   {
-    "merchants": {
-      "<merchant-id>": {
-        "walletAddressUrl": "https://ilp.interledger-test.dev/<wallet>",
-        "keyId": "<key-id>",
-        "privateKey": "-----BEGIN PRIVATE KEY-----\n..."
-      }
-    }
+    "walletAddressUrl": "https://ilp.interledger-test.dev/<wallet-plataforma>",
+    "keyId": "<key-id>",
+    "privateKey": "-----BEGIN PRIVATE KEY-----\n..."
   }
   ```
 - La plantilla solo crea el secreto vacío. El valor se carga con la CLI de AWS
@@ -210,7 +210,7 @@ propiedades clave y políticas IAM) con `aws-cdk-lib/assertions`, sin desplegar.
 | 1 | Herramienta IaC | AWS CDK en TypeScript; tests con `aws-cdk-lib/assertions` en Vitest |
 | 2 | Ubicación | `backend/infra/` (cada carpeta del repo es dueña de su documentación e infraestructura) |
 | 3 | Servicio de secretos | AWS Secrets Manager |
-| 4 | Organización de secretos | Un secreto con todas las llaves de comercios (`tranqui/dev/open-payments`) y uno para la API key (`tranqui/dev/api-key`) |
+| 4 | Organización de secretos | Un secreto con la identidad del cliente Open Payments (`tranqui/dev/open-payments`) y uno para la API key (`tranqui/dev/api-key`) |
 | 5 | Autenticación de la API | API key en header `x-api-key`, validada en middleware |
 | 6 | Región de AWS | `us-east-1` por defecto, configurable con `CDK_DEFAULT_REGION` |
 

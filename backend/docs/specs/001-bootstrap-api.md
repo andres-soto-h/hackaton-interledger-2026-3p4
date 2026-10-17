@@ -119,17 +119,13 @@ Mismo formato en local (archivo) y en AWS (secreto), definido en el spec 002:
 
 ```json
 {
-  "merchants": {
-    "<merchant-id>": {
-      "walletAddressUrl": "https://ilp.interledger-test.dev/<wallet>",
-      "keyId": "<key-id>",
-      "privateKey": "-----BEGIN PRIVATE KEY-----\n..."
-    }
-  }
+  "walletAddressUrl": "https://ilp.interledger-test.dev/<wallet-plataforma>",
+  "keyId": "<key-id>",
+  "privateKey": "-----BEGIN PRIVATE KEY-----\n..."
 }
 ```
 
-El cargador valida el formato y devuelve `{ apiKey, merchants }`. En Lambda se
+El cargador valida el formato y devuelve `{ apiKey, openPayments: { walletAddressUrl, keyId, privateKey } }`. En Lambda se
 lee una vez por instancia (en el cold start) y queda en memoria.
 
 ### Formato de error estándar

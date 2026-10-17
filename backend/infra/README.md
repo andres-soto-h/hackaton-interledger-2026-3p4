@@ -51,13 +51,9 @@ La llave nunca pasa por el repo ni por el template de CloudFormation. Formato:
 
 ```json
 {
-  "merchants": {
-    "<merchant-id>": {
-      "walletAddressUrl": "https://ilp.interledger-test.dev/<wallet>",
-      "keyId": "<key-id>",
-      "privateKey": "-----BEGIN PRIVATE KEY-----\n..."
-    }
-  }
+  "walletAddressUrl": "https://ilp.interledger-test.dev/<wallet-plataforma>",
+  "keyId": "<key-id>",
+  "privateKey": "-----BEGIN PRIVATE KEY-----\n..."
 }
 ```
 
@@ -66,10 +62,10 @@ súbelo sin escribirlo a disco:
 
 ```bash
 jq -n \
-  --arg wallet "https://ilp.interledger-test.dev/<wallet>" \
+  --arg wallet "https://ilp.interledger-test.dev/<wallet-plataforma>" \
   --arg keyId "<key-id>" \
-  --rawfile pk ../keys/<merchant>.key \
-  '{merchants: {"<merchant-id>": {walletAddressUrl: $wallet, keyId: $keyId, privateKey: $pk}}}' \
+  --rawfile pk ../keys/tranqui-app.key \
+  '{walletAddressUrl: $wallet, keyId: $keyId, privateKey: $pk}' \
 | aws secretsmanager put-secret-value \
     --secret-id tranqui/dev/open-payments \
     --secret-string file:///dev/stdin
