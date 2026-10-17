@@ -70,6 +70,7 @@ export default function ConfirmPayment() {
       await confirmPayment(paymentId, passkeys);
       router.replace(`/pagos/resultado/${paymentId}` as never);
     } catch (error) {
+      console.error('[passkey] confirmar pago', error);
       const k = confirmErrorKind(error);
       if (k === 'not-confirmable') {
         router.replace(`/pagos/resultado/${paymentId}` as never);
