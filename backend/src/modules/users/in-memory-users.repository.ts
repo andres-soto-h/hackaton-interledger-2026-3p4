@@ -1,5 +1,9 @@
-import type { Challenge, Credential, User, UserStatus } from './user.types.js'
-import { WalletAlreadyRegisteredError, type UsersRepository } from './users.repository.js'
+import type { Challenge, Credential, Enrollment, User, UserStatus } from './user.types.js'
+import {
+  UserNotFoundError,
+  WalletAlreadyRegisteredError,
+  type UsersRepository
+} from './users.repository.js'
 
 /** In-memory implementation for local runs and tests (Lambda uses DynamoDB). */
 export function createInMemoryUsersRepository(): UsersRepository {
@@ -8,11 +12,23 @@ export function createInMemoryUsersRepository(): UsersRepository {
   const credentialIdsByUser = new Map<string, string[]>()
   const userIdByWallet = new Map<string, string>()
   const challenges = new Map<string, Challenge>()
+  const enrollments = new Map<string, Enrollment>()
 
   const listCredentialIds = (userId: string): string[] => {
     const ids = credentialIdsByUser.get(userId)
     return ids === undefined ? [] : [...ids]
   }
+
+  const userOrThrow = (userId: string): User => {
+    const user = users.get(userId)
+    if (user === undefined) throw new UserNotFoundError()
+    return user
+  }
+
+  const listEnrollmentsOf = (userId: string): string[] =>
+    [...enrollments.entries()]
+      .filter(([, enrollment]) => enrollment.userId === userId)
+      .map(([tokenHash]) => tokenHash)
 
   return {
     createUserWithCredential(user, credential) {
@@ -84,6 +100,9 @@ export function createInMemoryUsersRepository(): UsersRepository {
           credentials.delete(credentialId)
         }
         credentialIdsByUser.delete(userId)
+        for (const tokenHash of listEnrollmentsOf(userId)) {
+          enrollments.delete(tokenHash)
+        }
       }
       return Promise.resolve()
     },
@@ -99,6 +118,117 @@ export function createInMemoryUsersRepository(): UsersRepository {
       challenges.delete(id)
       if (challenge.expiresAt <= nowSeconds) return Promise.resolve(null)
       return Promise.resolve(structuredClone(challenge))
+    },
+
+    createUser(user) {
+      if (userIdByWallet.has(user.walletAddress)) {
+        return Promise.reject(new WalletAlreadyRegisteredError())
+      }
+      users.set(user.id, structuredClone(user))
+      userIdByWallet.set(user.walletAddress, user.id)
+      return Promise.resolve()
+    },
+
+    listUsers() {
+      const items = [...users.values()]
+        .map((user) => structuredClone(user))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      return Promise.resolve(items)
+    },
+
+    updateUser(userId, changes, updatedAt) {
+      const current = userOrThrow(userId)
+      const nextWallet = changes.walletAddress ?? current.walletAddress
+      if (nextWallet !== current.walletAddress) {
+        const owner = userIdByWallet.get(nextWallet)
+        if (owner !== undefined && owner !== userId) {
+          return Promise.reject(new WalletAlreadyRegisteredError())
+        }
+      }
+      const updated: User = {
+        ...current,
+        ...(changes.displayName !== undefined
+          ? { displayName: changes.displayName }
+          : {}),
+        ...(changes.walletAddress !== undefined
+          ? { walletAddress: changes.walletAddress }
+          : {}),
+        ...(changes.walletAssetCode !== undefined
+          ? { walletAssetCode: changes.walletAssetCode }
+          : {}),
+        updatedAt
+      }
+      users.set(userId, structuredClone(updated))
+      if (updated.walletAddress !== current.walletAddress) {
+        userIdByWallet.delete(current.walletAddress)
+        userIdByWallet.set(updated.walletAddress, userId)
+      }
+      return Promise.resolve(structuredClone(updated))
+    },
+
+    bumpSessionVersion(userId, updatedAt) {
+      const current = userOrThrow(userId)
+      const nextVersion = (current.sessionVersion ?? 0) + 1
+      users.set(
+        userId,
+        structuredClone({
+          ...current,
+          sessionVersion: nextVersion,
+          updatedAt
+        })
+      )
+      return Promise.resolve(nextVersion)
+    },
+
+    addCredential(credential) {
+      credentials.set(credential.id, structuredClone(credential))
+      credentialIdsByUser.set(credential.userId, [
+        ...listCredentialIds(credential.userId),
+        credential.id
+      ])
+      return Promise.resolve()
+    },
+
+    deleteCredentials(userId, credentialIds) {
+      const ownIds = listCredentialIds(userId)
+      const toDelete =
+        credentialIds === undefined
+          ? ownIds
+          : ownIds.filter((id) => credentialIds.includes(id))
+      for (const id of toDelete) {
+        credentials.delete(id)
+      }
+      const remaining = ownIds.filter((id) => !toDelete.includes(id))
+      credentialIdsByUser.set(userId, remaining)
+      return Promise.resolve(toDelete.length)
+    },
+
+    createEnrollment(enrollment) {
+      enrollments.set(enrollment.tokenHash, structuredClone(enrollment))
+      return Promise.resolve()
+    },
+
+    getEnrollment(tokenHash, nowSeconds) {
+      const enrollment = enrollments.get(tokenHash)
+      if (enrollment === undefined || enrollment.expiresAt <= nowSeconds) {
+        return Promise.resolve(null)
+      }
+      return Promise.resolve(structuredClone(enrollment))
+    },
+
+    consumeEnrollment(tokenHash, nowSeconds) {
+      const enrollment = enrollments.get(tokenHash)
+      if (enrollment === undefined) return Promise.resolve(null)
+      enrollments.delete(tokenHash)
+      if (enrollment.expiresAt <= nowSeconds) return Promise.resolve(null)
+      return Promise.resolve(structuredClone(enrollment))
+    },
+
+    deleteEnrollments(userId) {
+      for (const tokenHash of listEnrollmentsOf(userId)) {
+        enrollments.delete(tokenHash)
+      }
+      return Promise.resolve()
     }
   }
 }

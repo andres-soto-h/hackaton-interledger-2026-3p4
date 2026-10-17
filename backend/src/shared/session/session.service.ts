@@ -7,6 +7,8 @@ const AUDIENCE = 'tranqui-app'
 
 export interface SessionClaims {
   userId: string
+  /** The user's session version; `sv` claim, defaulting to 0 when absent. */
+  sessionVersion: number
   iat: number
   exp: number
 }
@@ -18,7 +20,8 @@ export interface Session {
 }
 
 export interface SessionService {
-  issue(userId: string): Session
+  /** Adds the `sv` claim only when `sessionVersion` is provided. */
+  issue(userId: string, sessionVersion?: number): Session
   /** Throws `AppError(401, 'SESSION_INVALID')` on any invalid token. */
   verify(token: string): SessionClaims
   isRecent(claims: SessionClaims, maxAgeSeconds: number): boolean
@@ -63,10 +66,17 @@ export function createSessionService({
   const nowSeconds = (): number => Math.floor(now() / 1000)
 
   return {
-    issue(userId) {
+    issue(userId, sessionVersion) {
       const iat = nowSeconds()
       const exp = iat + ttlSeconds
-      const payload = { sub: userId, iss: ISSUER, aud: AUDIENCE, iat, exp }
+      const payload = {
+        sub: userId,
+        iss: ISSUER,
+        aud: AUDIENCE,
+        iat,
+        exp,
+        ...(sessionVersion === undefined ? {} : { sv: sessionVersion })
+      }
 
       const header = base64url(JSON.stringify(HEADER))
       const body = base64url(JSON.stringify(payload))
@@ -103,14 +113,23 @@ export function createSessionService({
       if (typeof payload !== 'object' || payload === null) throw invalid()
       const claims = payload as Record<string, unknown>
 
-      const { sub, iss, aud, iat, exp } = claims
+      const { sub, iss, aud, iat, exp, sv } = claims
       if (typeof sub !== 'string' || sub.length === 0) throw invalid()
       if (iss !== ISSUER) throw invalid()
       if (aud !== AUDIENCE) throw invalid()
       if (typeof iat !== 'number' || typeof exp !== 'number') throw invalid()
       if (exp <= nowSeconds()) throw invalid()
 
-      return { userId: sub, iat, exp }
+      const sessionVersion = sv === undefined ? 0 : sv
+      if (
+        typeof sessionVersion !== 'number' ||
+        !Number.isInteger(sessionVersion) ||
+        sessionVersion < 0
+      ) {
+        throw invalid()
+      }
+
+      return { userId: sub, sessionVersion, iat, exp }
     },
 
     isRecent(claims, maxAgeSeconds) {
