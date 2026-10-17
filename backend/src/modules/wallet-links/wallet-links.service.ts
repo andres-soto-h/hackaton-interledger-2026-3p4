@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { OpenPaymentsGateway } from '../../integrations/open-payments/gateway.js'
 import { AppError } from '../../shared/errors/app-error.js'
+import type { ActivityEmitter } from '../../shared/activity/activity-emitter.js'
 import { newWalletLinkId } from '../../shared/ids/ids.js'
 import type { Logger } from '../../shared/logger.js'
 import { fromMinorUnits, toMinorUnits } from '../../shared/money/money.js'
@@ -71,6 +72,8 @@ export interface WalletLinksServiceDeps {
   timezone?: string
   tokenRefreshWindowSeconds?: number
   logger?: Pick<Logger, 'warn'>
+  /** Business activity emitter (spec 022); defaults to a no-op. */
+  activity?: ActivityEmitter
 }
 
 export function createWalletLinksService({
@@ -83,9 +86,11 @@ export function createWalletLinksService({
   linkAuthTtlSeconds = 600,
   timezone = 'America/Bogota',
   tokenRefreshWindowSeconds = 60,
-  logger
+  logger,
+  activity
 }: WalletLinksServiceDeps): WalletLinksService {
   const nowIso = (): string => new Date(now()).toISOString()
+  const emit: ActivityEmitter = activity ?? (() => Promise.resolve())
 
   const toStatusResult = (link: WalletLink): WalletLinkStatusResult => ({
     linkId: link.id,
@@ -130,6 +135,11 @@ export function createWalletLinksService({
       status: 'REVOKED',
       revokedAt: nowIso(),
       tokenCiphertext: undefined
+    })
+    await emit({
+      type: 'wallet_link.revoked',
+      level: 'warn',
+      message: 'Wallet link revoked'
     })
   }
 
@@ -176,6 +186,10 @@ export function createWalletLinksService({
       }
       throw error
     }
+    await emit({
+      type: 'wallet_link.token_rotated',
+      message: 'Wallet link token rotated'
+    })
     return rotated.accessToken
   }
 
@@ -255,6 +269,12 @@ export function createWalletLinksService({
       }
       await links.create(link)
 
+      await emit({
+        type: 'wallet_link.requested',
+        message: 'Wallet link requested',
+        data: { walletAddress: link.walletAddress }
+      })
+
       return {
         linkId,
         authorizationUrl: pending.interactRedirectUrl,
@@ -276,21 +296,44 @@ export function createWalletLinksService({
         throw new AppError(404, 'LINK_NOT_FOUND', 'Wallet link not found')
 
       if (link.status !== 'PENDING_AUTHORIZATION') {
+        await emit({
+          type: 'wallet_link.callback_invalid',
+          level: 'warn',
+          message: 'Wallet link callback invalid',
+          data: { reason: 'callback_repeated' }
+        })
         throw new AppError(409, 'CALLBACK_ALREADY_USED', 'Callback was already used')
       }
 
       const authorization = link.authorization
       if (authorization === undefined || Date.parse(authorization.expiresAt) < now()) {
         await links.update(linkId, { status: 'EXPIRED' })
+        await emit({
+          type: 'wallet_link.expired',
+          level: 'warn',
+          message: 'Wallet link authorization expired'
+        })
         throw new AppError(410, 'AUTHORIZATION_EXPIRED', 'Authorization expired')
       }
 
       if (result === 'grant_rejected') {
         await links.update(linkId, { status: 'REJECTED' })
+        await emit({
+          type: 'wallet_link.rejected',
+          level: 'warn',
+          message: 'Wallet link rejected',
+          data: { reason: 'grant_rejected' }
+        })
         return { linkId, status: 'REJECTED' }
       }
 
       if (interactRef === undefined || hash === undefined) {
+        await emit({
+          type: 'wallet_link.callback_invalid',
+          level: 'warn',
+          message: 'Wallet link callback invalid',
+          data: { reason: 'invalid_callback' }
+        })
         throw new AppError(400, 'CALLBACK_INVALID', 'Invalid callback')
       }
 
@@ -303,7 +346,15 @@ export function createWalletLinksService({
         },
         hash
       )
-      if (!valid) throw new AppError(400, 'CALLBACK_INVALID', 'Invalid callback')
+      if (!valid) {
+        await emit({
+          type: 'wallet_link.callback_invalid',
+          level: 'warn',
+          message: 'Wallet link callback invalid',
+          data: { reason: 'hash_mismatch' }
+        })
+        throw new AppError(400, 'CALLBACK_INVALID', 'Invalid callback')
+      }
 
       try {
         await links.update(
@@ -313,10 +364,22 @@ export function createWalletLinksService({
         )
       } catch (error) {
         if (error instanceof ConflictError) {
+          await emit({
+            type: 'wallet_link.callback_invalid',
+            level: 'warn',
+            message: 'Wallet link callback invalid',
+            data: { reason: 'callback_repeated' }
+          })
           throw new AppError(409, 'CALLBACK_ALREADY_USED', 'Callback was already used')
         }
         throw error
       }
+
+      await emit({
+        type: 'wallet_link.callback_received',
+        message: 'Wallet link callback received',
+        data: { walletAddress: link.walletAddress }
+      })
 
       let grantResult
       try {
@@ -328,6 +391,12 @@ export function createWalletLinksService({
       } catch (error) {
         if (error instanceof AppError && error.code === 'GRANT_NOT_FINALIZED') {
           await links.update(linkId, { status: 'REJECTED' })
+          await emit({
+            type: 'wallet_link.rejected',
+            level: 'warn',
+            message: 'Wallet link rejected',
+            data: { reason: 'grant_not_finalized' }
+          })
         }
         throw error
       }
@@ -349,6 +418,12 @@ export function createWalletLinksService({
           continueToken: link.continueToken
         })
         await links.update(linkId, { status: 'REJECTED' })
+        await emit({
+          type: 'wallet_link.rejected',
+          level: 'warn',
+          message: 'Wallet link rejected',
+          data: { reason: 'limits_mismatch' }
+        })
         throw new AppError(409, 'GRANT_LIMITS_MISMATCH', 'Grant limits do not match')
       }
 
@@ -369,6 +444,12 @@ export function createWalletLinksService({
           ? { tokenExpiresAt: grantResult.expiresAt.toISOString() }
           : {}),
         authorizedAt: nowIso()
+      })
+
+      await emit({
+        type: 'wallet_link.active',
+        message: 'Wallet link active',
+        data: { walletAddress: link.walletAddress }
       })
 
       return { linkId, status: 'ACTIVE' }

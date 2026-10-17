@@ -1,4 +1,5 @@
 import type { Logger } from '../../shared/logger.js'
+import type { ActivityEmitter } from '../../shared/activity/activity-emitter.js'
 import type {
   OpenPaymentsGateway,
   WalletAddress
@@ -46,6 +47,8 @@ export interface PaymentsServiceDeps {
   /** Milliseconds since the epoch. */
   now: () => number
   logger?: Pick<Logger, 'warn'>
+  /** Business activity emitter (spec 022); defaults to a no-op. */
+  activity?: ActivityEmitter
 }
 
 export interface QuoteResponse {
@@ -141,8 +144,11 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
     feeCollector,
     webauthn,
     now,
-    logger
+    logger,
+    activity
   } = deps
+
+  const emit: ActivityEmitter = activity ?? (() => Promise.resolve())
 
   const nowSeconds = (): number => Math.floor(now() / 1000)
   const iso = (): string => new Date(now()).toISOString()
@@ -266,6 +272,11 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       toMinorUnits(allowance.available.value, link.assetScale)
     )
     if (totalMinor > availableMinor) {
+      await emit({
+        type: 'payment.daily_limit_exceeded',
+        level: 'warn',
+        message: 'Daily limit exceeded'
+      })
       throw new AppError(422, 'DAILY_LIMIT_EXCEEDED', 'Daily limit exceeded')
     }
 
@@ -299,6 +310,17 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       expiresAt: Math.floor(quoteExpiresAt.getTime() / 1000)
     }
     await payments.createPayment(payment)
+
+    await emit({
+      type: 'payment.quoted',
+      paymentId,
+      message: `Quote: ${debitAmount.value} ${debitAmount.assetCode}`,
+      data: {
+        debitAmount: `${debitAmount.value} ${debitAmount.assetCode}`,
+        receiveAmount: `${receiveAmount.value} ${receiveAmount.assetCode}`,
+        rate: exchangeRate(debitAmount, receiveAmount)
+      }
+    })
 
     return {
       paymentId,
@@ -381,6 +403,12 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
         { status: 'EXPIRED' },
         { expectedStatus: 'AWAITING_CONFIRMATION' }
       )
+      await emit({
+        type: 'payment.expired',
+        level: 'warn',
+        paymentId,
+        message: 'Quote expired'
+      })
       throw quoteExpired()
     }
 
@@ -452,6 +480,12 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
           { status: 'AWAITING_CONFIRMATION', expiresAt: quoteExpiresSeconds },
           { expectedStatus: 'PROCESSING' }
         )
+        await emit({
+          type: 'payment.daily_limit_exceeded',
+          level: 'warn',
+          paymentId,
+          message: 'Daily limit exceeded'
+        })
       }
       throw error
     }
@@ -461,6 +495,12 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       { reservedAmount: taken.totalDebit },
       { expectedStatus: 'PROCESSING' }
     )
+
+    await emit({
+      type: 'payment.confirmed',
+      paymentId,
+      message: `Confirmed: ${taken.totalDebit.value} ${taken.totalDebit.assetCode}`
+    })
 
     let sender: WalletAddress
     let outgoingId: string
@@ -498,6 +538,12 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
       throw apiError
     }
 
+    await emit({
+      type: 'payment.outgoing_created',
+      paymentId,
+      message: 'Outgoing payment created'
+    })
+
     const updatedPayment = await payments.updatePayment(
       paymentId,
       { outgoingPaymentUrl: outgoingId },
@@ -523,6 +569,12 @@ export function createPaymentsService(deps: PaymentsServiceDeps): PaymentsServic
         { status: 'CANCELLED' },
         { expectedStatus: 'AWAITING_CONFIRMATION' }
       )
+      await emit({
+        type: 'payment.cancelled',
+        level: 'warn',
+        paymentId,
+        message: 'Payment cancelled'
+      })
       return
     }
     throw notCancellable()

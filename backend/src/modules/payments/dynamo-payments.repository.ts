@@ -3,6 +3,7 @@ import {
   GetCommand,
   PutCommand,
   QueryCommand,
+  ScanCommand,
   UpdateCommand,
   type DynamoDBDocumentClient
 } from '@aws-sdk/lib-dynamodb'
@@ -25,6 +26,20 @@ type IndexName = 'bySender' | 'byReceiver'
 interface Position {
   createdAt: string
   id: string
+}
+
+/** Opaque cursor for `listAllPayments` (same `createdAt`+`id` format as memory). */
+const encodeListAllCursor = (position: Position): string =>
+  Buffer.from(JSON.stringify(position)).toString('base64')
+
+const decodeListAllCursor = (cursor: string): Position =>
+  JSON.parse(Buffer.from(cursor, 'base64').toString('utf8')) as Position
+
+/** `true` if `item` sits at the cursor position or earlier in newest-first order. */
+const isAtOrAfter = (item: Position, cursor: Position): boolean => {
+  if (item.createdAt > cursor.createdAt) return true
+  if (item.createdAt < cursor.createdAt) return false
+  return item.id >= cursor.id
 }
 
 /**
@@ -406,6 +421,64 @@ export function createDynamoPaymentsRepository({
       }
 
       return { items, nextCursor: encodeCursor(nextCursor) }
+    },
+
+    async listAllPayments(q) {
+      // Panel-only listing (spec 022). A full `Scan` is acceptable here: the
+      // admin panel is low traffic and this keeps the pagination stable. It
+      // reads every payment (filtering out requests by id prefix), sorts by
+      // `createdAt` descending (ties broken by descending `id`) and pages in
+      // memory with the same opaque cursor format as the in-memory repository.
+      const names: Record<string, string> = { '#id': 'id' }
+      const values: Record<string, unknown> = { ':prefix': 'pay_' }
+      const filterParts: string[] = ['begins_with(#id, :prefix)']
+      if (q.status !== undefined) {
+        names['#status'] = 'status'
+        values[':status'] = q.status
+        filterParts.push('#status = :status')
+      }
+
+      const all: Payment[] = []
+      let lastEvaluatedKey: Record<string, unknown> | undefined
+      do {
+        const result = await client.send(
+          new ScanCommand({
+            TableName: tableName,
+            FilterExpression: filterParts.join(' AND '),
+            ExpressionAttributeNames: names,
+            ExpressionAttributeValues: values,
+            ...(lastEvaluatedKey !== undefined
+              ? { ExclusiveStartKey: lastEvaluatedKey }
+              : {})
+          })
+        )
+        all.push(...((result.Items ?? []) as Payment[]))
+        lastEvaluatedKey = result.LastEvaluatedKey
+      } while (lastEvaluatedKey !== undefined)
+
+      all.sort(compare)
+
+      let startIndex = 0
+      if (q.cursor !== undefined) {
+        const cursor = decodeListAllCursor(q.cursor)
+        while (startIndex < all.length && isAtOrAfter(all[startIndex]!, cursor)) {
+          startIndex++
+        }
+      }
+
+      const page = all.slice(startIndex, startIndex + q.limit)
+      const hasMore = startIndex + q.limit < all.length
+
+      if (!hasMore) {
+        return { items: page }
+      }
+      return {
+        items: page,
+        nextCursor: encodeListAllCursor({
+          createdAt: page.at(-1)!.createdAt,
+          id: page.at(-1)!.id
+        })
+      }
     }
   }
 }

@@ -161,7 +161,7 @@ describe('eventos de cuentas', () => {
     const res = await request(auth.app)
       .post('/api/v1/auth/register/verify')
       .send({ challengeId: options.challengeId, credential: { id: 'cred-1' } })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(201)
     const event = (await eventsOf(activityLog)).find((e) => e.type === 'user.registered')
     expect(event?.data).toEqual({ userId: bodyOf<{ user: { id: string } }>(res).user.id })
   })
