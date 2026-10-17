@@ -10,7 +10,7 @@
 
 ## Estado
 
-4 / 7 tareas completadas (tipos, IDs, puerto + contrato e implementación en memoria; 62 tests en verde en la rama `spec/004`, pendiente de integrar). Siguen la implementación DynamoDB y `pnpm test:dynamo` con DynamoDB Local en Colima. Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 003 (worker de DeepSeek, rama `spec/004`). Ajustado el 2026-10-16 por el monto diario
+6 / 7 tareas completadas en la rama `spec/004` (62 tests + 17 contra DynamoDB Local en verde). Falta integrar en la rama de trabajo y correr la suite completa (tarea 7). Desarrollo aprobado el 2026-10-16; se desarrolla en paralelo con los specs 002 y 003 (worker de DeepSeek, rama `spec/004`). Ajustado el 2026-10-16 por el monto diario
 preaprobado (spec 023) y la comisión (spec 024); Cambios aprobados el 2026-10-16. Depende del spec 001.
 
 **Qué cambió respecto a la versión aprobada:** el pago ya no guarda datos de
@@ -121,8 +121,8 @@ con `pnpm test:dynamo` (requiere un runtime de contenedores: Colima + `nerdctl` 
 2. [x] Generador de IDs: caso 9.
 3. [x] Puerto `PaymentsRepository` y tests de contrato (casos 1–8) en rojo.
 4. [x] Implementación en memoria hasta pasar el contrato.
-5. [ ] Implementación DynamoDB hasta pasar el contrato contra DynamoDB Local.
-6. [ ] Script `pnpm test:dynamo` y documentación.
+5. [x] Implementación DynamoDB hasta pasar el contrato contra DynamoDB Local.
+6. [x] Script `pnpm test:dynamo` y documentación.
 7. [ ] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones

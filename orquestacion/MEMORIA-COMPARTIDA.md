@@ -30,6 +30,14 @@ Formato:
 
 ## Decisiones
 
+### 2026-10-16 · Autopagos y paginación con direction=all
+- Origen: spec 004 (worker)
+- Afecta: specs 004, 007, 008
+- Decisión: un pago con emisor = receptor podría repetirse entre páginas de
+  `listByWallet` con `direction: 'all'` en DynamoDB (aparece en ambos índices). Se
+  acepta por ahora; el 007 debe rechazar pagos a la propia wallet.
+- Acción para los demás: el 007 valida emisor ≠ receptor.
+
 ### 2026-10-16 · Formato del secreto `token-encryption-key` (PENDIENTE de confirmar por el responsable)
 - Origen: spec 002 (orquestador)
 - Afecta: specs 002, 023 · `backend/infra/lib/backend-stack.ts`, cifrado de tokens
