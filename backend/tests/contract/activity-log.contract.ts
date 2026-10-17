@@ -11,11 +11,14 @@ interface Harness {
 }
 
 /** Contract every `ActivityLog` implementation must pass (casos 14 y 15 del spec 020). */
-export function runActivityLogContract(name: string, make: () => Harness): void {
+export function runActivityLogContract(
+  name: string,
+  make: () => Harness | Promise<Harness>
+): void {
   describe(`ActivityLog (${name})`, () => {
     let h: Harness
-    beforeEach(() => {
-      h = make()
+    beforeEach(async () => {
+      h = await make()
     })
 
     it('guarda un evento con id evt_, fecha ISO, nivel por defecto info y TTL de 7 días', async () => {

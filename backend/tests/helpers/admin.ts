@@ -1,5 +1,9 @@
 import type { Express } from 'express'
 import request from 'supertest'
+import type {
+  OpenPaymentsStatusChecker,
+  PaymentsSummaryProvider
+} from '../../src/modules/admin/home-summary.js'
 import { createAdminRouter } from '../../src/modules/admin/admin.routes.js'
 import { createInMemoryActivityLog } from '../../src/shared/activity/in-memory-activity-log.js'
 import type { EditableSettings } from '../../src/shared/settings/editable-settings.js'
@@ -24,6 +28,8 @@ export const DEFAULT_SETTINGS: EditableSettings = {
 }
 
 export interface HarnessOptions {
+  paymentsSummary?: PaymentsSummaryProvider
+  openPaymentsStatus?: OpenPaymentsStatusChecker
   enabled?: boolean
   defaults?: Partial<EditableSettings>
 }
@@ -45,6 +51,8 @@ export function buildAdminHarness(options: HarnessOptions = {}) {
     settings,
     settingsStore,
     activityLog,
+    paymentsSummary: options.paymentsSummary,
+    openPaymentsStatus: options.openPaymentsStatus,
     now
   })
   const app: Express = buildTestApp([router])

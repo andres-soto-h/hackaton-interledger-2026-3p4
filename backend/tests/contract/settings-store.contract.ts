@@ -5,11 +5,14 @@ import {
 } from '../../src/shared/settings/editable-settings.js'
 
 /** Contract every `SettingsStore` implementation must pass (caso 13 del spec 020). */
-export function runSettingsStoreContract(name: string, make: () => SettingsStore): void {
+export function runSettingsStoreContract(
+  name: string,
+  make: () => SettingsStore | Promise<SettingsStore>
+): void {
   describe(`SettingsStore (${name})`, () => {
     let store: SettingsStore
-    beforeEach(() => {
-      store = make()
+    beforeEach(async () => {
+      store = await make()
     })
 
     it('sin registro devuelve null', async () => {
