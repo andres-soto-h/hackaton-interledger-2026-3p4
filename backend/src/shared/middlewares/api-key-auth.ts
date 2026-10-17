@@ -5,6 +5,19 @@ import { AppError } from '../errors/app-error.js'
 /** `GET` routes that do not require the API key. */
 const PUBLIC_GET_PATHS = new Set(['/health', '/api/v1/auth/callback'])
 
+/**
+ * Exact `METHOD path` routes that use their own auth (WebAuthn challenges and
+ * the account session via `userAuth`) instead of the API key.
+ */
+const PUBLIC_ROUTES = new Set([
+  'POST /api/v1/auth/register/options',
+  'POST /api/v1/auth/register/verify',
+  'POST /api/v1/auth/login/options',
+  'POST /api/v1/auth/login/verify',
+  'GET /api/v1/me',
+  'DELETE /api/v1/me'
+])
+
 // Hashing both values gives equal-length buffers, so the comparison takes the
 // same time whatever the length of the received key.
 const digest = (value: string): Buffer => createHash('sha256').update(value).digest()
@@ -17,7 +30,10 @@ export function apiKeyAuth(expectedApiKey: string): RequestHandler {
   const expected = digest(expectedApiKey)
 
   return (req, _res, next) => {
-    if (req.method === 'GET' && PUBLIC_GET_PATHS.has(req.path)) {
+    if (
+      (req.method === 'GET' && PUBLIC_GET_PATHS.has(req.path)) ||
+      PUBLIC_ROUTES.has(`${req.method} ${req.path}`)
+    ) {
       next()
       return
     }
