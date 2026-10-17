@@ -2,11 +2,11 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | 2026-10-17 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
@@ -117,13 +117,13 @@ por nombre o wallet en la Lambda. Si crece, se agrega un índice por wallet.
 
 ## Tareas
 
-1. [ ] Métodos nuevos de `UsersRepository` (lista, actualizar, `sessionVersion`) en ambas implementaciones.
-2. [ ] Enlace de registro y extensión de `register/options` (caso 3).
-3. [ ] Lista, búsqueda y detalle (casos 1 y 9).
-4. [ ] Crear, editar, bloquear y borrar (casos 2, 4, 5 y 7).
-5. [ ] Restablecer acceso y corte de sesiones (caso 6).
-6. [ ] Eventos de auditoría y protección de rutas (casos 8 y 10).
-7. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Métodos nuevos de `UsersRepository` (lista, actualizar, `sessionVersion`) en ambas implementaciones.
+2. [x] Enlace de registro y extensión de `register/options` (caso 3).
+3. [x] Lista, búsqueda y detalle (casos 1 y 9).
+4. [x] Crear, editar, bloquear y borrar (casos 2, 4, 5 y 7).
+5. [x] Restablecer acceso y corte de sesiones (caso 6).
+6. [x] Eventos de auditoría y protección de rutas (casos 8 y 10).
+7. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones
 
