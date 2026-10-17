@@ -68,7 +68,10 @@ export const incomingPaymentBody = (receivedValue = '0') => ({
   completed: false,
   createdAt: CREATED_AT,
   expiresAt: '2026-10-16T11:00:00.000Z',
-  metadata: { description: 'Order 42' }
+  metadata: { description: 'Order 42' },
+  methods: [
+    { type: 'ilp', ilpAddress: 'test.shop.ip1', sharedSecret: 'c2hhcmVkLXNlY3JldA' }
+  ]
 })
 
 export const quoteBody = () => ({

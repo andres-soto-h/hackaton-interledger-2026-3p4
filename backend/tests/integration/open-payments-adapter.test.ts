@@ -49,7 +49,7 @@ describe('Open Payments adapter', () => {
 
   beforeAll(() => {
     privateKey = generateKeyPairSync('ed25519').privateKey
-    server.listen({ onUnhandledRequest: 'error' })
+    server.listen({ onUnhandledFrame: 'error' })
   })
   afterAll(() => server.close())
   beforeEach(async () => {
@@ -188,7 +188,11 @@ describe('Open Payments adapter', () => {
           return HttpResponse.json(
             grantBody(
               accessTokenBody('out-token', 'https://auth.sender.test/token/t3', [
-                { type: 'outgoing-payment', actions: ['create', 'read'] }
+                {
+                  type: 'outgoing-payment',
+                  actions: ['create', 'read'],
+                  identifier: SENDER.id
+                }
               ]),
               'https://auth.sender.test/continue/c2'
             )
@@ -310,7 +314,13 @@ describe('Open Payments adapter', () => {
             access_token: accessTokenBody(
               'new-token',
               'https://auth.sender.test/token/t4',
-              [{ type: 'outgoing-payment', actions: ['create', 'read'] }]
+              [
+                {
+                  type: 'outgoing-payment',
+                  actions: ['create', 'read'],
+                  identifier: SENDER.id
+                }
+              ]
             )
           })
         })
