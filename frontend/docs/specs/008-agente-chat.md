@@ -17,9 +17,10 @@
 El usuario le pide a TuTranqui lo que quiere pagar en sus palabras ("pague la
 luz de EPM, son 86.400") y el agente de IA lo resuelve con sus tools: busca el
 comercio, prepara el pago y consulta su estado (mockups 3.3 – 3.6). El agente
-actúa a nombre del usuario, pero **no puede aprobar**: cuando prepara un pago,
-la app muestra una tarjeta de confirmación y el usuario lo aprueba en su wallet
-con el mismo flujo de los specs 006 y 007. Este spec es la interfaz de chat; la
+actúa a nombre del usuario, pero **no puede confirmar**: cuando prepara un
+pago, la app muestra una tarjeta y el usuario lo confirma **directamente en la
+app con su passkey**, sin ir a la wallet, con el mismo flujo de los specs 006 y
+007. El permiso de la wallet se dio una sola vez al registrarse (spec 003). Este spec es la interfaz de chat; la
 voz se agrega en el 009 sobre la misma conversación.
 
 ## Alcance
@@ -29,7 +30,7 @@ voz se agrega en el 009 sobre la misma conversación.
 - Envío de mensajes a `POST /api/v1/agent/messages` y render de la respuesta.
 - Render de **acciones** que devuelve el agente:
   - `choose_merchant`: opciones de comercio para que el usuario escoja (el agente no adivina).
-  - `confirm_payment`: tarjeta con el resumen del pago y "Revisar y aprobar" → confirmación (006).
+  - `confirm_payment`: tarjeta con el resumen del pago y "Revisar y confirmar" → confirmación con passkey (006).
   - `payment_status`: tarjeta con el estado de un pago y enlace al detalle.
 - Al volver del resultado (007), la conversación muestra la tarjeta de estado del pago.
 - Conversación en memoria durante la sesión; se puede empezar una nueva.
@@ -45,8 +46,8 @@ voz se agrega en el 009 sobre la misma conversación.
 - **Dado** el inicio, **cuando** toca "Toque y dígame qué pagar", **entonces** abre el chat con un saludo y ejemplos ("Pague la luz", "¿Cuánto pagué este mes?").
 - **Dado** un mensaje, **cuando** lo envía, **entonces** aparece de inmediato como "Usted dijo", se muestra "escribiendo…" y luego la respuesta del agente.
 - **Dado** que el agente devuelve `choose_merchant`, **cuando** se muestra, **entonces** el usuario ve las opciones como botones y, al tocar una, se envía su elección como mensaje.
-- **Dado** que el agente devuelve `confirm_payment` con un `paymentId`, **cuando** se muestra, **entonces** ve la tarjeta con comercio, total y "Revisar y aprobar"; al tocarla va a la confirmación (006) de ese pago.
-- **Dado** una tarjeta de confirmación, **cuando** el usuario no la toca, **entonces** el pago no se aprueba nunca (la app no abre la wallet por su cuenta).
+- **Dado** que el agente devuelve `confirm_payment` con un `paymentId`, **cuando** se muestra, **entonces** ve la tarjeta con comercio, comisión, total y "Revisar y confirmar"; al tocarla va a la confirmación (006) de ese pago, donde confirma con su passkey.
+- **Dado** una tarjeta de confirmación, **cuando** el usuario no la toca, **entonces** el pago nunca se confirma: queda esperando y vence solo (el agente no puede firmar con el passkey).
 - **Dado** que el usuario vuelve del resultado (007), **cuando** regresa al chat, **entonces** ve la tarjeta `payment_status` con el estado final.
 - **Dado** que el agente tarda más de 30 s o falla, **cuando** ocurre, **entonces** ve "No pude responder. ¿Lo intentamos de nuevo?" con reintento, sin perder el mensaje.
 - **Dado** texto del agente con HTML, markdown o enlaces, **cuando** se muestra, **entonces** se muestra como texto plano (no se interpreta ni se abre).
@@ -77,7 +78,7 @@ POST /api/v1/agent/messages
 
 - Las tools del agente (definidas del lado del agente) son: buscar comercios,
   crear pago (`POST /payments` con la wallet del usuario en sesión), consultar
-  pago y listar transacciones. **No hay tool de aprobación.**
+  pago, cancelar un pago y listar transacciones. **No hay tool de confirmación**: confirmar exige la firma del passkey del usuario (backend 007).
 - El agente recibe el token del usuario a través del backend; la app nunca le
   pasa credenciales ni el PIN.
 - Para `confirm_payment`, la app pide `GET /payments/{id}` y muestra la tarjeta
@@ -106,10 +107,10 @@ en un reducer testeable. Al volver del 007, el resultado agrega una acción
 | 1 | unit | Reducer: enviar, respuesta, error, reintento, reset | Mensajes y estados correctos; el mensaje fallido se conserva |
 | 2 | unit | Parser de acciones: tipos conocidos, desconocidos, mal formados | Conocidos tipados; el resto se ignora sin romper |
 | 3 | component | `AgentBubble` con HTML y enlaces en el texto | Se muestran literales; nada clicable |
-| 4 | component | `PaymentProposalCard` con datos de `GET /payments/{id}` | Comercio y total de la API; "Revisar y aprobar" accesible |
+| 4 | component | `PaymentProposalCard` con datos de `GET /payments/{id}` | Comercio, comisión y total de la API; "Revisar y confirmar" accesible |
 | 5 | integration | Conversación: mensaje → respuesta | `POST /agent/messages` con `conversationId` a partir del segundo mensaje |
 | 6 | integration | `choose_merchant` → toca opción | Envía la elección como mensaje |
-| 7 | integration | `confirm_payment` → "Revisar y aprobar" | Navega a la confirmación (006) con el `paymentId`; nunca abre la wallet sola |
+| 7 | integration | `confirm_payment` → "Revisar y confirmar" | Navega a la confirmación (006) con el `paymentId`; sin `POST /confirm` hasta que el usuario use su passkey |
 | 8 | integration | Vuelve del resultado | Aparece `PaymentStatusCard` con el estado final |
 | 9 | integration | Timeout del agente y reintento | Mensaje de error; reintento reenvía el mismo texto |
 | 10 | integration | Validación del campo (vacío, > 500) | No envía |

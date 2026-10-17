@@ -22,7 +22,7 @@ Muchas personas prefieren hablar que escribir (mockups 3.1 – 3.2: "Toque y
 dígame qué pagar", "Le estoy escuchando"). Este spec agrega voz a la
 conversación del spec 008: el usuario le habla al agente y la respuesta del
 agente se escucha en voz alta. La voz **no aprueba pagos**: decir "sí" puede
-llevar a la confirmación, pero la aprobación sigue siendo en la wallet
+llevar a la confirmación, pero el pago solo se confirma con el passkey en la app
 ([PLAN.md](../PLAN.md#seguridad)).
 
 ## Alcance
@@ -37,7 +37,7 @@ llevar a la confirmación, pero la aprobación sigue siendo en la wallet
 
 **No incluye**
 - Palabra de activación ("Oye TuTranqui").
-- Aprobar pagos por voz.
+- Confirmar pagos por voz.
 
 ## Criterios de aceptación
 
@@ -47,7 +47,7 @@ llevar a la confirmación, pero la aprobación sigue siendo en la wallet
 - **Dado** el permiso negado, **cuando** toca el micrófono, **entonces** ve cómo activarlo y puede escribir en su lugar.
 - **Dado** que la voz no está disponible (navegador o dispositivo sin soporte, sin conexión con el servicio), **cuando** abre el chat, **entonces** el micrófono no aparece y se usa solo texto.
 - **Dado** una respuesta del agente, **cuando** llega y la voz está activa, **entonces** se escucha en español; si el usuario empieza a hablar o toca "Parar", se detiene.
-- **Dado** que el agente propone un pago y el usuario dice "sí", **cuando** el agente responde, **entonces** como máximo se navega a la confirmación (006); el pago solo se aprueba en la wallet.
+- **Dado** que el agente propone un pago y el usuario dice "sí", **cuando** el agente responde, **entonces** como máximo se navega a la confirmación (006); el pago solo se confirma con el passkey.
 - **Dado** "Repítamelo" en la confirmación, **cuando** lo toca, **entonces** se vuelve a escuchar el resumen del pago.
 
 ## Diseño
@@ -61,7 +61,7 @@ llevar a la confirmación, pero la aprobación sigue siendo en la wallet
 - **Se mantiene del plan:** las credenciales de Google Cloud nunca van en la
   app (todo lo que va en el bundle es público); si el SDK necesita conectarse
   directo desde el cliente, se usa un token de corta vida emitido por el
-  backend. La app sigue sin poder aprobar pagos.
+  backend. Ni la voz ni el agente pueden confirmar pagos.
 - **Se mantiene para los tests:** la voz se usa detrás de una interfaz propia
   (entrada y salida de voz) para que los tests usen fakes, sin micrófono ni
   audio.

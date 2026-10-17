@@ -1,4 +1,4 @@
-# 006 — Confirmación y aprobación del pago
+# 006 — Confirmación del pago
 
 | Campo | Valor |
 |---|---|
@@ -10,41 +10,53 @@
 
 ## Estado
 
-0 / 6 tareas completadas. Spec en borrador, pendiente de aprobación.
+0 / 7 tareas completadas. Spec en borrador, pendiente de aprobación.
+
+> 2026-10-16: el usuario **ya no aprueba cada pago en su wallet**. Aprueba una
+> sola vez al vincular la wallet en el registro (spec 003, backend 023) y cada
+> pago lo confirma **en la app con su passkey**. Si la prueba de la tarea 1
+> muestra que el pago sin autorización desde la wallet no funciona, este spec y
+> el backend se ajustan.
 
 ## Contexto
 
-Antes de que se mueva un peso, el usuario ve exactamente cuánto paga, a quién y
-desde dónde (mockups 1.7, 2.4, 3.5: "Revisar y decir sí"). Si está de acuerdo,
-la app lo lleva a **su wallet** para aprobar el débito (grant interactivo de
-Open Payments, mockup 1.3). La app y el agente nunca aprueban: solo el usuario,
-en su proveedor de wallet ([PLAN.md](../PLAN.md#seguridad)). La misma pantalla
-la usan los pagos manuales (005) y los que prepara el agente (008).
+Antes de que se mueva un peso, el usuario ve exactamente cuánto paga, a quién,
+la comisión y cuánto le queda del monto diario (mockups 1.7, 2.4, 3.5: "Revisar
+y decir sí"). Si está de acuerdo, confirma con su passkey (huella o desbloqueo
+del dispositivo) y el pago sale con el permiso que dio al vincular la wallet,
+sin ir a la wallet ("Sí, sin volver a autorizar", mockup 2.4). El passkey exige
+que el usuario esté presente: ni el agente ni alguien con la sesión pueden
+confirmar por él. La misma pantalla la usan los pagos manuales (005) y los que
+prepara el agente (008). Contrato en el
+[backend 007](../../../backend/docs/specs/007-pago-y-autorizacion.md#confirmación-con-passkey).
 
 ## Alcance
 
 **Incluye**
-- Pantalla de confirmación del pago a partir de la respuesta de `POST /payments` (o de `GET /payments/{id}` si se abre de nuevo).
-- Desglose: le paga a, valor que recibe el comercio, costo del pago (comisiones del quote), comisión TuTranqui (si la API la devuelve), sale de (wallet del usuario), total que sale; tasa de cambio si las monedas son distintas.
-- Mensaje hablado del resumen (texto accesible con `toSpokenAmount`; lo lee la voz en 009).
-- Cuenta regresiva hasta que vence la autorización; al vencer se deshabilita "Sí, pagar".
-- "Sí, pagar": abre la `authorizationUrl` en la wallet (web: misma pestaña; Android: `expo-web-browser`).
-- "Repítamelo" (vuelve a anunciar el resumen) y "No pagar" (vuelve al inicio; el pago queda pendiente y vence solo).
+- Pantalla de confirmación a partir de la respuesta de `POST /payments` (o de `GET /payments/{id}` si se abre de nuevo).
+- Desglose: le paga a, valor que recibe, tasa de cambio (si las monedas son distintas), comisión TuTranqui, total que sale y cuánto le queda del monto diario después del pago.
+- Mensaje hablado del resumen (texto accesible con `toSpokenAmount`; lo usa la voz del spec 009).
+- Cuenta regresiva hasta `confirmBy`; al vencer se deshabilita la confirmación.
+- "Sí, pagar": desafío de confirmación → passkey → `POST /payments/{id}/confirm` → resultado (007).
+- "Repítamelo" (vuelve a anunciar el resumen) y "No pagar" (`POST /payments/{id}/cancel` y vuelve al inicio).
 
 **No incluye**
-- El resultado después de aprobar (spec 007).
-- Cancelar el pago en el backend (no existe endpoint; vence por TTL).
+- El resultado después de confirmar (spec 007).
+- Abrir la wallet para aprobar el pago (ya no hace falta).
 
 ## Criterios de aceptación
 
-- **Dado** un pago `PENDING_AUTHORIZATION`, **cuando** abre la confirmación, **entonces** ve el comercio, el valor que recibe, el costo del pago, la wallet de origen y el total que sale, todos con su moneda.
-- **Dado** `debitAmount` en COP y `receiveAmount` en USD, **cuando** se muestra, **entonces** también ve la tasa ("Dólar de hoy $3.950") calculada sin `Number` y con aviso de que vale hasta que vence.
-- **Dado** el lector de pantalla, **cuando** entra, **entonces** se anuncia "La factura es de ochenta y seis mil cuatrocientos pesos… ¿Hacemos el pago?".
-- **Dado** "Sí, pagar" en web, **cuando** lo toca, **entonces** el navegador va a la `authorizationUrl` (solo si es `https`).
-- **Dado** "Sí, pagar" en Android, **cuando** lo toca, **entonces** se abre la wallet en el navegador del sistema y, al cerrarse, la app va al resultado (007) con el `paymentId`.
-- **Dado** que faltan menos de 60 s, **cuando** se muestra, **entonces** la cuenta regresiva se resalta; al llegar a 0, "Sí, pagar" queda deshabilitado y ve "Se venció el tiempo. Prepare el pago otra vez".
-- **Dado** un pago que ya no está `PENDING_AUTHORIZATION`, **cuando** abre la confirmación (p. ej. con el botón atrás), **entonces** se redirige al resultado.
-- **Dado** "No pagar", **cuando** lo toca, **entonces** vuelve al inicio y no se abre la wallet.
+- **Dado** un pago `AWAITING_CONFIRMATION`, **cuando** abre la confirmación, **entonces** ve el comercio, el valor que recibe, la comisión, el total y "Le quedan <disponible> de su monto de hoy", todos con su moneda.
+- **Dado** monedas distintas, **cuando** se muestra, **entonces** también ve la tasa (`quote.exchangeRate`) con aviso de que vale hasta que vence.
+- **Dado** el lector de pantalla, **cuando** entra, **entonces** se anuncia "La factura es de ochenta y seis mil cuatrocientos pesos, más un peso de comisión. ¿Hacemos el pago?".
+- **Dado** "Sí, pagar", **cuando** confirma con su passkey, **entonces** se llama `confirm/options` y luego `confirm` con `challengeId` y la firma, y al recibir `202 PROCESSING` va al resultado (007).
+- **Dado** que cancela el diálogo del passkey, **cuando** vuelve, **entonces** sigue en la confirmación y el pago no se hace.
+- **Dado** `422 DAILY_LIMIT_EXCEEDED`, **cuando** confirma, **entonces** ve "Este pago pasa su monto de hoy" con cuánto le queda; no se debita nada.
+- **Dado** `410 QUOTE_EXPIRED` o que llega a 0 la cuenta regresiva, **cuando** ocurre, **entonces** ve "Se venció el tiempo. Prepare el pago otra vez".
+- **Dado** `400 CHALLENGE_EXPIRED` o `PASSKEY_VERIFICATION_FAILED`, **cuando** ocurre, **entonces** puede reintentar la confirmación.
+- **Dado** `403 WALLET_NOT_LINKED` o `409 WALLET_LINK_REVOKED`, **cuando** ocurre, **entonces** ve que debe vincular su wallet otra vez y un botón a la vinculación (spec 003).
+- **Dado** un pago que ya no está `AWAITING_CONFIRMATION` (`409 PAYMENT_NOT_CONFIRMABLE` o al abrir), **cuando** se muestra, **entonces** se redirige al resultado.
+- **Dado** "No pagar", **cuando** lo toca, **entonces** el pago se cancela y vuelve al inicio.
 
 ## Diseño
 
@@ -55,64 +67,57 @@ la usan los pagos manuales (005) y los que prepara el agente (008).
 ### Datos
 
 Toma el pago de la caché (lo dejó 005 o 008); si no está, `usePayment(paymentId)`.
+Respuesta de `POST /payments` (backend 007):
+`{ paymentId, status, confirmBy, quote: { debitAmount, receiveAmount, exchangeRate, fee, totalDebit }, allowance: { dailyLimit, availableAfter } }`.
 
 | Fila | Campo de la API |
 |---|---|
 | Le paga a | Nombre del comercio + `description` |
 | Recibe | `quote.receiveAmount` |
-| Costo del pago | `quote.debitAmount − quote.receiveAmount` si son de la misma moneda; si no, no se muestra por separado |
-| Tasa | `debitAmount / receiveAmount` con aritmética de enteros (unidad mínima) |
-| Comisión TuTranqui | Campo que defina el spec de comisión del backend (p. ej. `fee`); si no viene, la fila no se muestra |
-| Sale de | Wallet del usuario (sesión) |
-| Total | `quote.debitAmount` |
-| Vence | `min(quote.expiresAt, authorizationExpiresAt)` (lo que devuelva el backend 007) |
+| Tasa | `quote.exchangeRate` (solo si las monedas son distintas) |
+| Comisión TuTranqui | `quote.fee` (con `percentage`) |
+| Total | `quote.totalDebit` |
+| Le queda hoy | `allowance.availableAfter` de `allowance.dailyLimit` |
+| Vence | `confirmBy` |
 
-### Abrir la wallet
+### Confirmar
 
-`openAuthorization(url, paymentId)` en `src/features/payments/authorization.ts`,
-con implementación por plataforma:
+`confirmPayment(paymentId)` en `src/features/payments/confirm.ts`:
 
-- **Web:** `window.location.assign(url)`. El backend vuelve a
-  `FRONTEND_RESULT_URL` (`https://<app>/pagos/resultado`) con `paymentId` y `status`.
-- **Android:** `WebBrowser.openAuthSessionAsync(url, <FRONTEND_RESULT_URL>)`;
-  al cerrarse (por redirect o porque el usuario volvió), navega a
-  `/pagos/resultado?paymentId=…` y el 007 consulta el estado por polling
-  (decisión 4 del [PLAN](../PLAN.md#decisiones-del-plan)).
-- Rechaza URLs que no sean `https`.
+1. `POST /payments/{id}/confirm/options` → opciones de WebAuthn + `challengeId`.
+2. `getPasskeyAssertion(options)` (módulo del spec 002).
+3. `POST /payments/{id}/confirm` `{ challengeId, credential }` con `Idempotency-Key`.
+4. `202 { status: "PROCESSING" }` → navegar a `/pagos/resultado/[paymentId]`.
 
 ## Casos de prueba
 
 | # | Tipo | Caso | Resultado esperado |
 |---|---|---|---|
-| 1 | unit | Desglose: misma moneda (costo = débito − recibido) y monedas distintas (tasa) | Valores exactos con strings; sin `Number` |
-| 2 | unit | Texto hablado del resumen | Frase esperada con montos en palabras |
-| 3 | unit | `openAuthorization` web / Android (mocks de `window.location` y `expo-web-browser`); URL `http` | Llama a la API de la plataforma; `http` rechazada |
+| 1 | unit | Desglose: misma moneda y monedas distintas; con comisión | Filas exactas con strings; sin `Number` |
+| 2 | unit | Texto hablado del resumen con comisión | Frase esperada con montos en palabras |
+| 3 | unit | `confirmPayment` con fake de passkeys: éxito, cancelación, cada error | Llamadas en orden; errores traducidos |
 | 4 | unit | Cuenta regresiva con reloj falso | Resalta < 60 s; vence en 0 |
-| 5 | integration | Confirmación desde la caché | Filas correctas sin petición extra |
-| 6 | integration | Confirmación sin caché | `GET /payments/{id}` y mismas filas |
-| 7 | integration | "Sí, pagar" | `openAuthorization` con la URL del pago |
-| 8 | integration | Vencimiento | Botón deshabilitado y mensaje |
-| 9 | integration | Pago ya `PROCESSING` | Redirige al resultado |
-| 10 | integration | "No pagar" | Vuelve al inicio; no abre la wallet |
-| 11 | unit | Desglose con y sin comisión TuTranqui | La fila aparece solo si la API la devuelve; el total sigue siendo `quote.debitAmount` |
-| 12 | manual | Web y Android contra la red de prueba: aprobar en la wallet | Vuelve a la app con el resultado |
+| 5 | integration | Confirmación desde la caché y sin caché | Filas correctas; sin caché pide `GET /payments/{id}` |
+| 6 | integration | "Sí, pagar" exitoso | `confirm/options` → `confirm`; navega al resultado |
+| 7 | integration | `DAILY_LIMIT_EXCEEDED`, `QUOTE_EXPIRED`, `WALLET_LINK_REVOKED` | Mensaje y acción de cada caso |
+| 8 | integration | Pago ya `PROCESSING` | Redirige al resultado |
+| 9 | integration | "No pagar" | `POST /payments/{id}/cancel`; vuelve al inicio |
+| 10 | manual | Pago confirmado en la app contra la red de prueba, sin abrir la wallet | El pago llega a `COMPLETED` |
 
 ## Tareas
 
-1. [ ] Casos 1–2 y 11 en rojo → desglose (con comisión) y texto hablado.
-2. [ ] Caso 3 en rojo → `openAuthorization` por plataforma.
-3. [ ] Caso 4 en rojo → hook de cuenta regresiva.
-4. [ ] Casos 5–10 en rojo → pantalla de confirmación.
-5. [ ] Verificación manual (caso 12) cuando el backend 007 esté desplegado.
-6. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [ ] **Confirmar que el pago sin autorización desde la wallet funciona**: con una wallet vinculada (grant con monto diario, backend 023), hacer varios pagos desde la app sin abrir la wallet y verificar que llegan a `COMPLETED` (caso 10). Si no funciona, avisar para cambiar el front y el back.
+2. [ ] Handlers MSW de `POST /payments`, `/payments/{id}/confirm/options`, `/confirm` y `/cancel`.
+3. [ ] Casos 1–2 en rojo → desglose y texto hablado.
+4. [ ] Casos 3–4 en rojo → `confirmPayment` y cuenta regresiva.
+5. [ ] Casos 5–9 en rojo → pantalla de confirmación.
+6. [ ] Verificación manual (caso 10) en web.
+7. [ ] Suite completa en verde, lint y typecheck limpios.
 
-## Decisiones pendientes
+## Decisiones
 
-1. **`authorizationUrl` en `GET /payments/{id}`:** para abrir la confirmación
-   sin caché (caso 6) el backend debe devolverla mientras el pago esté
-   `PENDING_AUTHORIZATION`. Hay que confirmarlo en el backend 008.
-2. **Comisión TuTranqui en la respuesta:** nombre del campo y si ya está
-   incluida en `quote.debitAmount`. Lo define el spec de comisión del backend;
-   el front se ajusta a ese contrato.
-3. **Cancelar un pago pendiente:** hoy vence solo. ¿Se agrega
-   `POST /payments/{id}/cancel`? Recomendación: no para el hackatón.
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Aprobación | Una sola vez al vincular la wallet; cada pago se confirma en la app con el passkey (2026-10-16) |
+| 2 | Comisión | La devuelve la API en `quote.fee` (backend 024) |
+| 3 | Cancelar | `POST /payments/{id}/cancel` al tocar "No pagar" |

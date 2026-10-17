@@ -18,7 +18,7 @@ El usuario paga un servicio (luz, agua, celular…) a un comercio registrado en
 el directorio de TuTranqui. Escoge el comercio, escribe la referencia y el
 valor de la factura, y la app revisa la wallet del comercio antes de pedir el
 pago (mockups 1.6, 2.1 – 2.3). Este spec llega hasta crear el pago; la
-confirmación y la aprobación son del spec 006.
+confirmación con el passkey es del spec 006.
 
 ## Alcance
 
@@ -41,7 +41,7 @@ confirmación y la aprobación son del spec 006.
 - **Dado** datos válidos, **cuando** toca "Seguir", **entonces** ve la validación del comercio con sus pasos y, al terminar, "Listo, ya revisé. La cuenta de <comercio> es la correcta" y el botón "Seguir con el pago".
 - **Dado** que la wallet del comercio no existe o no está permitida, **cuando** se valida, **entonces** ve "No pudimos comprobar la cuenta de <comercio>. No se ha movido ni un peso" y no puede seguir.
 - **Dado** "Seguir con el pago", **cuando** lo toca, **entonces** se llama `POST /payments` una sola vez y se navega a la confirmación con el `paymentId`.
-- **Dado** un error del backend al crear el pago (`QUOTE_FAILED`, `AMOUNT_EXCEEDS_LIMIT`, `CURRENCY_NOT_SUPPORTED`, `OPEN_PAYMENTS_UNAVAILABLE`…), **cuando** ocurre, **entonces** ve un mensaje claro en lenguaje simple y puede corregir o reintentar.
+- **Dado** un error del backend al crear el pago (`QUOTE_FAILED`, `AMOUNT_EXCEEDS_LIMIT`, `DAILY_LIMIT_EXCEEDED`, `WALLET_NOT_LINKED`, `PAYMENTS_DISABLED`, `OPEN_PAYMENTS_UNAVAILABLE`…), **cuando** ocurre, **entonces** ve un mensaje claro en lenguaje simple y puede corregir o reintentar.
 - **Dado** "Parar" en cualquier paso, **cuando** lo toca, **entonces** vuelve al inicio sin crear el pago.
 
 ## Diseño
@@ -63,7 +63,7 @@ GET /api/v1/merchants?query=&category=
                    "referenceLabel": "Número de contrato", "logoUrl": "..." } ] }
 ```
 
-Validación: `GET /api/v1/wallets/verify?walletAddress=` (spec 003). Los pasos
+Validación: `GET /api/v1/wallets/verify?walletAddress=` (propuesto al backend). Los pasos
 de la UI se derivan de la respuesta:
 
 | Paso en la UI | Se cumple si |
@@ -80,12 +80,14 @@ Crear el pago ([backend 007](../../../backend/docs/specs/007-pago-y-autorizacion
 
 ```
 POST /api/v1/payments        Idempotency-Key: <uuid generado al entrar a la validación>
-{ "type": "p2m", "senderWalletAddress": <wallet del usuario>,
-  "receiverWalletAddress": <wallet del comercio>,
+{ "type": "p2m", "receiverWalletAddress": <wallet del comercio>,
   "amount": { "value": "86400", "assetCode": "COP" },
   "description": "EPM · contrato 7731" }
-→ 202 { paymentId, authorizationUrl, quote, status: "PENDING_AUTHORIZATION", ... }
+→ 201 { paymentId, status: "AWAITING_CONFIRMATION", confirmBy, quote, allowance }
 ```
+
+El emisor sale de la sesión (la wallet vinculada del usuario, backend 023); el
+pago queda esperando la confirmación con passkey (spec 006).
 
 La respuesta se guarda en la caché de TanStack Query con la clave del pago
 para que la confirmación (006) la muestre sin otra petición.

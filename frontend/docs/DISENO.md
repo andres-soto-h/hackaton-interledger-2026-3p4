@@ -81,12 +81,12 @@ sistema (`allowFontScaling`), con un tope para no romper el diseño.
 
 | Estado de la API | Texto | Color |
 |---|---|---|
-| `PENDING_AUTHORIZATION` | Esperando su aprobación | `textMuted` |
+| `AWAITING_CONFIRMATION` | Esperando su confirmación | `textMuted` |
 | `PROCESSING` | Enviando el pago… | `primary` |
 | `COMPLETED` | Pago exitoso | `success` |
 | `FAILED` | El pago no se pudo hacer | `danger` |
-| `REJECTED` | Usted no aprobó el pago | `danger` |
-| `EXPIRED` | Se venció el tiempo para aprobar | `textMuted` |
+| `CANCELLED` | Usted canceló el pago | `textMuted` |
+| `EXPIRED` | Se venció el tiempo para confirmar | `textMuted` |
 
 ## Accesibilidad
 
