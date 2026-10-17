@@ -1,130 +1,129 @@
-# 009 — Seguimiento del estado de un pago por el agente
+# 009 — Seguimiento del estado de un pago (polling)
 
 | Campo | Valor |
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16, con revisión pendiente por la autorización diaria preaprobada |
+| Spec aprobado | 2026-10-16 (polling; versión con aprobación en la wallet por pago); cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 5 tareas completadas. Spec aprobado (polling); debe revisarse por el cambio a una autorización diaria preaprobada. Depende del spec 008.
+0 / 5 tareas completadas. Revisado el 2026-10-16 por el cambio a un monto
+diario preaprobado (spec 023); Cambios aprobados el 2026-10-16. Depende de los
+specs 008 y 023.
+
+**Qué cambió respecto a la versión aprobada:**
+- La espera de la aprobación en la wallet ya no existe en cada pago: después de
+  confirmar, el pago solo espera a que ILP mueva los fondos (segundos).
+- El polling ahora lo hace la app (y el agente a través de ella) con la sesión
+  del usuario, no con la API key.
+- Se aplica también a la vinculación de la wallet (`GET /me/wallet-link`), que
+  sí espera la aprobación del usuario en su wallet.
+- Se quitan los estados `PENDING_AUTHORIZATION` y `REJECTED` del pago y se
+  agregan `AWAITING_CONFIRMATION` y `CANCELLED`.
 
 ## Contexto
 
-Un pago no termina en la misma petición que lo inicia:
+Hay dos esperas en la app:
 
-1. El agente llama `POST /payments` y recibe una URL de autorización.
-2. El usuario abre esa URL en su wallet y aprueba (o no). Esto puede tardar
-   segundos o minutos, y ocurre **fuera** de la conversación con el agente: el
-   navegador del usuario vuelve a la API (callback), no al agente.
-3. Después de aprobado, ILP mueve los fondos (normalmente segundos).
+1. **Vincular la wallet (una vez):** el usuario aprueba el monto diario en su
+   wallet. Puede tardar minutos, y el navegador vuelve a la API (callback), no a
+   la pantalla que lo estaba esperando.
+2. **Cada pago:** después de confirmar, ILP mueve los fondos; normalmente tarda
+   segundos.
 
-El agente necesita enterarse de cómo terminó para responderle al usuario
-("listo, el pago se completó"). Hay dos formas de hacerlo:
-
-| | Polling (consultar) | Webhook (aviso) |
-|---|---|---|
-| Cómo | El agente pregunta cada cierto tiempo `GET /payments/{id}` hasta que el estado es final | La API llama a una URL del agente cuando el estado cambia |
-| Ventaja | Simple; no requiere que el agente exponga un endpoint; ya existe (spec 008) | Aviso inmediato; menos peticiones |
-| Desventaja | Peticiones de más; el agente debe saber cuándo y cuánto preguntar | El agente debe exponer un endpoint público seguro; la API debe reintentar si falla |
-
-Analogía: polling es preguntar cada rato "¿ya llegó mi pedido?"; webhook es
-dejar tu número para que te llamen cuando llegue.
+En ambos casos la app necesita saber cuándo terminó. Se usa **polling**: la app
+pregunta cada pocos segundos hasta que el estado es final. La API ayuda con
+`Retry-After` (cuánto esperar) e `isFinal` (cuándo dejar de preguntar).
 
 **Por qué la API tampoco recibe avisos de Open Payments:** los servidores de
 Open Payments solo envían webhooks a la entidad que administra las wallets (el
 proveedor), no a clientes como esta API. Por eso la API averigua el estado
-consultando el outgoing payment (spec 008). Lo que la API sí sabe al instante
-es cuándo el usuario aprobó o rechazó, porque el callback llega a ella.
+consultando el outgoing payment (spec 008).
 
 ## Alcance
 
-**Incluye (fase 1: polling)**
-- Contrato de polling para el agente: cuándo empezar, cada cuánto preguntar,
-  cuándo parar, qué hacer con cada estado.
-- Header `Retry-After` en `GET /payments/{id}` con el intervalo sugerido según el estado.
-- Campo `isFinal` en la respuesta para que el agente no tenga que conocer la
-  lista de estados finales.
-- Guía para el equipo del agente (`backend/docs/guia-agente.md`).
-
-**Incluye (fase 2: webhook, diseño — se implementa solo si se aprueba)**
-- Registro de una URL de webhook por API key (configuración).
-- Envío de `payment.authorized`, `payment.completed`, `payment.failed`,
-  `payment.rejected`, `payment.expired`.
-- Firma HMAC-SHA256 de cada envío para que el agente verifique que viene de la API.
-- Reintentos con backoff si el agente no responde `2xx`.
+**Incluye**
+- Header `Retry-After` y campo `isFinal` en `GET /payments/{id}` y en
+  `GET /me/wallet-link`.
+- Contrato de polling: cuándo empezar, cada cuánto preguntar, cuándo parar.
+- Guía para el frontend y el agente (`backend/docs/guia-polling.md`).
 
 **No incluye**
+- Webhooks (diseño de fase 2 en las notas; no se implementa).
 - Notificaciones al usuario final (push, email).
 
-## Criterios de aceptación (fase 1)
+## Criterios de aceptación
 
-- **Dado** un pago no final, **cuando** el agente lo consulta, **entonces** la
-  respuesta incluye `isFinal: false` y `Retry-After` con el intervalo sugerido.
-- **Dado** un pago final, **cuando** se consulta, **entonces** `isFinal: true` y
-  sin `Retry-After`.
-- **Dado** la guía del agente, **cuando** el equipo del agente la sigue,
+- **Dado** un pago o una vinculación no final, **cuando** se consulta,
+  **entonces** la respuesta incluye `isFinal: false` y `Retry-After` con el
+  intervalo sugerido.
+- **Dado** un pago o una vinculación final, **cuando** se consulta, **entonces**
+  `isFinal: true` y sin `Retry-After`.
+- **Dado** la guía, **cuando** el equipo del frontend o del agente la sigue,
   **entonces** sabe qué hacer en cada estado sin leer el código de la API.
 
 ## Diseño
 
-### Contrato de polling
+### Contrato de polling: pago
 
-| Estado | `Retry-After` | Qué hace el agente |
+| Estado | `Retry-After` | Qué hace la app |
 |---|---|---|
-| `PENDING_AUTHORIZATION` | 5 s | Seguir esperando; recordar al usuario que apruebe en su wallet; parar en `authorizationExpiresAt` |
+| `AWAITING_CONFIRMATION` | 5 s | Es el usuario quien debe actuar (confirmar o cancelar); mostrar la cotización y `confirmBy`; dejar de consultar al vencer |
 | `PROCESSING` | 2 s | Seguir; normalmente termina en segundos |
 | `COMPLETED` | — | Confirmar al usuario con `receiveAmount` |
 | `FAILED` | — | Informar el error (`error.code`) y ofrecer reintentar con un pago nuevo |
-| `REJECTED` | — | Informar que el usuario no aprobó |
-| `EXPIRED` | — | Informar que venció; ofrecer iniciar otro pago |
+| `CANCELLED` | — | Nada |
+| `EXPIRED` | — | Informar que venció la cotización; ofrecer cotizar de nuevo |
 
-- El agente debe respetar `Retry-After` y no consultar más rápido.
-- Tiempo máximo de seguimiento: hasta `authorizationExpiresAt` + 2 minutos.
+### Contrato de polling: vinculación de la wallet
+
+| Estado | `Retry-After` | Qué hace la app |
+|---|---|---|
+| `PENDING_AUTHORIZATION` | 5 s | Recordar al usuario que apruebe en su wallet; parar en `expiresAt` |
+| `ACTIVE` | — | Mostrar el monto diario y habilitar los pagos |
+| `REJECTED` / `EXPIRED` | — | Ofrecer vincular otra vez |
+| `REVOKED` | — | Informar que el permiso fue retirado; ofrecer vincular otra vez |
+
+### Reglas generales
+
+- Respetar `Retry-After`; no consultar más rápido.
 - Ante `5xx` o red caída: backoff exponencial (2, 4, 8 s… máx. 30 s).
+- Tiempo máximo de seguimiento de un pago en `PROCESSING`: 2 minutos; después,
+  mostrar "en proceso" y permitir consultar más tarde.
 
-### Webhook (fase 2)
-
-```
-POST <url del agente>
-X-Tranqui-Event: payment.completed
-X-Tranqui-Signature: t=1729112345,v1=<hex(hmac_sha256(secret, t + "." + body))>
-
-{ "id": "evt_01J...", "type": "payment.completed", "createdAt": "...", "data": { <igual que GET /payments/{id}> } }
-```
-
-- `payment.authorized` se envía desde el callback; los estados finales se
-  detectan con un proceso que revisa los pagos `PROCESSING` (requiere un
-  disparador programado en AWS, impacto en el spec 002).
-- El agente responde `2xx` rápido; la API reintenta hasta 5 veces con backoff.
-- El agente debe ignorar eventos repetidos (`id`) y rechazar firmas inválidas o
-  con `t` de más de 5 minutos.
-
-## Casos de prueba (fase 1)
+## Casos de prueba
 
 | # | Tipo | Caso | Esperado |
 |---|---|---|---|
-| 1 | Integration | `GET /payments/{id}` en `PENDING_AUTHORIZATION` | `isFinal: false`, `Retry-After: 5` |
-| 2 | Integration | `GET /payments/{id}` en `PROCESSING` | `isFinal: false`, `Retry-After: 2` |
-| 3 | Integration | `GET /payments/{id}` en cada estado final | `isFinal: true`, sin `Retry-After` |
+| 1 | Integration | `GET /payments/{id}` en `AWAITING_CONFIRMATION` / `PROCESSING` | `isFinal: false`; `Retry-After: 5` / `2` |
+| 2 | Integration | `GET /payments/{id}` en cada estado final | `isFinal: true`, sin `Retry-After` |
+| 3 | Integration | `GET /me/wallet-link` en `PENDING_AUTHORIZATION` / en cada estado final | `Retry-After: 5` / `isFinal: true` sin `Retry-After` |
 
 ## Tareas
 
 1. [ ] Casos 1–3 en rojo → `isFinal` y `Retry-After`.
 2. [ ] Actualizar `openapi.yaml`.
-3. [ ] Guía para el agente (`backend/docs/guia-agente.md`) con ejemplos.
+3. [ ] Guía de polling (`backend/docs/guia-polling.md`) con ejemplos para el frontend y el agente.
 4. [ ] Suite completa en verde, lint y typecheck limpios.
-5. [ ] Decidir si se implementa la fase 2 (webhook) como spec propio.
+5. [ ] Revisar si el webhook (fase 2) hace falta después del hackatón.
 
 ## Decisiones
 
 | # | Tema | Decisión |
 |---|---|---|
-| 1 | Cómo se entera el agente del resultado | **Polling** (2026-10-16). El webhook (fase 2) queda diseñado para después |
+| 1 | Cómo se entera la app del resultado | **Polling** (2026-10-16) |
 
 ## Decisiones pendientes
 
 Ninguna.
+
+## Notas
+
+**Webhook (fase 2, no se implementa):** la API llamaría a una URL registrada
+cuando cambia un estado, firmando cada envío con HMAC-SHA256
+(`X-Tranqui-Signature: t=…,v1=…`), con reintentos y backoff, y el receptor
+ignoraría eventos repetidos o con firma vieja. Los estados finales se
+detectarían con un proceso programado que revise los pagos `PROCESSING`.

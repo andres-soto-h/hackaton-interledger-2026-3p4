@@ -4,13 +4,19 @@
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16 |
+| Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 7 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende del spec 001.
+0 / 7 tareas completadas. Ajustado el 2026-10-16 por el monto diario
+preaprobado (spec 023) y la comisión (spec 024); Cambios aprobados el 2026-10-16. Depende del spec 001.
+
+**Qué cambió respecto a la versión aprobada:** el pago ya no guarda datos de
+autorización ni tokens (viven en la vinculación de la wallet, spec 023); guarda
+el usuario dueño y los datos de la comisión; los estados del pago son los del
+spec 007.
 
 ## Contexto
 
@@ -43,8 +49,8 @@ para listar transacciones por wallet. Qué se guarda y por qué está explicado 
 - **Dado** varios pagos y solicitudes de una wallet, **cuando** se consultan por
   wallet, **entonces** vuelven del más reciente al más antiguo, paginados con cursor,
   sea la wallet emisora o receptora.
-- **Dado** un pago en estado final, **cuando** se guarda, **entonces** ya no
-  conserva tokens de Open Payments ni datos de autorización.
+- **Dado** un pago, **cuando** se guarda, **entonces** nunca contiene tokens de
+  Open Payments (están cifrados en la vinculación, spec 023).
 - **Dado** las dos implementaciones, **cuando** corren los tests de contrato,
   **entonces** ambas pasan los mismos casos.
 
@@ -55,10 +61,10 @@ para listar transacciones por wallet. Qué se guarda y por qué está explicado 
 | Entidad | ID | Campos |
 |---|---|---|
 | `PaymentRequest` | `pr_<ulid>` | type, receiverWalletAddress, incomingPaymentUrl, amount, description, status, expiresAt, createdAt, updatedAt |
-| `Payment` | `pay_<ulid>` | type, senderWalletAddress, receiverWalletAddress, incomingPaymentUrl, fixedAmountSide, quote (id, debitAmount, receiveAmount, expiresAt), status, authorization*, outgoingPaymentUrl, outgoingToken*, sentAmount, description, error, createdAt, updatedAt, expiresAt* |
+| `Payment` | `pay_<ulid>` | userId, walletLinkId, type, senderWalletAddress, receiverWalletAddress, incomingPaymentUrl, fixedAmountSide, quote (id, debitAmount, receiveAmount, expiresAt), feePercentage, fee, totalDebit, feeStatus, feeIncomingPaymentUrl, feeOutgoingPaymentUrl, reservedAmount, status, outgoingPaymentUrl, sentAmount, description, error, createdAt, updatedAt, expiresAt* |
 
-`*` Solo mientras el pago no está en estado final. `authorization` = continueUri,
-continueToken, clientNonce, finishNonce, authServerUrl.
+`*` TTL solo mientras está en `AWAITING_CONFIRMATION` (= vencimiento del quote):
+un pago cotizado y nunca confirmado lo borra DynamoDB en las horas siguientes. Estados en el spec 007.
 
 ### Puerto
 
@@ -85,8 +91,7 @@ interface PaymentsRepository {
 - `direction=all` combina ambos índices y ordena por `createdAt`.
 - El cursor es opaco (base64 del último elemento de cada índice).
 - Actualizaciones con `ConditionExpression` sobre `status`.
-- Al pasar a estado final se eliminan `authorization`, `outgoingToken` y `expiresAt`
-  (el registro ya no expira: queda como historial).
+- Al confirmar se elimina `expiresAt` (el registro ya no expira: queda como historial).
 
 ### IDs
 
@@ -101,10 +106,10 @@ impredecible. Motivo en [API.md — Identificadores](../API.md#identificadores).
 | 2 | Contrato | Leer ID inexistente | `null` |
 | 3 | Contrato | `updatePayment` con estado esperado correcto | Actualiza y devuelve el pago |
 | 4 | Contrato | `updatePayment` con estado esperado incorrecto | `ConflictError`, sin cambios |
-| 5 | Contrato | Dos `updatePayment` concurrentes desde `PENDING_AUTHORIZATION` | Solo uno tiene éxito |
+| 5 | Contrato | Dos `updatePayment` concurrentes desde `AWAITING_CONFIRMATION` | Solo uno tiene éxito |
 | 6 | Contrato | `listByWallet` por emisor, receptor y `all`, con filtro de estado y tipo | Elementos correctos, orden descendente |
 | 7 | Contrato | Paginación con `limit` y `cursor` hasta el final | Sin duplicados ni faltantes; último sin `nextCursor` |
-| 8 | Contrato | Pasar a estado final | Sin `authorization`, `outgoingToken` ni `expiresAt` |
+| 8 | Contrato | Pasar de `AWAITING_CONFIRMATION` a `PROCESSING` | Se quita `expiresAt` (ya no expira) |
 | 9 | Unit | Generador de IDs | Prefijo correcto, únicos, ordenables por tiempo |
 
 Los casos de contrato se ejecutan contra memoria siempre y contra DynamoDB Local

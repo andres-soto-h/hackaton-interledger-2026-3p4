@@ -4,17 +4,28 @@
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16 |
+| Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 6 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende del spec 007.
+0 / 6 tareas completadas. Ajustado el 2026-10-16 por el monto diario preaprobado
+(spec 023) y la comisión (spec 024); Cambios aprobados el 2026-10-16. Depende de
+los specs 007, 023 y 024.
+
+**Qué cambió respecto a la versión aprobada:**
+- Las consultas usan la **sesión del usuario** y solo devuelven lo suyo; la API
+  key ya no lee pagos ni transacciones (lo pide también el frontend).
+- `GET /transactions` toma la wallet de la cuenta; ya no recibe `walletAddress`.
+- El outgoing payment se lee con el token de la vinculación; ya no se revoca un
+  token al terminar cada pago (el token es del monto diario y sigue vigente).
+- Al terminar: se libera de la reserva lo no gastado; se reintenta la comisión fallida.
+- La respuesta incluye la comisión y su estado.
 
 ## Contexto
 
-Después de iniciar un pago, el agente necesita saber cómo terminó, y los
+Después de confirmar un pago, la app necesita saber cómo terminó, y los
 usuarios necesitan ver su historial. Los datos vienen de la tabla de la API y
 se actualizan contra Open Payments cuando un pago no está en estado final
 ([API.md — Dónde vive la información](../API.md#dónde-vive-la-información)).
@@ -25,24 +36,27 @@ se actualizan contra Open Payments cuando un pago no está en estado final
 - `GET /api/v1/payments/{paymentId}` con refresco del estado.
 - `GET /api/v1/transactions` con filtros y paginación.
 - Refresco de solicitudes de pago (`PENDING` → `COMPLETED` / `EXPIRED`).
-- Revocación de tokens al llegar a un estado final.
+- Liberar de la reserva diaria lo no gastado al llegar a un estado final.
+- Reintento de la comisión fallida (spec 024).
 - Prueba E2E manual del flujo completo en la red de prueba.
 
 **No incluye**
-- Avisos al agente (spec 009).
+- El contrato de polling (spec 009).
 - Transacciones que no se hicieron a través de la API.
 
 ## Criterios de aceptación
 
 - **Dado** un pago en `PROCESSING`, **cuando** se consulta, **entonces** la API
-  consulta el outgoing payment y, si terminó, guarda `COMPLETED` o `FAILED` y
-  revoca el token.
-- **Dado** un pago `PENDING_AUTHORIZATION` vencido, **cuando** se consulta,
-  **entonces** se devuelve `EXPIRED`.
+  consulta el outgoing payment con el token de la vinculación y, si terminó,
+  guarda `COMPLETED` o `FAILED` y libera de la reserva lo no gastado.
+- **Dado** un pago `AWAITING_CONFIRMATION` cuyo quote venció, **cuando** se
+  consulta, **entonces** se devuelve `EXPIRED`.
+- **Dado** un pago de otro usuario, **cuando** se consulta, **entonces**
+  responde `404 PAYMENT_NOT_FOUND`.
 - **Dado** un pago en estado final, **cuando** se consulta, **entonces** no se
   llama a Open Payments.
-- **Dado** una wallet, **cuando** se listan sus transacciones, **entonces** se
-  obtienen sus pagos (como emisor o receptor) y sus solicitudes, del más reciente
+- **Dado** un usuario con sesión, **cuando** lista sus transacciones,
+  **entonces** se obtienen los pagos de su wallet (como emisor o receptor) y sus solicitudes, del más reciente
   al más antiguo, con filtros y cursor.
 
 ## Diseño
@@ -59,6 +73,9 @@ se actualizan contra Open Payments cuando un pago no está en estado final
   "debitAmount": { "value": "25.07", "assetCode": "USD" },
   "receiveAmount": { "value": "430.00", "assetCode": "MXN" },
   "sentAmount": { "value": "25.07", "assetCode": "USD" },
+  "fee": { "value": "0.38", "assetCode": "USD", "percentage": "1.5" },
+  "feeStatus": "COLLECTED",
+  "totalDebit": { "value": "25.45", "assetCode": "USD" },
   "description": "Almuerzo",
   "error": null,
   "createdAt": "...",
@@ -71,9 +88,10 @@ payment no está `failed`.
 
 ### `GET /api/v1/transactions`
 
+La wallet es la de la cuenta de la sesión.
+
 | Query | Regla |
 |---|---|
-| `walletAddress` | Obligatorio |
 | `direction` | `incoming` · `outgoing` · `all` (por defecto) |
 | `kind` | `payment` · `payment-request` · `all` (por defecto) |
 | `status` | Opcional |
@@ -87,18 +105,18 @@ límite de concurrencia para no exceder el tiempo de API Gateway).
 
 | # | Tipo | Caso | Esperado |
 |---|---|---|---|
-| 1 | Integration | Pago `PROCESSING` cuyo outgoing payment terminó | `COMPLETED`, guardado, token revocado |
-| 2 | Integration | Outgoing payment `failed` | `FAILED`, token revocado |
+| 1 | Integration | Pago `PROCESSING` cuyo outgoing payment terminó | `COMPLETED`, guardado, leído con el token de la vinculación; reserva ajustada a lo gastado |
+| 2 | Integration | Outgoing payment `failed` | `FAILED`; reserva liberada |
 | 3 | Integration | Outgoing payment aún en curso | Sigue `PROCESSING` |
-| 4 | Integration | Pago `PENDING_AUTHORIZATION` vencido | `EXPIRED` |
+| 4 | Integration | Pago `AWAITING_CONFIRMATION` con quote vencido | `EXPIRED` |
 | 5 | Integration | Pago en estado final | Sin llamadas al gateway |
-| 6 | Integration | `paymentId` inexistente | `404 PAYMENT_NOT_FOUND` |
+| 6 | Integration | `paymentId` inexistente / de otro usuario | `404 PAYMENT_NOT_FOUND` |
 | 7 | Integration | Open Payments no responde al refrescar | Devuelve el último estado guardado con `stale: true` |
 | 8 | Integration | Transacciones por emisor, receptor y `all`, con filtros | Elementos correctos y ordenados |
 | 9 | Integration | Paginación con cursor | Sin duplicados ni faltantes |
 | 10 | Integration | Solicitud pagada / vencida al listar | `COMPLETED` / `EXPIRED` |
-| 11 | Integration | Rutas en el test de rutas protegidas | `401` sin API key |
-| 12 | E2E | Solicitud → pago → aprobación manual → consulta hasta `COMPLETED` en la red de prueba | Fondos movidos |
+| 11 | Integration | Rutas en el test de rutas protegidas; `walletAddress` en el query | `401` sin sesión, también con API key / `400 VALIDATION_ERROR` |
+| 12 | E2E | Registro → vincular wallet (aprobación manual) → solicitud → cotizar → confirmar → consulta hasta `COMPLETED` en la red de prueba | Fondos y comisión movidos |
 
 ## Tareas
 

@@ -4,13 +4,18 @@
 |---|---|
 | Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | 2026-10-16 |
+| Spec aprobado | 2026-10-16; cambios aprobados el 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 8 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo. Depende del spec 001.
+0 / 8 tareas completadas. Ajustado el 2026-10-16 por el monto diario
+preaprobado (spec 023); Cambios aprobados el 2026-10-16. Depende del spec 001.
+
+**Qué cambió respecto a la versión aprobada:** el grant de outgoing payment se
+pide con límite diario (`debitAmount` + `interval`) en vez del monto de un quote;
+se agregan `rotateToken` y `cancelGrant`; `revokeToken` deja de usarse por pago.
 
 ## Contexto
 
@@ -65,11 +70,12 @@ interface OpenPaymentsGateway {
   createIncomingPayment(input: { wallet: WalletAddress; amount?: Amount; expiresAt: Date; description?: string }): Promise<IncomingPayment>
   getIncomingPayment(url: string): Promise<IncomingPayment>
   createQuote(input: { sender: WalletAddress; receiver: string; debitAmount?: Amount }): Promise<Quote>
-  requestOutgoingPaymentGrant(input: { sender: WalletAddress; debitAmount: Amount; finishUri: string; clientNonce: string }): Promise<PendingGrant>
+  requestOutgoingPaymentGrant(input: { sender: WalletAddress; limits: { debitAmount: Amount; interval: string }; finishUri: string; clientNonce: string }): Promise<PendingGrant>
   continueGrant(input: { continueUri: string; continueToken: string; interactRef: string }): Promise<GrantResult>
   createOutgoingPayment(input: { sender: WalletAddress; quoteId: string; accessToken: string; description?: string }): Promise<OutgoingPayment>
   getOutgoingPayment(input: { url: string; accessToken: string }): Promise<OutgoingPayment>
-  revokeToken(input: { manageUrl: string; accessToken: string }): Promise<void>
+  rotateToken(input: { manageUrl: string; accessToken: string }): Promise<{ accessToken: string; manageUrl: string; expiresAt?: Date }>
+  cancelGrant(input: { continueUri: string; continueToken: string }): Promise<void>
 }
 ```
 
@@ -92,7 +98,7 @@ interface OpenPaymentsGateway {
 |---|---|---|---|
 | `incoming-payment` | No interactivo | `create`, `read` | Receptor |
 | `quote` | No interactivo | `create`, `read` | Emisor |
-| `outgoing-payment` | Interactivo | `create`, `read` + `limits.debitAmount` + `identifier` | Emisor |
+| `outgoing-payment` | Interactivo, una vez al vincular (spec 023) | `create`, `read` + `limits.debitAmount` + `limits.interval` + `identifier` | Emisor |
 
 ### Montos
 
@@ -123,8 +129,8 @@ comisiones incluidas. La API no convierte ni maneja tasas. Lo que sí define:
    calculada con enteros y redondeada a 6 decimales solo para mostrar). Lo
    implementa el spec 007; la función `exchangeRate` vive aquí.
 3. **La tasa vence con el quote**, normalmente en pocos minutos. El usuario debe
-   aprobar antes: el tiempo para autorizar es el menor entre
-   `PAYMENT_AUTH_TTL_SECONDS` y la expiración del quote (spec 007).
+   confirmar el pago antes de que venza el quote; si no, el pago pasa a
+   `EXPIRED` y hay que cotizar de nuevo (spec 007).
 4. **El límite por pago va por moneda**, porque "1000" no significa lo mismo en
    todas. `MAX_PAYMENT_AMOUNTS` (p. ej. `USD:1000,MXN:20000`) define un máximo
    por moneda del emisor. `assertWithinLimit(debitAmount)` lo aplica al
@@ -181,7 +187,7 @@ credenciales en la URL. Acepta `$host/path` (payment pointer) convirtiéndolo a
 | 7 | Unit | `toApiError` para cada fila de la tabla de errores | Código y status esperados; detalle no expuesto |
 | 8 | Unit | Secreto de Open Payments sin `walletAddressUrl`, `keyId` o `privateKey`, o con una llave inválida | La app no arranca |
 | 9 | Adapter | Cada método del gateway contra fixtures HTTP de Open Payments (msw) | Petición correcta (URL, grant, cuerpo) y respuesta mapeada a tipos propios |
-| 10 | Adapter | El grant de outgoing payment lleva `limits.debitAmount`, `identifier`, `interact.finish.uri` y `nonce` | Cuerpo exacto |
+| 10 | Adapter | El grant de outgoing payment lleva `limits.debitAmount`, `limits.interval`, `identifier`, `interact.finish.uri` y `nonce`; `rotateToken` y `cancelGrant` llaman a las URLs correctas | Cuerpo y URLs exactos |
 | 11 | Adapter | Timeout en una llamada | `OPEN_PAYMENTS_TIMEOUT` |
 | 12 | Adapter | Lectura que falla por red dos veces y luego responde | Éxito al tercer intento |
 | 13 | Adapter | Creación que falla por red | Sin reintento; `OPEN_PAYMENTS_UNAVAILABLE` |
