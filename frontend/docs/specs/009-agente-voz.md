@@ -142,3 +142,17 @@ interface SpeechOutput {
 1. **Aprobar el diseño propuesto** (STT en el dispositivo + TTS del navegador, con Chirp 3 HD como mejora futura) o elegir la alternativa de Gemini Live.
 2. **Escuchar las respuestas por defecto:** recomendación sí cuando la
    conversación empezó por voz; no cuando empezó por texto.
+
+## Ajuste por backend 028 (2026-10-17)
+
+El responsable aprobó el [backend 028](../../../backend/docs/specs/028-agente-voz.md): el agente corre en el
+backend (Strands + Bedrock) y la voz la genera **ElevenLabs**. Esto cambia la propuesta de este spec:
+
+- **Texto a voz:** la app pide el audio con `speak: true` en `POST /agent/messages` y lo reproduce desde
+  `reply.audio` (mp3 en base64). `SpeechSynthesis` del navegador queda como **respaldo** cuando llega
+  `reply.audioUnavailable: true` o no hay audio.
+- **Voz a texto:** sin cambios; sigue en el dispositivo y se envía como texto con `inputMode: "voice"`.
+- **Contrato:** la respuesta suma `reply.audio` y `reply.audioUnavailable` (el frontend 008 también se ajusta).
+- La decisión 1 de arriba (TTS del navegador frente a Chirp 3 HD) queda sustituida por ElevenLabs vía backend.
+- Sigue sin confirmar pagos por voz: solo el passkey confirma.
+

@@ -5,6 +5,7 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
+| | [028 — Agente de voz (Strands + Bedrock + ElevenLabs)](specs/028-agente-voz.md) · 0/9 · *aprobado; falta autorizar el desarrollo* | | |
 | | | | [026 — Pago a comercio con wallet del receptor (solo COP)](specs/026-pago-comercio-cop.md) · 4/4 · [027 — Cancelación de grant al borrar cuenta](specs/027-cancelacion-grant-cuenta.md) · 3/3 |
 | | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 22/22 · *desplegado en `dev` el 2026-10-17; falta cargar el secreto `open-payments`* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
@@ -37,7 +38,7 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
   - Directorio de comercios — `GET /api/v1/merchants`: **conectar la lista de comercios con la base de datos en Google Cloud** (el front usa una lista simulada hasta entonces; todos en COP)
   - Verificación de wallet del comercio — `GET /api/v1/wallets/verify` (sin spec; el front la simula con MSW)
   - Transacciones del usuario en sesión (ajuste al 008) (cubierto por el 008 ajustado; ya no hay `authorizationUrl` por pago: spec 023)
-  - API del agente — `POST /api/v1/agent/messages` con tools sin permiso de aprobar
+  - API del agente — `POST /api/v1/agent/messages` con tools sin permiso de aprobar: **spec [028](specs/028-agente-voz.md) (aprobado)**
 
 ## Historial
 
@@ -118,3 +119,5 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | — | Backlog: conectar `GET /merchants` con la base de Google Cloud; el correo del usuario no se pide (019 sin correo, ingreso con passkey) |
 | 2026-10-17 | 027 | Integrado en `develop-andres`, 1109 tests en verde → Hecho |
 | 2026-10-17 | 026 | Integrado en `develop-andres`, 1114 tests en verde → Hecho |
+| 2026-10-17 | 028 | Creado como borrador: agente de voz con Strands Agents, Amazon Bedrock y ElevenLabs en Lambda; tools para crear pagos, consultar comercios y consultar transacciones; el agente no confirma pagos |
+| 2026-10-17 | 028 | Spec aprobado → Aprobado. Decisiones: agente en Python, Claude Haiku en Bedrock (respaldo: pesos abiertos), voz ElevenLabs `JddqVF50ZSIR7SRbJE6u`, pruebas especificadas pero sin ejecutar (directiva vigente), impacto en frontend 008/009 aceptado |

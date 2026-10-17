@@ -53,3 +53,4 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-17 | 008 | Desarrollo aprobado → En desarrollo. Chat con burbujas, acciones del agente (elegir comercio, confirmar pago, estado) contra MSW; 295 tests en verde. Falta registrar el contrato con el backend (tarea 5) |
 | 2026-10-17 | 009 | Diseño técnico propuesto: voz en el dispositivo (Web Speech API) con el mismo contrato del chat y TTS del navegador; Chirp 3 HD y Gemini Live como alternativas. Pendiente de aprobación |
 | 2026-10-17 | 003 | El registro pide solo el **nombre** de la wallet (handle), no la URL completa; el host lo aporta `WALLET_PROVIDER_BASE_URL` y lo resuelve el backend. Ajustados schema, pantalla, tests, mock API y README |
+| 2026-10-17 | 008, 009 | Impacto del backend 028 aceptado: el agente responde con `speak`, `reply.audio` y `audioUnavailable`; el TTS pasa a ElevenLabs vía backend (el del navegador queda de respaldo). Se ajustan los specs al desarrollarlos |
