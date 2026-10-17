@@ -92,7 +92,7 @@ export default function Register() {
 
   return (
     <Screen>
-      <AppHeader actionLabel="Cancelar" onAction={() => router.replace('/bienvenida')} />
+      <AppHeader onBack={() => router.replace('/bienvenida')} />
       {step === 'datos' ? (
         <>
           <StepIndicator step={1} total={3} name="Sus datos" />

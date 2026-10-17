@@ -17,7 +17,7 @@ export default function PaymentData() {
   if (!merchant) {
     return (
       <Screen>
-        <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+        <AppHeader onBack={() => router.replace('/')} />
         <AppText variant="title">No encontramos ese servicio</AppText>
         <Button label="Ver servicios" onPress={() => router.replace('/pagos')} />
       </Screen>
@@ -39,7 +39,7 @@ export default function PaymentData() {
 
   return (
     <Screen>
-      <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+      <AppHeader onBack={() => router.replace('/')} />
       <StepIndicator step={1} total={3} name="Datos del pago" />
       <AppText variant="title">{`Pagar ${merchant.name}`}</AppText>
       <TextField

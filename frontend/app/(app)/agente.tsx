@@ -55,7 +55,7 @@ export default function Agent() {
     <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.column}>
         <View style={styles.header}>
-          <AppHeader actionLabel="Inicio" onAction={() => router.replace('/')} />
+          <AppHeader onBack={() => router.replace('/')} />
           <AppText variant="title" accessibilityRole="header">
             Hable con TuTranqui
           </AppText>

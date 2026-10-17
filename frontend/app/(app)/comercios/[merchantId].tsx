@@ -24,7 +24,7 @@ export default function SafeMerchantPayment() {
   if (!merchant) {
     return (
       <Screen>
-        <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+        <AppHeader onBack={() => router.replace('/comercios')} />
         <AppText variant="title">No encontramos ese comercio</AppText>
         <Button label="Volver a comercios seguros" onPress={() => router.replace('/comercios')} />
       </Screen>
@@ -64,7 +64,7 @@ export default function SafeMerchantPayment() {
 
   return (
     <Screen>
-      <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+      <AppHeader onBack={() => router.replace('/comercios')} />
       <AppText variant="title">{`Pagar a ${name}`}</AppText>
 
       {fixedAmount !== null ? (

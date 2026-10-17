@@ -30,7 +30,7 @@ export default function Transactions() {
         onPayService={() => router.push('/pagos' as never)}
         header={
           <View style={styles.header}>
-            <AppHeader actionLabel="Inicio" onAction={() => router.replace('/')} />
+            <AppHeader onBack={() => router.replace('/')} />
             <AppText variant="title" accessibilityRole="header">
               Mis pagos
             </AppText>

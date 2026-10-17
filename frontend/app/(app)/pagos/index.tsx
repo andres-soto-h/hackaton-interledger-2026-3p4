@@ -15,7 +15,7 @@ export default function Directory() {
 
   return (
     <Screen>
-      <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+      <AppHeader onBack={() => router.replace('/')} />
       <AppText variant="title" accessibilityRole="header">
         ¿Qué servicio quiere pagar?
       </AppText>

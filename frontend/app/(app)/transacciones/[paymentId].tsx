@@ -25,7 +25,7 @@ export default function TransactionDetailScreen() {
 
   return (
     <Screen>
-      <AppHeader actionLabel="Volver" onAction={() => router.back()} />
+      <AppHeader onBack={() => router.back()} />
       <AppText variant="title" accessibilityRole="header">
         Detalle del pago
       </AppText>

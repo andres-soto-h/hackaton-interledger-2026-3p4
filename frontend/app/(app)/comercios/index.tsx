@@ -9,7 +9,7 @@ export default function SafeMerchants() {
 
   return (
     <Screen>
-      <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+      <AppHeader onBack={() => router.replace('/')} />
       <AppText variant="title">Comercios seguros</AppText>
       {isLoading ? <AppText color="textMuted">Cargando…</AppText> : null}
       {isError ? (

@@ -22,7 +22,7 @@ export default function MerchantValidation() {
   if (!merchant || !reference || !amount) {
     return (
       <Screen>
-        <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+        <AppHeader onBack={() => router.replace('/')} />
         <AppText variant="title">Faltan datos del pago</AppText>
         <Button label="Volver a empezar" onPress={() => router.replace('/pagos')} />
       </Screen>
@@ -76,7 +76,7 @@ function Validation({
 
   return (
     <Screen>
-      <AppHeader actionLabel="Parar" onAction={() => router.replace('/')} />
+      <AppHeader onBack={() => router.replace('/')} />
       <StepIndicator step={2} total={3} name="Revisando el comercio" />
       <AppText variant="title">{`Revisando la cuenta de ${merchant.name}`}</AppText>
 

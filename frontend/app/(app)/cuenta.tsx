@@ -67,7 +67,7 @@ export default function Account() {
 
   return (
     <Screen>
-      <AppHeader actionLabel="Inicio" onAction={() => router.replace('/')} />
+      <AppHeader onBack={() => router.replace('/')} />
       <AppText variant="title" accessibilityRole="header">
         Mi cuenta
       </AppText>
