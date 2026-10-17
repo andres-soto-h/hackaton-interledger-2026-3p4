@@ -33,6 +33,12 @@ Formato:
 
 ## Decisiones
 
+### 2026-10-17 · Decisiones del 021 que afectan a otros specs
+- Origen: spec 021 (agente de tests)
+- Afecta: specs 019 (ya Hecho), 020, 023, 007+
+- Decisión: `User.sessionVersion` opcional y claim `sv` en el JWT (si se pasa); `userAuth` rechaza tokens cuya versión no coincida con la del usuario (los viejos valen como versión 0). `UsersRepository` gana `createUser`, `listUsers`, `updateUser`, `bumpSessionVersion`, `addCredential`, `deleteCredentials` y 4 métodos de enlaces de registro (solo hash, 24 h). `register/options` acepta `{displayName, walletAddress}` o `{enrollmentToken}`. El 021 monta `createAdminUsersRouter(deps)` aparte (no toca `admin.routes.ts`) y añade el enlace "Usuarios" en `layout.ts`. Puertos opcionales `walletLinks` y `payments` en el detalle: el cableado real lo hace el orquestador.
+- Acción para los demás: el 020 lote 2 no cambia `layout.ts`; 007 y siguientes usan `userAuth` con `sessionVersion`.
+
 ### 2026-10-17 · Dueños de archivos del spec 021
 - Origen: orquestador
 - Afecta: specs 020 (lote 2), 021, 023
