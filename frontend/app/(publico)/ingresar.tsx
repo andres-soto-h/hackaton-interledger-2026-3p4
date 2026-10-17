@@ -27,7 +27,7 @@ export default function SignIn() {
     setLoading(true);
     setError(null);
     try {
-      await login();
+      await login(parsed.data);
       // Solo se vuelve a rutas internas de la app (nunca a una URL externa).
       router.replace(redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? (redirect as never) : '/');
     } catch (e) {

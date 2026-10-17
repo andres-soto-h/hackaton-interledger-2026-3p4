@@ -24,9 +24,10 @@ export function createAuthController(service: AuthService) {
     }
   }
 
-  const loginOptions: RequestHandler = async (_req, res, next) => {
+  const loginOptions: RequestHandler = async (req, res, next) => {
     try {
-      res.status(200).json(await service.loginOptions())
+      const body = req.body as { email?: string } | undefined
+      res.status(200).json(await service.loginOptions(body ?? {}))
     } catch (error) {
       next(error)
     }

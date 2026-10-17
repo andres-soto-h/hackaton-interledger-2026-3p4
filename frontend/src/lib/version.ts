@@ -3,4 +3,4 @@
  * despliegue (evita dudas con la caché de CloudFront). Incrementar en cada
  * deploy del frontend.
  */
-export const APP_VERSION = 'v0.1.0-dev.8';
+export const APP_VERSION = 'v0.1.0-dev.9';

@@ -113,6 +113,7 @@ const challengeToItem = (challenge: Challenge): Item => {
   }
   if (challenge.pending !== undefined) item['pending'] = challenge.pending
   if (challenge.payment !== undefined) item['payment'] = challenge.payment
+  if (challenge.loginUserId !== undefined) item['loginUserId'] = challenge.loginUserId
   return item
 }
 

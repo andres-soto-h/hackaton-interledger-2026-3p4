@@ -4,6 +4,7 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
   type AuthenticationResponseJSON,
+  type AuthenticatorTransport,
   type RegistrationResponseJSON
 } from '@simplewebauthn/server'
 import {
@@ -43,7 +44,17 @@ export function createSimpleWebAuthnVerifier(): PasskeyVerifier {
     async createAuthenticationOptions(input) {
       const options = await generateAuthenticationOptions({
         rpID: input.rpID,
-        userVerification: 'preferred'
+        userVerification: 'preferred',
+        ...(input.allowCredentials !== undefined && input.allowCredentials.length > 0
+          ? {
+              allowCredentials: input.allowCredentials.map((c) => ({
+                id: c.id,
+                ...(c.transports !== undefined
+                  ? { transports: c.transports as AuthenticatorTransport[] }
+                  : {})
+              }))
+            }
+          : {})
       })
       return options as unknown as PasskeyOptions
     },

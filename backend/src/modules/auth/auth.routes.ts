@@ -28,8 +28,11 @@ const loginVerifySchema = z.strictObject({
   credential: credentialSchema
 })
 
-/** `/login/options` takes no body: reject any request that sends one. */
-const noBodySchema = z.undefined()
+/** `/login/options` takes no body, or only the account email (logs in with that account's passkeys). */
+const loginOptionsSchema = z.union([
+  z.undefined(),
+  z.strictObject({ email: z.string().email().optional() })
+])
 
 export function createAuthRouter(deps: AuthDeps): Router {
   const service = createAuthService(deps)
@@ -48,7 +51,7 @@ export function createAuthRouter(deps: AuthDeps): Router {
   )
   router.post(
     '/api/v1/auth/login/options',
-    validate({ body: noBodySchema }),
+    validate({ body: loginOptionsSchema }),
     controller.loginOptions
   )
   router.post(

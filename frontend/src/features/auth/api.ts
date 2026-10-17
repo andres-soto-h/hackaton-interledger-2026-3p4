@@ -13,8 +13,9 @@ export const authApi = {
     apiClient.post<unknown>('/auth/register/options', body).then((raw) => flattenChallenge<CreationOptions>(raw)),
   registerVerify: (body: { challengeId: string; credential: RegistrationResponseJSON }) =>
     apiClient.post<AuthResult>('/auth/register/verify', body),
-  loginOptions: () =>
-    apiClient.post<unknown>('/auth/login/options').then((raw) => flattenChallenge<RequestOptions>(raw)),
+  /** Con correo, el desafío solo acepta los passkeys de esa cuenta. */
+  loginOptions: (email?: string) =>
+    apiClient.post<unknown>('/auth/login/options', email ? { email } : undefined).then((raw) => flattenChallenge<RequestOptions>(raw)),
   loginVerify: (body: { challengeId: string; credential: AuthenticationResponseJSON }) =>
     apiClient.post<AuthResult>('/auth/login/verify', body),
   getMe: () => apiClient.get<User>('/me'),

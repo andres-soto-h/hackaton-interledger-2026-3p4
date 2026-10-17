@@ -13,6 +13,8 @@ export interface RegistrationOptionsInput {
 
 export interface AuthenticationOptionsInput {
   rpID: string
+  /** Limits the ceremony to these credentials (login by email). */
+  allowCredentials?: Array<{ id: string; transports?: string[] }>
 }
 
 export interface VerifyRegistrationInput {

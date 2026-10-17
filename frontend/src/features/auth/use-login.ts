@@ -5,12 +5,12 @@ import { PasskeyCancelled } from './passkeys';
 import { usePasskeys } from './passkeys-context';
 import { useSession } from './session';
 
-/** Flujo de ingreso: opciones → passkey → verificación → sesión. Sirve también para reautenticar. */
+/** Flujo de ingreso: opciones → passkey → verificación → sesión. Sirve también para reautenticar (sin correo). */
 export function useLogin() {
   const passkeys = usePasskeys();
   const { signIn } = useSession();
-  return useCallback(async () => {
-    const { challengeId, ...options } = await authApi.loginOptions();
+  return useCallback(async (email?: string) => {
+    const { challengeId, ...options } = await authApi.loginOptions(email);
     const credential = await passkeys.authenticate(options);
     await signIn(await authApi.loginVerify({ challengeId, credential }));
   }, [passkeys, signIn]);

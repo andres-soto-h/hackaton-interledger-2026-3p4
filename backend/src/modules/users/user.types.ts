@@ -62,6 +62,8 @@ export interface Challenge {
     /** Present when the registration uses an enrollment link. */
     enrollmentTokenHash?: string
   }
+  /** Login challenge issued for an email: only that account's passkeys may answer it. */
+  loginUserId?: string
   /** Payment being confirmed, kept until the challenge is consumed. */
   payment?: {
     paymentId: string

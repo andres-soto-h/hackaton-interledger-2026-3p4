@@ -86,7 +86,9 @@ export interface AuthService {
     challengeId: string
     credential: unknown
   }): Promise<AuthSession>
-  loginOptions(): Promise<{ challengeId: string; options: Record<string, unknown> }>
+  loginOptions(input?: {
+    email?: string
+  }): Promise<{ challengeId: string; options: Record<string, unknown> }>
   loginVerify(input: { challengeId: string; credential: unknown }): Promise<AuthSession>
 }
 
@@ -285,13 +287,30 @@ export function createAuthService(deps: AuthDeps): AuthService {
       return { user: publicUser(user), session: issueSession(user) }
     },
 
-    async loginOptions() {
-      const options = await verifier.createAuthenticationOptions({ rpID: webauthn.rpID })
+    async loginOptions(input) {
+      const email = input?.email?.trim().toLowerCase()
+      // With an email, only that account's passkeys can answer; an unknown email
+      // gets no hint and fails at verification (`loginUserId: ''` matches nobody).
+      const account =
+        email !== undefined && email !== '' ? await users.findUserByEmail(email) : null
+      const credentials = account !== null ? await users.listCredentials(account.id) : []
+      const options = await verifier.createAuthenticationOptions({
+        rpID: webauthn.rpID,
+        ...(credentials.length > 0
+          ? {
+              allowCredentials: credentials.map((c) => ({
+                id: c.id,
+                ...(c.transports !== undefined ? { transports: c.transports } : {})
+              }))
+            }
+          : {})
+      })
       const challengeId = newChallengeId(nowMs())
       await users.createChallenge({
         id: challengeId,
         challenge: options.challenge,
         type: 'login',
+        ...(email !== undefined && email !== '' ? { loginUserId: account?.id ?? '' } : {}),
         expiresAt: nowSeconds() + CHALLENGE_TTL_SECONDS
       })
       return { challengeId, options }
@@ -305,7 +324,11 @@ export function createAuthService(deps: AuthDeps): AuthService {
         // Bypass: without a passkey there is no credential to identify the
         // user, so log in as the most recently registered active account.
         const accounts = await users.listUsers()
-        const user = accounts.find((account) => account.status === 'ACTIVE')
+        const user = accounts.find(
+          (account) =>
+            account.status === 'ACTIVE' &&
+            (challenge.loginUserId === undefined || account.id === challenge.loginUserId)
+        )
         if (user === undefined) throw sessionInvalid()
         return { user: publicUser(user), session: issueSession(user) }
       }
@@ -340,6 +363,11 @@ export function createAuthService(deps: AuthDeps): AuthService {
       // Synced passkeys (counter 0) pass; hardware-backed counters must advance.
       if (stored.counter > 0 || newCounter > 0) {
         if (newCounter <= stored.counter) throw passkeyFailed()
+      }
+
+      // A challenge issued for an email only accepts that account's passkeys.
+      if (challenge.loginUserId !== undefined && stored.userId !== challenge.loginUserId) {
+        throw passkeyFailed()
       }
 
       const user = await users.getUser(stored.userId)
