@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Borrador** |
+| Estado | **Aprobado** |
 | Creado | 2026-10-16 |
-| Spec aprobado | — |
+| Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | — |
 | Finalizado | — |
 
 ## Estado
 
-0 / 14 tareas completadas. Spec en borrador, pendiente de aprobación.
+0 / 14 tareas completadas. Spec aprobado con sus decisiones; pendiente la autorización para iniciar el desarrollo.
 
 ## Contexto
 
@@ -189,17 +189,14 @@ lee una vez por instancia (en el cold start) y queda en memoria.
 13. [ ] README del backend.
 14. [ ] Suite completa en verde, lint y typecheck limpios.
 
-## Decisiones pendientes
+## Decisiones
 
-1. **Adaptador Express → Lambda.** Recomendación: **`serverless-http`**: simple,
-   compatible con Express 5 y con eventos de HTTP API. Alternativa:
-   `@codegenie/serverless-express`.
-2. **Validación de configuración y requests.** Recomendación: **Zod** (se reusa
-   después para validar los bodies de los endpoints).
-3. **Logger.** Recomendación: **pino** (JSON estructurado, rápido, legible en
-   CloudWatch).
-4. **Bundler del build.** Recomendación: **esbuild** (un solo archivo
-   `dist/lambda.js` con dependencias incluidas; paquete pequeño y cold start rápido).
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Adaptador Express → Lambda | `serverless-http` |
+| 2 | Validación de configuración y requests | Zod |
+| 3 | Logger | pino |
+| 4 | Bundler del build | esbuild (un solo `dist/lambda.js`) |
 
 ## Notas
 
