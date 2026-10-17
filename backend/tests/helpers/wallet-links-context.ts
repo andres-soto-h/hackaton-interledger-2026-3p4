@@ -56,7 +56,8 @@ export function buildWalletLinksContext(
     cipher,
     dailyLimits: createStaticDailyLimitProvider(DAILY_LIMITS),
     apiBaseUrl: API_BASE_URL,
-    now
+    now,
+    logger: options.logger
   })
 
   const app = createApp({
