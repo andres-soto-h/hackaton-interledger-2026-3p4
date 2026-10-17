@@ -8,6 +8,12 @@ import { createAdminUsersRouter } from '../modules/admin/admin-users.routes.js'
 import { createOpenPaymentsStatusChecker } from '../modules/admin/home-summary.js'
 import { createAuthRouter } from '../modules/auth/auth.routes.js'
 import { createDevPasskeyPageRouter } from '../modules/dev/dev-passkey-page.routes.js'
+import {
+  createNoopFeeCollector,
+  createZeroFeeCalculator
+} from '../modules/payments/fee.js'
+import { createPaymentsRouter } from '../modules/payments/payments.routes.js'
+import { createPaymentsService } from '../modules/payments/payments.service.js'
 import { createPaymentRequestsRouter } from '../modules/payments/payment-requests.routes.js'
 import { createPaymentRequestsService } from '../modules/payments/payment-requests.service.js'
 import { createMeRouter } from '../modules/users/me.routes.js'
@@ -35,8 +41,8 @@ export interface CompositionDeps {
   /** Milliseconds since the epoch; tests inject a fake clock. */
   now?: () => number
   /**
-   * Extension point: routers of specs that are not wired yet (e.g. payments,
-   * spec 007). They are mounted after the built-in modules.
+   * Extension point: routers of specs that are not wired yet. They are mounted
+   * after the built-in modules.
    */
   extraRouters?: Router[]
 }
@@ -119,6 +125,27 @@ export function createComposition({
       users: storage.users,
       sessions,
       frontendResultUrl: config.frontendResultUrl
+    }),
+    createPaymentsRouter({
+      service: createPaymentsService({
+        gateway,
+        payments: storage.payments,
+        links: storage.walletLinks,
+        walletLinks,
+        users: storage.users,
+        verifier,
+        settings,
+        // Spec 024 replaces these two with the real fee calculation and collection.
+        fees: createZeroFeeCalculator(),
+        feeCollector: createNoopFeeCollector(),
+        webauthn: { rpID: config.webauthn.rpId, origins: config.webauthn.origins },
+        now,
+        logger
+      }),
+      users: storage.users,
+      sessions,
+      idempotencyStore: storage.idempotencyStore,
+      settings
     }),
     createPaymentRequestsRouter({
       service: createPaymentRequestsService({

@@ -90,7 +90,11 @@ describe('composición · rutas montadas', () => {
     ['get', '/api/v1/me/wallet-link'],
     ['post', '/api/v1/me/wallet-link'],
     ['delete', '/api/v1/me/wallet-link'],
-    ['get', '/api/v1/me/allowance']
+    ['get', '/api/v1/me/allowance'],
+    ['post', '/api/v1/payments'],
+    ['post', '/api/v1/payments/pay_01JTESTPAYMENT000000000000/confirm/options'],
+    ['post', '/api/v1/payments/pay_01JTESTPAYMENT000000000000/confirm'],
+    ['post', '/api/v1/payments/pay_01JTESTPAYMENT000000000000/cancel']
   ] as const)(
     '%s %s exige la sesión del usuario, no la API key',
     async (method, path) => {
@@ -252,5 +256,54 @@ describe('composición · cableado entre módulos', () => {
       continueToken: 'continue-token'
     })
     expect((await request(app).get('/api/v1/me').set(bearer)).status).toBe(401)
+  })
+
+  it('los pagos (007) usan la sesión: sin vinculación activa → 403 WALLET_NOT_LINKED', async () => {
+    const { app } = build()
+    const token = await register(app)
+    const res = await request(app)
+      .post('/api/v1/payments')
+      .set({ authorization: `Bearer ${token}` })
+      .send({
+        type: 'p2p',
+        receiverWalletAddress: wallet('shop').id,
+        amount: { value: '10.00', assetCode: 'USD' }
+      })
+    expect(res.status).toBe(403)
+    expect(errorOf(res).code).toBe('WALLET_NOT_LINKED')
+  })
+
+  it('con la vinculación activa cotiza el pago con las mismas dependencias', async () => {
+    const { app, storage } = build()
+    const token = await register(app)
+    const bearer = { authorization: `Bearer ${token}` }
+    const me = await request(app).get('/api/v1/me').set(bearer)
+    await storage.walletLinks.create({
+      id: 'wl_01TESTLINK',
+      userId: (me.body as { id: string }).id,
+      walletAddress: wallet('alice').id,
+      assetCode: 'USD',
+      assetScale: 2,
+      dailyLimit: '200',
+      interval: 'R/2026-10-17T05:00:00Z/P1D',
+      periodTimezone: 'America/Bogota',
+      status: 'ACTIVE',
+      continueUri: 'https://auth.interledger-test.dev/continue/c1',
+      continueToken: 'continue-token',
+      tokenVersion: 1,
+      createdAt: '2026-10-17T10:00:00.000Z'
+    })
+    const res = await request(app)
+      .post('/api/v1/payments')
+      .set(bearer)
+      .send({
+        type: 'p2p',
+        receiverWalletAddress: wallet('shop').id,
+        amount: { value: '10.00', assetCode: 'USD' }
+      })
+    expect(res.status).toBe(201)
+    const body = res.body as { paymentId: string; quote: { totalDebit: unknown } }
+    expect(body.paymentId).toMatch(/^pay_/)
+    expect(body.quote.totalDebit).toEqual({ value: '10.00', assetCode: 'USD' })
   })
 })
