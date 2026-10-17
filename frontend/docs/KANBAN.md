@@ -5,7 +5,7 @@
 
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
-| | [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 0/11 | | |
+| | | [001 — Bootstrap del frontend](specs/001-bootstrap-frontend.md) · 10/11 · *falta la verificación manual (web y Android)* | |
 | | [002 — Inicio de sesión y mi cuenta](specs/002-inicio-sesion.md) · 0/7 | | |
 | | [003 — Registro y vinculación de la wallet](specs/003-registro.md) · 0/7 | | |
 | | [004 — Inicio y transacciones](specs/004-inicio-transacciones.md) · 0/6 | | |
@@ -42,3 +42,5 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-17 | 005 | Decisiones del responsable: pagos a comercios solo en COP; `p2m` con `receiverWalletAddress` + `amount` (backend 026); directorio simulado en el front y tarea pendiente del backend para conectarlo con Google Cloud |
 | 2026-10-17 | 003 | Decisiones: no se pide correo; passkeys en Android solo desde Chrome (TD-003) |
 | 2026-10-17 | 006 | Nota: cobro único por el total (backend 025, Borrador); la pantalla no cambia |
+| 2026-10-17 | 001 | Desarrollo aprobado → En desarrollo; rama `front/001` (worktree aparte para no cruzarse con el backend) |
+| 2026-10-17 | 001 | Tareas 1–9 y 11 hechas: Expo + Router, Jest/RNTL/MSW, `money`, cliente HTTP, tema, componentes base y layout raíz; 65 tests en verde. Falta la verificación manual |

@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **Aprobado** |
+| Estado | **En desarrollo** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
-| Desarrollo aprobado | — |
+| Desarrollo aprobado | 2026-10-17 |
 | Finalizado | — |
 
 ## Estado
 
-0 / 11 tareas completadas. Spec aprobado; pendiente la autorización para iniciar el desarrollo.
+10 / 11 tareas completadas en la rama `front/001` (65 tests en verde, lint, typecheck y `expo export -p web` limpios). **Solo falta la verificación manual (tarea 10)**: abrir `pnpm web` en el navegador y `pnpm android` en un emulador y revisar la pantalla base; pendiente del responsable. Desarrollo aprobado el 2026-10-17 (instrucción del responsable de avanzar el frontend).
 
 ## Contexto
 
@@ -99,22 +99,29 @@ La de [PLAN.md](../PLAN.md#estructura-del-frontend).
 
 ## Tareas
 
-1. [ ] Crear el proyecto Expo con TypeScript estricto y Expo Router; fijar versiones.
-2. [ ] Configurar Jest (`jest-expo`), RNTL, MSW y `renderWithProviders`; un test de humo en verde.
-3. [ ] ESLint, Prettier y scripts `test`, `lint`, `typecheck`, `web`, `android`.
-4. [ ] Casos 1–3 en rojo → `money.ts`.
-5. [ ] Casos 4–9 en rojo → cliente HTTP.
-6. [ ] Tokens de tema y carga de fuentes.
-7. [ ] Casos 10–13 en rojo → componentes base.
-8. [ ] Layout raíz con providers y grupos de rutas `(publico)` y `(app)`.
-9. [ ] `.env.example` y README (cómo correr en web y Android, cómo probar).
-10. [ ] Verificación manual (caso 14).
-11. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Crear el proyecto Expo con TypeScript estricto y Expo Router; fijar versiones.
+2. [x] Configurar Jest (`jest-expo`), RNTL, MSW y `renderWithProviders`; un test de humo en verde.
+3. [x] ESLint, Prettier y scripts `test`, `lint`, `typecheck`, `web`, `android`.
+4. [x] Casos 1–3 en rojo → `money.ts`.
+5. [x] Casos 4–9 en rojo → cliente HTTP.
+6. [x] Tokens de tema y carga de fuentes.
+7. [x] Casos 10–13 en rojo → componentes base.
+8. [x] Layout raíz con providers y grupos de rutas `(publico)` y `(app)`.
+9. [x] `.env.example` y README (cómo correr en web y Android, cómo probar).
+10. [~] Verificación manual (caso 14): el build web compila; falta revisar la pantalla en el navegador y en Android.
+11. [x] Suite completa en verde, lint y typecheck limpios.
+
+## Decisiones
+
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Íconos | `@expo/vector-icons` (incluido en Expo) en vez de los SVG de los mockups (2026-10-17) |
+| 2 | Versiones | `msw` fijado en 2.10.x (las 2.1x+ traen dependencias ESM que Jest no carga); `eslint` 9 (el plugin de React de `eslint-config-expo` aún no soporta la 10); RNTL 14 es asíncrono (`await render`, `await fireEvent`) (2026-10-17) |
+| 3 | Alcance de componentes | Esta entrega trae `Screen`, `AppHeader`, `Button`, `TextField`, `Card`, `AmountRow`, `StatusBadge`, `EmptyState`, `ErrorState`, `AppText`; `StepIndicator`, `PasskeyButton`, `CheckItem`, burbujas, `MicButton` y `MerchantTile` los crea el spec que los usa primero (2026-10-17) |
 
 ## Decisiones pendientes
 
-1. **Íconos:** recomendación `@expo/vector-icons` (incluido en Expo) en vez de
-   los SVG de los mockups.
+Ninguna.
 
 ## Notas
 
