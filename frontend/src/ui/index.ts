@@ -8,3 +8,4 @@ export { EmptyState, ErrorState } from './States';
 export { StatusBadge, paymentStatusText, type PaymentStatus } from './StatusBadge';
 export { TextField } from './TextField';
 export { ConfirmPanel } from './ConfirmPanel';
+export { StepIndicator } from './StepIndicator';
