@@ -118,5 +118,5 @@ La de [PLAN.md](../PLAN.md#estructura-del-frontend).
 
 ## Notas
 
-- Si Android necesita módulos nativos que no estén en Expo Go (voz, spec 009),
+- Si Android necesita módulos nativos que no estén en Expo Go (p. ej. para la voz, spec 009),
   se usa un *development build*; se documenta en el README cuando llegue ese spec.

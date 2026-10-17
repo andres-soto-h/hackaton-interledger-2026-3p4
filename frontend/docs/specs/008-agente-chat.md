@@ -130,3 +130,7 @@ en un reducer testeable. Al volver del 007, el resultado agrega una acción
 2. **Dónde vive el agente:** endpoint del backend que llama al modelo, o
    servicio aparte en `agent/` detrás del backend. Recomendación: la app solo
    habla con el backend (un solo origen, una sola autenticación).
+3. **SDK de agentes de Gemini:** el agente se construye con ese SDK. Si trae
+   componentes o un protocolo propio para el chat en React, el contrato de
+   `POST /agent/messages` y los componentes de este spec se ajustan a él. Se
+   define junto con la voz (spec [009](009-agente-voz.md)).

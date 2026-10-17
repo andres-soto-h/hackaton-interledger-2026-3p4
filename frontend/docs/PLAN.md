@@ -29,7 +29,7 @@ visual, el tono y la estructura de las pantallas, no todos sus flujos
 | Estado de la sesión | React Context | Solo hay sesión y usuario; no justifica una librería |
 | Formularios | **react-hook-form + Zod** | Zod ya es la validación del backend; se pueden compartir reglas |
 | Almacenamiento de la sesión | `expo-secure-store` en Android; memoria + `sessionStorage` en web | Ver [Seguridad](#seguridad) |
-| Voz | `expo-speech` (texto a voz) y `expo-speech-recognition` (voz a texto; Web Speech API en web) | Funcionan en web y Android con la misma API |
+| Agente y voz | **Pendiente de definición:** SDK de agentes de Gemini; texto a voz con modelos de Google Cloud | Ver spec [009](specs/009-agente-voz.md) |
 | Gestor de paquetes | pnpm | Igual que el backend |
 | Despliegue web | Export estático de Expo (`expo export -p web`) | Infraestructura fuera de alcance de este plan |
 | Metodología | SDD + TDD, mismo flujo que el backend ([PLAN del backend](../../backend/docs/PLAN.md#flujo-de-trabajo-sdd--tdd)) | Regla del proyecto |

@@ -13,7 +13,7 @@
 | [006 — Confirmación y aprobación](specs/006-confirmacion-aprobacion.md) · 0/6 | | | |
 | [007 — Resultado de la transacción](specs/007-resultado-transaccion.md) · 0/5 | | | |
 | [008 — Agente por chat](specs/008-agente-chat.md) · 0/6 | | | |
-| [009 — Agente por voz](specs/009-agente-voz.md) · 0/6 | | | |
+| [009 — Agente por voz](specs/009-agente-voz.md) · 0/3 · *pendiente de definición técnica* | | | |
 
 **Orden de desarrollo:** 001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009.
 Los specs se desarrollan contra la API simulada (MSW); la integración con el
@@ -34,3 +34,4 @@ backend real se verifica cuando su endpoint esté **Hecho**.
 | 2026-10-16 | 001–009 | Creados como borrador |
 | 2026-10-16 | 001–009 | Renumerados desde 001 (antes 010–018; numeración propia del frontend). Sesión pasa a 002 y registro a 003 para que el orden de desarrollo sea el numérico |
 | 2026-10-16 | — | Plan del frontend aprobado con sus decisiones (stack, comisión, carriles independientes, retorno en Android, mockups fuera del repo) |
+| 2026-10-16 | 009 | Voz pendiente de definición técnica: SDK de agentes de Gemini y TTS de Google Cloud; impacta 008 |
