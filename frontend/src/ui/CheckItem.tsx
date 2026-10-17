@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '@/theme';
+import { colors, iconSize, spacing } from '@/theme';
 import { AppText } from './AppText';
 
 export type CheckStatus = 'pending' | 'ok' | 'warning' | 'error';
@@ -21,7 +21,7 @@ export function CheckItem({ title, detail, status }: { title: string; detail?: s
       accessibilityLabel={`${title}: ${word}${detail ? `. ${detail}` : ''}`}
       style={styles.row}
     >
-      <Ionicons name={icon} size={24} color={colors[color]} accessibilityElementsHidden />
+      <Ionicons name={icon} size={iconSize.lg} color={colors[color]} accessibilityElementsHidden />
       <View style={styles.text}>
         <AppText variant="body">{title}</AppText>
         {detail ? (

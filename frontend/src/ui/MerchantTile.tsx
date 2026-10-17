@@ -1,15 +1,17 @@
-import { Pressable, StyleSheet, View } from 'react-native';
-import { colors, layout, radii, spacing } from '@/theme';
+import { StyleSheet, View } from 'react-native';
+import { borderWidth, colors, layout, radii, spacing } from '@/theme';
 import { AppText } from './AppText';
+import { PressableScale } from './PressableScale';
 
 type Props = { name: string; subtitle: string; onPress: () => void };
 
 export function MerchantTile({ name, subtitle, onPress }: Props) {
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={`${name}, ${subtitle}`}
       onPress={onPress}
+      haptic="tap"
       style={styles.tile}
     >
       <View style={styles.badge}>
@@ -23,7 +25,7 @@ export function MerchantTile({ name, subtitle, onPress }: Props) {
           {subtitle}
         </AppText>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -31,7 +33,9 @@ const styles = StyleSheet.create({
   tile: {
     alignItems: 'center',
     backgroundColor: colors.surface,
+    borderColor: colors.borderSubtle,
     borderRadius: radii.card,
+    borderWidth: borderWidth.hairline,
     flexDirection: 'row',
     gap: spacing.md,
     minHeight: layout.buttonHeight + spacing.lg,
@@ -41,9 +45,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surfaceAlt,
     borderRadius: radii.chip,
-    height: 44,
+    height: layout.avatarSize,
     justifyContent: 'center',
-    width: 44,
+    width: layout.avatarSize,
   },
   text: { flexShrink: 1 },
 });

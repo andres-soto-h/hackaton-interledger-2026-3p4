@@ -1,6 +1,7 @@
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { colors, layout, radii, spacing } from '@/theme';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { borderWidth, colors, layout, radii, spacing } from '@/theme';
 import { AppText } from './AppText';
+import { PressableScale } from './PressableScale';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -33,7 +34,7 @@ export function Button({
   const inactive = disabled || loading;
   const { bg, fg, border } = palette[variant];
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
@@ -41,14 +42,15 @@ export function Button({
       disabled={inactive}
       onPress={onPress}
       testID={testID}
-      style={({ pressed }) => [
+      haptic="tap"
+      style={[
         styles.base,
         {
           backgroundColor: bg,
           minHeight: variant === 'primary' || variant === 'danger' ? layout.buttonHeight : layout.minTouch,
           borderColor: border ?? 'transparent',
-          opacity: inactive ? 0.55 : pressed ? 0.85 : 1,
         },
+        inactive ? styles.inactive : null,
       ]}
     >
       <View style={styles.content}>
@@ -57,17 +59,18 @@ export function Button({
           {label}
         </AppText>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
     borderRadius: radii.button,
-    borderWidth: 2,
+    borderWidth: borderWidth.hairline,
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
   },
+  inactive: { opacity: 0.5 },
   content: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' },
 });
