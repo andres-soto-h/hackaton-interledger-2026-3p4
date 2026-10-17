@@ -29,7 +29,7 @@ TypeScript · Node.js · Express · Vitest + supertest · pnpm · AWS Lambda.
   desarrollo (**En desarrollo**). Aprobar el spec no autoriza el desarrollo.
 - TDD: primero tests en rojo, luego el código mínimo para pasarlos, luego refactor.
 - Un spec solo pasa a **Hecho** con toda la suite de tests en verde.
-- Paralelismo: máximo **3 specs En desarrollo a la vez**, cada uno en su propio
+- Paralelismo: máximo **5 specs En desarrollo a la vez**, cada uno en su propio
   worktree y rama (`spec/NNN`), y siempre con la memoria compartida
   [orquestacion/MEMORIA-COMPARTIDA.md](orquestacion/MEMORIA-COMPARTIDA.md):
   toda decisión o cambio que afecte a otro spec activo se registra ahí y se

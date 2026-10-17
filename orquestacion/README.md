@@ -1,6 +1,6 @@
 # Orquestación: Claude + workers de DeepSeek
 
-Setup para desarrollar specs del backend en paralelo (máximo 3) con un
+Setup para desarrollar specs del backend en paralelo (máximo 5) con un
 **orquestador de Claude** (Claude Code) que supervisa a **workers de DeepSeek**
 (OpenCode). Creado el 2026-10-16.
 
@@ -26,7 +26,7 @@ así que no puede "aprobarse a sí mismo".
 
 ## Regla de paralelismo (CLAUDE.md)
 
-- Máximo **3 specs En desarrollo a la vez**, uno por worktree y rama `spec/NNN`.
+- Máximo **5 specs En desarrollo a la vez**, uno por worktree y rama `spec/NNN`.
 - Condición: la memoria compartida al día. Toda decisión que afecte a otro spec
   activo se registra en [MEMORIA-COMPARTIDA.md](MEMORIA-COMPARTIDA.md) y se
   propaga a los workers antes de integrar.
@@ -62,10 +62,16 @@ opencode models deepseek     # debe listar deepseek/deepseek-v4-pro y deepseek/d
 OPENCODE_CONFIG_DIR=$PWD/.opencode opencode agent list | grep backend-worker
 ```
 
-## El worker (`backend-worker`)
+## Los subagentes (`coder` y `test-writer`)
 
-- **Modelo:** `deepseek/deepseek-v4-pro`, temperatura 0.1, máximo 150 pasos.
-  Para tareas mecánicas se puede cambiar por `ORQ_MODEL=deepseek/deepseek-flash`.
+Definidos en `.opencode/agents/` (formato V2). El script elige el rol con
+`ORQ_AGENT` (por defecto `coder`) y fija el modelo según el rol:
+
+- **`coder`** — `deepseek/deepseek-v4-pro`, máximo 150 pasos. Implementa el código mínimo para pasar los tests. No toca `backend/tests/` ni `backend/docs/`.
+- **`test-writer`** — `deepseek/deepseek-flash`, máximo 100 pasos. Escribe los tests en rojo. Solo toca `backend/tests/` y `backend/infra/test/`.
+
+`ORQ_MODEL` sobreescribe el modelo por rol para tareas mecánicas
+(p. ej. `ORQ_MODEL=deepseek/deepseek-flash`).
 - **Puede:** leer todo el repo, editar código y correr `pnpm test | typecheck |
   lint | format` (y `test | typecheck` en `backend/infra`), `git status | diff | log`, `ls` y `cat .orquestacion/*`.
 - **No puede:** editar `backend/tests/`, `backend/infra/test/`, `backend/docs/`, `frontend/`, `AI/`,

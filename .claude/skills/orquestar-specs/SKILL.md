@@ -1,6 +1,6 @@
 ---
 name: orquestar-specs
-description: Orquesta el desarrollo de specs del backend con workers de DeepSeek (OpenCode) en paralelo, hasta 3 specs a la vez, con memoria compartida. Usar cuando el usuario pida "orquestar", "lanzar workers", "desarrollar el spec NNN con DeepSeek" o /orquestar-specs NNN [NNN NNN].
+description: Orquesta el desarrollo de specs del backend con subagentes de DeepSeek (OpenCode) en paralelo, hasta 5 specs a la vez, con memoria compartida. Roles: orquestador (deepseek-v4-pro), test-writer (deepseek-flash) y coder (deepseek-v4-pro). Usar cuando el usuario pida "orquestar", "lanzar workers", "desarrollar el spec NNN con DeepSeek" o /orquestar-specs NNN [NNN NNN].
 ---
 
 # Orquestar specs con workers de DeepSeek
@@ -16,7 +16,7 @@ Memoria compartida: `orquestacion/MEMORIA-COMPARTIDA.md`.
 
 - Solo se orquestan specs en **En desarrollo** (autorización explícita del
   responsable). Si un spec no lo está, detente y pide la autorización.
-- Máximo **3 specs en paralelo**, un worktree y un worker por spec (el script lo impone).
+- Máximo **5 specs en paralelo**, un worktree y un subagente por spec (el script lo impone).
 - Eres el **único escritor** de la memoria compartida, del KANBAN y de los specs.
   Los workers no tocan `backend/docs/`, `backend/tests/`, `AI/` ni `orquestacion/`.
 - Nada se integra sin que tú corras la suite completa y revises el diff.
@@ -53,9 +53,11 @@ Memoria compartida: `orquestacion/MEMORIA-COMPARTIDA.md`.
    - Spec → **Hecho**, KANBAN e historial actualizados, `dw close NNN` y saca el
      spec de la tabla *Specs en paralelo* de la memoria.
 
-## Elegir modelo
+## Roles y modelos
 
-- Por defecto, `deepseek/deepseek-v4-pro` (definido en el agente).
+- **Orquestador** (tú): `deepseek/deepseek-v4-pro`. Escribes los tests en rojo, revisas, integras y llevas la documentación.
+- **test-writer**: subagente `deepseek/deepseek-flash` que escribe los tests en rojo. `ORQ_AGENT=test-writer dw start …`.
+- **coder**: subagente `deepseek/deepseek-v4-pro` que implementa el código mínimo para pasar los tests. Es el rol por defecto de `dw start`.
 - Tareas mecánicas (DTOs, wiring de rutas): `ORQ_MODEL=deepseek/deepseek-flash dw start …`.
 
 ## Al responder al usuario

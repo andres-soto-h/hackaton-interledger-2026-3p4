@@ -11,7 +11,8 @@
 #   deepseek-worker.sh proposals                       propuestas de decisión de cada worker
 #   deepseek-worker.sh close <NNN> [--force]           quita el worktree (la rama se conserva)
 #
-# Variables: ORQ_MODEL (p. ej. deepseek/deepseek-flash), ORQ_WORKTREES, ORQ_MAX_SPECS.
+# Variables: ORQ_AGENT (coder | test-writer, por defecto coder), ORQ_MODEL
+# (p. ej. deepseek/deepseek-flash), ORQ_WORKTREES, ORQ_MAX_SPECS.
 
 set -euo pipefail
 
@@ -21,7 +22,7 @@ orq="$repo/orquestacion"
 memoria="$orq/MEMORIA-COMPARTIDA.md"
 runs="$orq/runs"
 wt_root="${ORQ_WORKTREES:-$(dirname "$repo")/$(basename "$repo")-worktrees}"
-max_specs="${ORQ_MAX_SPECS:-3}"
+max_specs="${ORQ_MAX_SPECS:-5}"
 # El agente se toma del checkout principal para que no dependa de la rama del worktree.
 export OPENCODE_CONFIG_DIR="$repo/.opencode"
 
@@ -83,13 +84,20 @@ run_worker() {
   echo $$ > "$runs/$spec/pid"
   trap 'rm -f "$runs/$spec/pid"' EXIT
 
-  local args=(run --agent backend-worker --format json --title "spec-$spec")
+  local agent="${ORQ_AGENT:-coder}"
+  local model="${ORQ_MODEL:-}"
+  if [ -z "$model" ]; then
+    case "$agent" in
+      test-writer) model="deepseek/deepseek-flash" ;;
+      *) model="deepseek/deepseek-v4-pro" ;;
+    esac
+  fi
+  local args=(run --agent "$agent" --model "$model" --format json --title "spec-$spec")
   [ -n "$session" ] && args+=(--session "$session")
-  [ -n "${ORQ_MODEL:-}" ] && args+=(--model "$ORQ_MODEL")
 
-  (cd "$wt" && opencode agent list 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | grep -q '^backend-worker ') \
-    || die "OpenCode no encuentra el agente backend-worker en $OPENCODE_CONFIG_DIR/agent"
-  echo "worker spec $spec → $wt (log: $log)" >&2
+  [ -f "$OPENCODE_CONFIG_DIR/agents/$agent.md" ] \
+    || die "no existe el agente '$agent' en $OPENCODE_CONFIG_DIR/agents/"
+  echo "worker spec $spec (agente $agent) → $wt (log: $log)" >&2
   local rc=0
   (cd "$wt" && opencode "${args[@]}" "$msg") > "$log" 2> "$log.err" || rc=$?
 

@@ -27,10 +27,16 @@ Formato:
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
 
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
-| 023 | `spec/023` | `../<repo>-worktrees/spec-023` | 2026-10-17 | Vinculación de wallet y monto diario (con fakes) |
-| 022 | `spec/022` | `../<repo>-worktrees/spec-022` | 2026-10-17 | Actividad en vivo del panel |
+
+Los specs 023 y 022 se integraron en `develop-andres` (2026-10-17) y sus worktrees se cerraron; no quedan workers corriendo.
 
 ## Decisiones
+
+### 2026-10-17 · Reconciliación `listAllPayments` vs `listEveryPayment` (022)
+- Origen: spec 022 (orquestador, al integrar)
+- Afecta: specs 022, 024 · `src/modules/payments/`, `src/modules/admin/`, `src/modules/fees/`
+- Decisión: el 022 agregó `PaymentsRepository.listAllPayments(q)` (paginado, con cursor, solo pagos de todas las wallets) para `GET /admin/payments`, mientras el resumen de comisiones del 024 usa `listEveryPayment()` (barrido completo). Se conservan ambos métodos; no se unifican.
+- Acción para los demás: el panel usa `listAllPayments` y el resumen de comisiones usa `listEveryPayment`.
 
 ### 2026-10-17 · Decisiones del 024 que afectan a 008, 009 y 022
 - Origen: spec 024 (agente de tests)
