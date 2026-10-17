@@ -107,18 +107,25 @@ describe('BackendStack', () => {
   })
 
   // Caso 5
-  it('limita el acceso de DynamoDB a la tabla de pagos', () => {
+  it('limita el acceso de DynamoDB a la tabla de pagos y sus índices', () => {
     const tableId = logicalId('AWS::DynamoDB::Table', {})
+    const tableArn = { 'Fn::GetAtt': [tableId, 'Arn'] }
+    // Queries on bySender / byReceiver need the index ARNs too.
+    const indexesArn = { 'Fn::Join': ['', [tableArn, '/index/*']] }
     const dynamoStatements = lambdaStatements().filter((s) =>
       actionsOf(s).some((a) => a.startsWith('dynamodb:'))
     )
     expect(dynamoStatements.length).toBeGreaterThan(0)
-    for (const s of dynamoStatements) {
-      const resources = [s.Resource].flat().filter(
-        (r) => JSON.stringify(r) !== JSON.stringify({ Ref: 'AWS::NoValue' })
-      )
-      expect(resources).toEqual([{ 'Fn::GetAtt': [tableId, 'Arn'] }])
+    const resources = dynamoStatements.flatMap((s) =>
+      [s.Resource]
+        .flat()
+        .filter((r) => JSON.stringify(r) !== JSON.stringify({ Ref: 'AWS::NoValue' }))
+    )
+    expect(resources).toEqual(expect.arrayContaining([tableArn, indexesArn]))
+    for (const r of resources) {
+      expect([tableArn, indexesArn]).toContainEqual(r)
     }
+    expect(dynamoStatements.flatMap(actionsOf)).toContain('dynamodb:Query')
   })
 
   // Caso 6
