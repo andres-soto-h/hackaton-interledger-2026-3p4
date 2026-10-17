@@ -26,7 +26,6 @@ Formato:
 |---|---|---|---|---|
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
 | 003 | `spec/003` | `../<repo>-worktrees/spec-003` | 2026-10-16 | Tareas 1–5 (configuración, montos, anti-SSRF, puerto + fake, errores) |
-| 004 | `spec/004` | `../<repo>-worktrees/spec-004` | 2026-10-16 | Tareas 5–6 (DynamoDB + `pnpm test:dynamo`) |
 
 ## Decisiones
 
@@ -38,15 +37,15 @@ Formato:
   acepta por ahora; el 007 debe rechazar pagos a la propia wallet.
 - Acción para los demás: el 007 valida emisor ≠ receptor.
 
-### 2026-10-16 · Formato del secreto `token-encryption-key` (PENDIENTE de confirmar por el responsable)
+### 2026-10-16 · Formato del secreto `token-encryption-key` (CONFIRMADO 2026-10-17)
 - Origen: spec 002 (orquestador)
 - Afecta: specs 002, 023 · `backend/infra/lib/backend-stack.ts`, cifrado de tokens
 - Decisión: Secrets Manager solo genera cadenas aleatorias de caracteres, no 32 bytes
   en base64. La plantilla genera **64 caracteres alfanuméricos** y el spec 023 deriva
   la llave AES-256 con `SHA-256(secreto)` (32 bytes). En local, `TOKEN_ENCRYPTION_KEY`
   sigue la misma regla.
-- Acción para los demás: el 023 implementa la derivación; si el responsable prefiere
-  otra opción, se marca *Reemplazada*.
+- Confirmado por el responsable el 2026-10-17 (opción más simple: no cambia la plantilla).
+- Acción para los demás: el 023 implementa la derivación.
 
 ### 2026-10-16 · Configuración opcional de la Lambda
 - Origen: spec 002 (orquestador)
