@@ -10,6 +10,8 @@
 
 ## Estado
 
+Lote 1 integrado en `develop-andres` (2026-10-17): tareas 3–6 hechas; tareas 1 (solo memoria) y 7 (solo rutas públicas) parciales. Falta el lote 2: repositorio DynamoDB, adapter de SimpleWebAuthn, `openapi.yaml` y página HTML de prueba. Marca `[~]` = parcial.
+
 0 / 9 tareas completadas. Ajustado el 2026-10-16 por el monto diario
 preaprobado (spec 023); Cambios aprobados el 2026-10-16.
 
@@ -211,13 +213,13 @@ adapter se prueba con respuestas de WebAuthn grabadas.
 
 ## Tareas
 
-1. [ ] Entidades, `UsersRepository` y tests de contrato (caso 14) → memoria y DynamoDB.
+1. [~] Entidades, `UsersRepository` y tests de contrato (caso 14) → memoria y DynamoDB.
 2. [ ] Puerto `PasskeyVerifier` y adapter con SimpleWebAuthn (caso 15).
-3. [ ] Servicio de sesión (emitir y verificar JWT) y middleware `userAuth` (casos 10–11).
-4. [ ] Registro: casos 1–6 y 13 en rojo → implementación.
-5. [ ] Login: casos 7–9 en rojo → implementación.
-6. [ ] `GET /me` y `DELETE /me` (caso 12).
-7. [ ] Contrato en `openapi.yaml`; ajustar rutas públicas del spec 001.
+3. [x] Servicio de sesión (emitir y verificar JWT) y middleware `userAuth` (casos 10–11).
+4. [x] Registro: casos 1–6 y 13 en rojo → implementación.
+5. [x] Login: casos 7–9 en rojo → implementación.
+6. [x] `GET /me` y `DELETE /me` (caso 12).
+7. [~] Contrato en `openapi.yaml`; ajustar rutas públicas del spec 001.
 8. [ ] Página HTML mínima de prueba en local para el caso 16 (mientras no existe el frontend).
 9. [ ] Suite completa en verde, lint y typecheck limpios.
 

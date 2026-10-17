@@ -27,11 +27,19 @@ Formato:
 | 002 | `spec/002` | `../<repo>-worktrees/spec-002` | 2026-10-16 | Tareas 17–21 (secretos generados, índices de usuarios y eventos, configuración de passkeys/panel/monto diario/comisión) |
 | 019 | `spec/019` | `../<repo>-worktrees/spec-019` | 2026-10-17 | Cuentas, passkeys y sesiones |
 | 020 | `spec/020` | `../<repo>-worktrees/spec-020` | 2026-10-17 | Panel admin: base, configuración y `ActivityLog` |
-| 006 | `spec/006` | `../<repo>-worktrees/spec-006` | 2026-10-17 | Solicitar pago |
 
 > El spec 002 está **pausado** (2026-10-17) y no cuenta para el límite de 3; su worktree sigue disponible.
 
 ## Decisiones
+
+### 2026-10-17 · Contratos publicados por 006 y 019 (lote 1) para los demás
+- Origen: orquestador
+- Afecta: specs 007, 008, 009, 020, 021, 023, 024
+- Decisión:
+  - 006: `createPaymentRequestsRouter({ service, idempotencyStore })`; `PaymentRequest.amount` es opcional.
+  - 019: `userAuth(sessions, users)`, `requireRecentSession`, `getSessionUser(req)` en `src/shared/middlewares/user-auth.ts`; `SessionService` en `src/shared/session/`; `UsersRepository` + `createInMemoryUsersRepository` en `src/modules/users/`; puerto `PasskeyVerifier` (+ fake de tests en `tests/helpers/fake-passkey-verifier.ts`); `createAuthRouter` y `createMeRouter`.
+  - Rutas públicas sin API key: solo las listadas en `PUBLIC_ROUTES` de `api-key-auth.ts` (`METHOD path` exacto).
+- Acción para los demás: reutilizar estos contratos; no redefinirlos.
 
 ### 2026-10-17 · Excepciones: 019 y 020 tocan `api-key-auth.ts` y `ids.ts`
 - Origen: orquestador (avisado por los agentes de tests de 019 y 020)

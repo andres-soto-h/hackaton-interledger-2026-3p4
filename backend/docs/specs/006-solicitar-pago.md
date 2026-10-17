@@ -2,15 +2,15 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | **En desarrollo** |
+| Estado | **Hecho** |
 | Creado | 2026-10-16 |
 | Spec aprobado | 2026-10-16 |
 | Desarrollo aprobado | 2026-10-17 |
-| Finalizado | — |
+| Finalizado | 2026-10-17 |
 
 ## Estado
 
-0 / 5 tareas completadas. Desarrollo aprobado el 2026-10-17; se desarrolla en la rama `spec/006` (worker de DeepSeek) en paralelo con los specs 019 y 020. Depende de los specs 003, 004 y 005.
+5 / 5 tareas completadas e integradas en `develop-andres` (416 tests, typecheck y lint en verde). El router exportado es `createPaymentRequestsRouter({ service, idempotencyStore })`; el cableado en `createApp` queda pendiente del orquestador. Depende de los specs 003, 004 y 005.
 
 ## Contexto
 
@@ -103,11 +103,11 @@ validar moneda → `createIncomingPayment` → `createPaymentRequest` en el repo
 
 ## Tareas
 
-1. [ ] Schema y casos 1–7 en rojo.
-2. [ ] `PaymentRequestsService.create` hasta pasar los casos.
-3. [ ] Ruta, controller e idempotencia; caso 8.
-4. [ ] Contrato en `openapi.yaml`.
-5. [ ] Suite completa en verde, lint y typecheck limpios.
+1. [x] Schema y casos 1–7 en rojo.
+2. [x] `PaymentRequestsService.create` hasta pasar los casos.
+3. [x] Ruta, controller e idempotencia; caso 8.
+4. [x] Contrato en `openapi.yaml`.
+5. [x] Suite completa en verde, lint y typecheck limpios.
 
 ## Decisiones pendientes
 

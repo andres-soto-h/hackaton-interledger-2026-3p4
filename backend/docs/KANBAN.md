@@ -8,12 +8,12 @@
 | | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 21/22 · ⏸ *pausado hasta tener una versión inicial del backend (no cuenta para el límite de 3)* · *bootstrap de CDK reparado; falta comprobar el acceso de `tranqui-deployer` (tarea 22)* · *solo plantilla IaC: se despliega con la mayoría del backend* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
+| | | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 5/5 |
 | | | | [003 — Integración con Open Payments](specs/003-integracion-open-payments.md) · 8/8 |
-| | | [006 — Solicitar pago](specs/006-solicitar-pago.md) · 0/5 | |
 | | [007 — Hacer pago (monto diario + passkey)](specs/007-pago-y-autorizacion.md) · 0/9 | | |
 | | [008 — Consulta de pagos y transacciones](specs/008-consulta-pagos-transacciones.md) · 0/6 | | |
 | | [009 — Seguimiento del estado (polling)](specs/009-seguimiento-estado-agente.md) · 0/5 | | |
-| | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 0/9 | |
+| | | [019 — Cuentas de usuario con passkeys](specs/019-cuentas-usuario-passkeys.md) · 4/9 · *lote 1 integrado; falta DynamoDB, adapter WebAuthn, OpenAPI y página de prueba* | |
 | | | [020 — Panel admin: base y configuración](specs/020-panel-admin-configuracion.md) · 0/9 | |
 | | [021 — Panel admin: gestión de usuarios](specs/021-panel-admin-usuarios.md) · 0/7 | | |
 | | [022 — Panel admin: actividad en vivo](specs/022-panel-admin-actividad.md) · 0/6 | | |
@@ -86,3 +86,5 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 005 | Integrado en `develop-andres`, 277 tests en verde → Hecho |
 | 2026-10-17 | 019, 020 | Desarrollo aprobado → En desarrollo |
 | 2026-10-17 | 002 | Pausado hasta completar una versión inicial del backend; libera un cupo del límite de 3 specs en paralelo. 006 pasa a En desarrollo |
+| 2026-10-17 | 006 | Integrado en `develop-andres`, 416 tests en verde → Hecho |
+| 2026-10-17 | 019 | Lote 1 integrado (tareas 3–6; 1 y 7 parciales) |
