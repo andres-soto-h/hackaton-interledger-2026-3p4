@@ -27,7 +27,7 @@ describe('openapi.yaml · comisión', () => {
   it('feeStatus enumera los cinco estados y explica el cobro en dos pasos', () => {
     const block = schemaBlock('PaymentStatus')
     expect(block).toContain('enum: [NONE, PENDING, PROCESSING, COLLECTED, FAILED]')
-    const feeStatus = /feeStatus:\n((?:          .*\n)+)/.exec(block)?.[1] ?? ''
+    const feeStatus = /feeStatus:\n((?: {10}.*\n)+)/.exec(block)?.[1] ?? ''
     expect(feeStatus).toMatch(/description:/)
     expect(feeStatus).toContain('segundo outgoing payment')
   })
