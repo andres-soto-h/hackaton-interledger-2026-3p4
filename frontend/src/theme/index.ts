@@ -17,7 +17,7 @@ export const colors = {
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
-export const radii = { card: 16, button: 14, chip: 22, bubble: 18, bubbleTip: 4 } as const;
+export const radii = { card: 16, button: 14, chip: 22, bubble: 18, bubbleTip: 4, circle: 999 } as const;
 
 export const layout = {
   screenMargin: 20,
@@ -25,6 +25,7 @@ export const layout = {
   minTouch: 48,
   buttonHeight: 52,
   avatarSize: 44,
+  logoSize: 36,
 } as const;
 
 /** Ancho de borde. Hairline = 1 px (bordes sutiles, no cajas de 2 px). */
