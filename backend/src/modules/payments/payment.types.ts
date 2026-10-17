@@ -42,6 +42,8 @@ export interface Payment {
   feeStatus: FeeStatus
   feeIncomingPaymentUrl?: string
   feeOutgoingPaymentUrl?: string
+  /** Number of times the fee has been attempted to be collected (spec 024). */
+  feeAttempts?: number
   reservedAmount?: Amount
   status: PaymentStatus
   outgoingPaymentUrl?: string
