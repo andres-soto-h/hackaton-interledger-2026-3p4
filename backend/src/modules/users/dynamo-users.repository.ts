@@ -20,6 +20,7 @@ import type {
   UserStatus
 } from './user.types.js'
 import {
+  EmailAlreadyRegisteredError,
   UserNotFoundError,
   WalletAlreadyRegisteredError,
   type UsersRepository
@@ -29,17 +30,20 @@ type Item = Record<string, unknown>
 
 const CREDENTIAL_PREFIX = 'cred#'
 const WALLET_PREFIX = 'wallet#'
+const EMAIL_PREFIX = 'email#'
 const ENROLLMENT_PREFIX = 'enr#'
 
 const credentialKey = (credentialId: string): string =>
   `${CREDENTIAL_PREFIX}${credentialId}`
 const walletKey = (walletAddress: string): string => `${WALLET_PREFIX}${walletAddress}`
+const emailKey = (email: string): string => `${EMAIL_PREFIX}${email}`
 const enrollmentKey = (tokenHash: string): string => `${ENROLLMENT_PREFIX}${tokenHash}`
 
 const userToItem = (user: User): Item => ({
   id: user.id,
   entityType: 'user',
   displayName: user.displayName,
+  ...(user.email !== undefined ? { email: user.email } : {}),
   walletAddress: user.walletAddress,
   walletAssetCode: user.walletAssetCode,
   status: user.status,
@@ -57,6 +61,7 @@ const userFromItem = (item: Item): User => {
     createdAt: item['createdAt'] as string,
     updatedAt: item['updatedAt'] as string
   }
+  if (item['email'] !== undefined) user.email = item['email'] as string
   if (item['sessionVersion'] !== undefined) {
     user.sessionVersion = item['sessionVersion'] as number
   }
@@ -197,18 +202,31 @@ export function createDynamoUsersRepository({
                   ConditionExpression: 'attribute_not_exists(#id)',
                   ExpressionAttributeNames: { '#id': 'id' }
                 }
-              }
+              },
+              ...(user.email !== undefined
+                ? [
+                    {
+                      Put: {
+                        TableName: tableName,
+                        Item: { id: emailKey(user.email), userId: user.id },
+                        ConditionExpression: 'attribute_not_exists(#id)',
+                        ExpressionAttributeNames: { '#id': 'id' }
+                      }
+                    }
+                  ]
+                : [])
             ]
           })
         )
       } catch (error) {
-        if (
-          error instanceof TransactionCanceledException &&
-          (error.CancellationReasons ?? []).some(
-            (reason) => reason?.Code === 'ConditionalCheckFailed'
-          )
-        ) {
-          throw new WalletAlreadyRegisteredError()
+        if (error instanceof TransactionCanceledException) {
+          const reasons = error.CancellationReasons ?? []
+          if (user.email !== undefined && reasons[3]?.Code === 'ConditionalCheckFailed') {
+            throw new EmailAlreadyRegisteredError()
+          }
+          if (reasons.some((reason) => reason?.Code === 'ConditionalCheckFailed')) {
+            throw new WalletAlreadyRegisteredError()
+          }
         }
         throw error
       }
@@ -219,6 +237,14 @@ export function createDynamoUsersRepository({
     async findUserByWallet(walletAddress) {
       const result = await client.send(
         new GetCommand({ TableName: tableName, Key: { id: walletKey(walletAddress) } })
+      )
+      if (result.Item === undefined) return null
+      return getUser(result.Item['userId'] as string)
+    },
+
+    async findUserByEmail(email) {
+      const result = await client.send(
+        new GetCommand({ TableName: tableName, Key: { id: emailKey(email) } })
       )
       if (result.Item === undefined) return null
       return getUser(result.Item['userId'] as string)
@@ -271,6 +297,9 @@ export function createDynamoUsersRepository({
             {
               Delete: { TableName: tableName, Key: { id: walletKey(user.walletAddress) } }
             },
+            ...(user.email !== undefined
+              ? [{ Delete: { TableName: tableName, Key: { id: emailKey(user.email) } } }]
+              : []),
             ...credentials.map((credential) => ({
               Delete: {
                 TableName: tableName,
@@ -331,18 +360,31 @@ export function createDynamoUsersRepository({
                   ConditionExpression: 'attribute_not_exists(#id)',
                   ExpressionAttributeNames: { '#id': 'id' }
                 }
-              }
+              },
+              ...(user.email !== undefined
+                ? [
+                    {
+                      Put: {
+                        TableName: tableName,
+                        Item: { id: emailKey(user.email), userId: user.id },
+                        ConditionExpression: 'attribute_not_exists(#id)',
+                        ExpressionAttributeNames: { '#id': 'id' }
+                      }
+                    }
+                  ]
+                : [])
             ]
           })
         )
       } catch (error) {
-        if (
-          error instanceof TransactionCanceledException &&
-          (error.CancellationReasons ?? []).some(
-            (reason) => reason?.Code === 'ConditionalCheckFailed'
-          )
-        ) {
-          throw new WalletAlreadyRegisteredError()
+        if (error instanceof TransactionCanceledException) {
+          const reasons = error.CancellationReasons ?? []
+          if (user.email !== undefined && reasons[2]?.Code === 'ConditionalCheckFailed') {
+            throw new EmailAlreadyRegisteredError()
+          }
+          if (reasons.some((reason) => reason?.Code === 'ConditionalCheckFailed')) {
+            throw new WalletAlreadyRegisteredError()
+          }
         }
         throw error
       }

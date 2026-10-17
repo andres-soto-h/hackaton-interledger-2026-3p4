@@ -1,5 +1,6 @@
 import type { Challenge, Credential, Enrollment, User, UserStatus } from './user.types.js'
 import {
+  EmailAlreadyRegisteredError,
   UserNotFoundError,
   WalletAlreadyRegisteredError,
   type UsersRepository
@@ -11,6 +12,7 @@ export function createInMemoryUsersRepository(): UsersRepository {
   const credentials = new Map<string, Credential>()
   const credentialIdsByUser = new Map<string, string[]>()
   const userIdByWallet = new Map<string, string>()
+  const userIdByEmail = new Map<string, string>()
   const challenges = new Map<string, Challenge>()
   const enrollments = new Map<string, Enrollment>()
 
@@ -35,10 +37,14 @@ export function createInMemoryUsersRepository(): UsersRepository {
       if (userIdByWallet.has(user.walletAddress)) {
         return Promise.reject(new WalletAlreadyRegisteredError())
       }
+      if (user.email !== undefined && userIdByEmail.has(user.email)) {
+        return Promise.reject(new EmailAlreadyRegisteredError())
+      }
       users.set(user.id, structuredClone(user))
       credentials.set(credential.id, structuredClone(credential))
       credentialIdsByUser.set(user.id, [...listCredentialIds(user.id), credential.id])
       userIdByWallet.set(user.walletAddress, user.id)
+      if (user.email !== undefined) userIdByEmail.set(user.email, user.id)
       return Promise.resolve()
     },
 
@@ -49,6 +55,13 @@ export function createInMemoryUsersRepository(): UsersRepository {
 
     findUserByWallet(walletAddress) {
       const userId = userIdByWallet.get(walletAddress)
+      if (userId === undefined) return Promise.resolve(null)
+      const user = users.get(userId)
+      return Promise.resolve(user === undefined ? null : structuredClone(user))
+    },
+
+    findUserByEmail(email) {
+      const userId = userIdByEmail.get(email)
       if (userId === undefined) return Promise.resolve(null)
       const user = users.get(userId)
       return Promise.resolve(user === undefined ? null : structuredClone(user))
@@ -96,6 +109,7 @@ export function createInMemoryUsersRepository(): UsersRepository {
       if (user !== undefined) {
         users.delete(userId)
         userIdByWallet.delete(user.walletAddress)
+        if (user.email !== undefined) userIdByEmail.delete(user.email)
         for (const credentialId of listCredentialIds(userId)) {
           credentials.delete(credentialId)
         }
@@ -124,8 +138,12 @@ export function createInMemoryUsersRepository(): UsersRepository {
       if (userIdByWallet.has(user.walletAddress)) {
         return Promise.reject(new WalletAlreadyRegisteredError())
       }
+      if (user.email !== undefined && userIdByEmail.has(user.email)) {
+        return Promise.reject(new EmailAlreadyRegisteredError())
+      }
       users.set(user.id, structuredClone(user))
       userIdByWallet.set(user.walletAddress, user.id)
+      if (user.email !== undefined) userIdByEmail.set(user.email, user.id)
       return Promise.resolve()
     },
 

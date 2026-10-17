@@ -130,6 +130,27 @@ describe('POST /api/v1/auth/register/options', () => {
     expect(res.status).toBe(409)
     expect(errorOf(res).code).toBe('WALLET_ALREADY_REGISTERED')
   })
+
+  it('email que ya tiene cuenta → 409 EMAIL_ALREADY_REGISTERED', async () => {
+    const first = await registerOptions({
+      displayName: 'Alice',
+      email: 'alice@example.com',
+      walletAddress: '$ilp.interledger-test.dev/alice'
+    })
+    expect(first.status).toBe(200)
+    await registerVerify({
+      challengeId: bodyOf<OptionsBody>(first).challengeId,
+      credential: { id: 'cred-alice-1', newCounter: 0 }
+    })
+
+    const dup = await registerOptions({
+      displayName: 'Bob',
+      email: 'alice@example.com',
+      walletAddress: '$ilp.interledger-test.dev/bob'
+    })
+    expect(dup.status).toBe(409)
+    expect(errorOf(dup).code).toBe('EMAIL_ALREADY_REGISTERED')
+  })
 })
 
 // Casos 3 a 6 y 13

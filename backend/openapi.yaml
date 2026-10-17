@@ -1007,6 +1007,10 @@ components:
         displayName:
           type: string
           maxLength: 60
+        email:
+          type: string
+          format: email
+          maxLength: 254
         walletAddress:
           type: string
           maxLength: 2048
@@ -1377,6 +1381,16 @@ components:
             error:
               code: WALLET_ALREADY_REGISTERED
               message: Wallet address already registered
+    EmailAlreadyRegistered:
+      description: El correo ya pertenece a otra cuenta.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: EMAIL_ALREADY_REGISTERED
+              message: Email already registered
     WalletNotFound:
       description: La wallet no existe o no está permitida.
       content:

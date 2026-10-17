@@ -263,6 +263,7 @@ Formato estándar (spec 001):
 | `WALLET_ALREADY_LINKED` | 409 | Ya hay una vinculación activa | 023 |
 | `WALLET_LINK_REVOKED` | 409 | El usuario retiró el permiso desde su wallet | 023 |
 | `WALLET_ALREADY_REGISTERED` | 409 | La wallet ya tiene una cuenta | 019 |
+| `EMAIL_ALREADY_REGISTERED` | 409 | El correo ya tiene una cuenta | 019 |
 | `AUTHORIZATION_EXPIRED` | 410 | La vinculación no se aprobó a tiempo | 023 |
 | `QUOTE_EXPIRED` | 410 | Se confirmó un pago después de vencer el quote | 007 |
 | `PAYLOAD_TOO_LARGE` | 413 | Body mayor a 16 kb | 005 |

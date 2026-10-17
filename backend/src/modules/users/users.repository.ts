@@ -8,6 +8,14 @@ export class WalletAlreadyRegisteredError extends Error {
   }
 }
 
+/** The email already belongs to an account. */
+export class EmailAlreadyRegisteredError extends Error {
+  constructor(message = 'Email already registered') {
+    super(message)
+    this.name = 'EmailAlreadyRegisteredError'
+  }
+}
+
 /** The user does not exist. */
 export class UserNotFoundError extends Error {
   constructor(message = 'User not found') {
@@ -31,6 +39,7 @@ export interface UsersRepository {
   createUserWithCredential(user: User, credential: Credential): Promise<void>
   getUser(id: string): Promise<User | null>
   findUserByWallet(walletAddress: string): Promise<User | null>
+  findUserByEmail(email: string): Promise<User | null>
   getCredential(credentialId: string): Promise<Credential | null>
   listCredentials(userId: string): Promise<Credential[]>
   updateCredentialUsage(

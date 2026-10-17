@@ -5,6 +5,8 @@ export type UserStatus = 'ACTIVE' | 'BLOCKED'
 export interface User {
   id: string
   displayName: string
+  /** Email captured at self-service registration; absent for enrollment/admin-created users. */
+  email?: string
   walletAddress: string
   walletAssetCode: string
   status: UserStatus
@@ -54,6 +56,7 @@ export interface Challenge {
   pending?: {
     userId: string
     displayName: string
+    email?: string
     walletAddress: string
     walletAssetCode: string
     /** Present when the registration uses an enrollment link. */

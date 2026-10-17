@@ -28,6 +28,7 @@ export function createSimpleWebAuthnVerifier(): PasskeyVerifier {
         rpID: input.rpID,
         rpName: input.rpName,
         userName: input.userName,
+        userDisplayName: input.userName,
         userID: Buffer.from(input.userId, 'utf8'),
         attestationType: 'none',
         authenticatorSelection: {

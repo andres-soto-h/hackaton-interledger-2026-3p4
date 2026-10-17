@@ -46,6 +46,9 @@ export interface AuthSession {
 const walletAlreadyRegistered = (): AppError =>
   new AppError(409, 'WALLET_ALREADY_REGISTERED', 'Wallet address already registered')
 
+const emailAlreadyRegistered = (): AppError =>
+  new AppError(409, 'EMAIL_ALREADY_REGISTERED', 'Email already registered')
+
 const challengeExpired = (): AppError =>
   new AppError(400, 'CHALLENGE_EXPIRED', 'Challenge expired, used or invalid')
 
@@ -70,6 +73,7 @@ const credentialIdOf = (credential: unknown): string | undefined =>
 export interface AuthService {
   registerOptions(input: {
     displayName?: string
+    email?: string
     walletAddress?: string
     enrollmentToken?: string
   }): Promise<{ challengeId: string; options: Record<string, unknown> }>
@@ -141,6 +145,11 @@ export function createAuthService(deps: AuthDeps): AuthService {
       const existing = await users.findUserByWallet(wallet.id)
       if (existing !== null) throw walletAlreadyRegistered()
 
+      if (input.email !== undefined && input.email !== '') {
+        const byEmail = await users.findUserByEmail(input.email)
+        if (byEmail !== null) throw emailAlreadyRegistered()
+      }
+
       const userId = newUserId(nowMs())
       const options = await verifier.createRegistrationOptions({
         rpID: webauthn.rpID,
@@ -157,6 +166,9 @@ export function createAuthService(deps: AuthDeps): AuthService {
         pending: {
           userId,
           displayName: input.displayName ?? '',
+          ...(input.email !== undefined && input.email !== ''
+            ? { email: input.email }
+            : {}),
           walletAddress: wallet.id,
           walletAssetCode: wallet.assetCode
         },
@@ -221,6 +233,7 @@ export function createAuthService(deps: AuthDeps): AuthService {
       const user: User = {
         id: pending.userId,
         displayName: pending.displayName,
+        ...(pending.email !== undefined ? { email: pending.email } : {}),
         walletAddress: pending.walletAddress,
         walletAssetCode: pending.walletAssetCode,
         status: 'ACTIVE',

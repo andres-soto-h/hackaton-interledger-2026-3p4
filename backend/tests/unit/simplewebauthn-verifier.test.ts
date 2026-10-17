@@ -53,7 +53,7 @@ describe('SimpleWebAuthn PasskeyVerifier', () => {
       expect(options.challenge.length).toBeGreaterThanOrEqual(32)
       expect(options).toMatchObject({
         rp: { id: RP_ID, name: 'Tranqui' },
-        user: { name: 'Alice' },
+        user: { name: 'Alice', displayName: 'Alice' },
         attestation: 'none',
         authenticatorSelection: { residentKey: 'required', userVerification: 'required' }
       })

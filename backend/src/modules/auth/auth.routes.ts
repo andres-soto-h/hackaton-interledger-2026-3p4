@@ -10,6 +10,7 @@ const credentialSchema = z.looseObject({ id: z.string().min(1) })
 const registerOptionsSchema = z.union([
   z.strictObject({
     displayName: z.string().min(1).max(60),
+    email: z.string().email().optional(),
     walletAddress: z.string().min(1)
   }),
   z.strictObject({
