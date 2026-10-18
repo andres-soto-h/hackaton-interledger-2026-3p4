@@ -23,7 +23,8 @@ const PUBLIC_ROUTES = new Set([
   'POST /api/v1/me/wallet-link',
   'GET /api/v1/me/wallet-link',
   'DELETE /api/v1/me/wallet-link',
-  'GET /api/v1/me/allowance'
+  'GET /api/v1/me/allowance',
+  'POST /api/v1/agent/messages'
 ])
 
 /** The admin panel has its own session auth; the API key never applies to it. */
