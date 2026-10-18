@@ -18,7 +18,7 @@ import express from 'express'
 ;(async () => {
   // Client configuration
   const PRIVATE_KEY_PATH = './private-dollar.key'
-  const KEY_ID = 'TU_KEY_ID'
+  const KEY_ID = process.env.KEY_ID ?? 'TU_KEY_ID'
 
   // Make sure the wallet addresses starts with https:// (not $)
   const CLIENT_WALLET_ADDRESS_URL = 'https://ilp.interledger-test.dev/andy_dolares'
