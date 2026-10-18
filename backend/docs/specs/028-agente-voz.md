@@ -10,7 +10,7 @@
 
 ## Estado
 
-7 / 9 tareas completadas. La 8 (pruebas) queda diferida por la directiva de no tests. La 9 va avanzada: **desplegado en `dev` el 2026-10-17** (con `tranqui-deployer`) y probado el agente de punta a punta con Bedrock real (Claude Haiku 4.5) contra una API falsa; falta cargar la llave de ElevenLabs en `tranqui/dev/elevenlabs` y la prueba manual desde la app. **Spec aprobado el 2026-10-17** con las decisiones de abajo; **Desarrollo aprobado el 2026-10-17**; se trabaja en la rama `develop-local`. Código listo (`agent/`, módulo `agent` del backend, CDK, OpenAPI y docs); desplegado; falta la llave de ElevenLabs y la prueba manual. **Modelo:** Claude Haiku 4.5 (`us.anthropic.claude-haiku-4-5-20251001-v1:0`). Haiku 5.5 aparece como autorizado pero Bedrock responde que no está disponible para la cuenta; se reevalúa más adelante.
+7 / 9 tareas completadas. La 8 (pruebas) queda diferida por la directiva de no tests. La 9 va avanzada: **desplegado en `dev` el 2026-10-17** (con `tranqui-deployer`) y probado el agente de punta a punta con Bedrock real (Claude Haiku 4.5) contra una API falsa; la llave de ElevenLabs ya está en `tranqui/dev/elevenlabs`. **2026-10-18:** la app cerraba la sesión al hablar con el agente porque `apiKeyAuth` exigía `x-api-key` a `POST /agent/messages` (401 `UNAUTHORIZED` en 1 ms, antes de `userAuth`); se agregó la ruta a las rutas con sesión de usuario y se desplegó junto con el prompt nuevo de TuTranqui. Falta la prueba manual desde la app. **Spec aprobado el 2026-10-17** con las decisiones de abajo; **Desarrollo aprobado el 2026-10-17**; se trabaja en la rama `develop-local`. Código listo (`agent/`, módulo `agent` del backend, CDK, OpenAPI y docs); desplegado; falta la llave de ElevenLabs y la prueba manual. **Modelo:** Claude Haiku 4.5 (`us.anthropic.claude-haiku-4-5-20251001-v1:0`). Haiku 5.5 aparece como autorizado pero Bedrock responde que no está disponible para la cuenta; se reevalúa más adelante.
 
 ## Contexto
 
@@ -148,6 +148,7 @@ del usuario por contexto, no como argumento que decida el modelo.
 - **Modelo inicial: Claude Haiku en Bedrock** (intermedio y barato; las consultas del agente son simples).
   Si no rinde bien con las tools o en español, se prueba un **modelo de pesos abiertos** disponible en
   Bedrock con menor costo por token. El ID exacto de Bedrock se confirma al habilitar el acceso al modelo.
+- **Prompt vigente (2026-10-18): TuTranqui** (`agent/src/prompt.py`), con las 14 secciones (voz, seguridad, flujo de pago, emociones). Se adaptó a las tres tools reales y no usa variables por inyectar; el flujo termina en "pago listo para confirmar" y el agente nunca ejecuta. Lo que sigue es la versión inicial del diseño:
 - Prompt del sistema (versionado en el repo, sin datos del usuario): español de Colombia, trato de
   "usted", frases cortas, montos dichos con claridad, explicar antes de pagar, **nunca decir que un pago
   ya se hizo** (solo que queda listo para confirmar con su huella o PIN) y no inventar comercios ni montos.
@@ -218,7 +219,7 @@ Mínimos, con modelo y ElevenLabs falsos (sin llamar a Bedrock ni a ElevenLabs e
 - [x] 6. CDK: Lambda del agente, permisos de Bedrock, secreto de ElevenLabs, variables y ampliación de la política de despliegue.
 - [x] 7. `openapi.yaml`, `API.md` y `SEGURIDAD.md` (tercero ElevenLabs, límites del agente).
 - [ ] 8. Pruebas mínimas 1–6. *(Diferida: directiva de no tests vigente. Las tools se verificaron con un script de humo fuera del repo.)*
-- [ ] 9. Despliegue en `dev`, habilitar el acceso al modelo en Bedrock, cargar la llave de ElevenLabs y prueba manual 7 junto con el frontend 008 y 009.
+- [ ] 9. Despliegue en `dev`, habilitar el acceso al modelo en Bedrock, cargar la llave de ElevenLabs y prueba manual 7 junto con el frontend 008 y 009. *(Desplegado en `dev` el 2026-10-17 y redesplegado el 2026-10-18 con el arreglo del 401 y el prompt TuTranqui; llave de ElevenLabs cargada. Falta la prueba manual 7.)*
 
 ## Decisiones
 

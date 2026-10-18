@@ -6,7 +6,7 @@
 | Borrador | Aprobado | En desarrollo | Hecho |
 |---|---|---|---|
 | | | | [026 — Pago a comercio con wallet del receptor (solo COP)](specs/026-pago-comercio-cop.md) · 4/4 · [027 — Cancelación de grant al borrar cuenta](specs/027-cancelacion-grant-cuenta.md) · 3/3 |
-| | | [028 — Agente de voz (Strands + Bedrock + ElevenLabs)](specs/028-agente-voz.md) · 7/9 · *desplegado en `dev`; tarea 8 (pruebas) diferida; falta la llave de ElevenLabs y la prueba manual* | |
+| | | [028 — Agente de voz (Strands + Bedrock + ElevenLabs)](specs/028-agente-voz.md) · 7/9 · *desplegado en `dev` (arreglo del 401 y prompt TuTranqui el 2026-10-18); tarea 8 (pruebas) diferida; falta la prueba manual* | |
 | | | [002 — Infraestructura AWS Lambda](specs/002-infraestructura-aws-lambda.md) · 22/22 · *desplegado en `dev` el 2026-10-17; falta cargar el secreto `open-payments`* | [001 — Bootstrap de la API](specs/001-bootstrap-api.md) · 14/14 |
 | | | | [004 — Persistencia de pagos](specs/004-persistencia-pagos.md) · 7/7 |
 | | | | [005 — Middlewares HTTP](specs/005-middlewares-http.md) · 7/7 |
@@ -124,3 +124,4 @@ El 002 avanza solo como plantilla IaC: no se despliega hasta tener la mayoría d
 | 2026-10-17 | 028 | Desarrollo aprobado → En desarrollo; rama `develop-local` (directiva de no tests vigente) |
 | 2026-10-17 | 028 | Tareas 1–7: Lambda del agente en Python (Strands, 3 tools, voz de ElevenLabs), endpoint `POST /agent/messages`, historial en DynamoDB, CDK, OpenAPI y docs. Sin desplegar; pruebas diferidas por la directiva |
 | 2026-10-17 | 028 | Desplegado en `dev` con `tranqui-deployer` (sin tocar la política de despliegue). Agente probado con Bedrock real (Haiku 4.5): crea pagos sin confirmar, ignora órdenes de saltarse las reglas. Falta la llave de ElevenLabs |
+| 2026-10-18 | 028 | Arreglo: `POST /agent/messages` devolvía 401 `UNAUTHORIZED` porque `apiKeyAuth` exigía `x-api-key` (la app cerraba la sesión); ahora usa la sesión de usuario. Prompt del agente reemplazado por TuTranqui, adaptado a las tres tools. Redesplegado en `dev`; llave de ElevenLabs ya cargada. Falta la prueba manual |
