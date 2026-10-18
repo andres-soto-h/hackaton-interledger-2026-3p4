@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { App } from 'aws-cdk-lib'
 import { Code } from 'aws-cdk-lib/aws-lambda'
 import { BackendStack } from '../lib/backend-stack.js'
+import { FrontendStack } from '../lib/frontend-stack.js'
 
 const stage = process.env.STAGE ?? 'dev'
 
@@ -13,6 +14,15 @@ const backendDist = fileURLToPath(new URL('../../dist', import.meta.url))
 const agentDist = fileURLToPath(new URL('../../../agent/dist/package', import.meta.url))
 
 const app = new App()
+
+// Frontend hosting (S3 + CloudFront). Its domain is the WebAuthn RP ID of the backend.
+new FrontendStack(app, `TranquiFrontend-${stage}`, {
+  stage,
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION ?? 'us-east-1'
+  }
+})
 
 new BackendStack(app, `TranquiBackend-${stage}`, {
   stage,

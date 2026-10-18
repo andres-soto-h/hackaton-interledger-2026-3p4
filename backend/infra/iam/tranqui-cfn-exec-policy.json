@@ -1,0 +1,31 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Sid": "Lambda", "Effect": "Allow", "Action": "lambda:*",
+      "Resource": ["arn:aws:lambda:*:__ACCOUNT_ID__:function:TranquiBackend-*"] },
+    { "Sid": "DynamoDB", "Effect": "Allow", "Action": "dynamodb:*",
+      "Resource": ["arn:aws:dynamodb:*:__ACCOUNT_ID__:table/TranquiBackend-*", "arn:aws:dynamodb:*:__ACCOUNT_ID__:table/TranquiBackend-*/index/*"] },
+    { "Sid": "Logs", "Effect": "Allow", "Action": "logs:*",
+      "Resource": ["arn:aws:logs:*:__ACCOUNT_ID__:log-group:TranquiBackend-*", "arn:aws:logs:*:__ACCOUNT_ID__:log-group:TranquiBackend-*:*", "arn:aws:logs:*:__ACCOUNT_ID__:log-group:/aws/lambda/TranquiBackend-*", "arn:aws:logs:*:__ACCOUNT_ID__:log-group:/aws/lambda/TranquiBackend-*:*"] },
+    { "Sid": "LogsDescribe", "Effect": "Allow", "Action": "logs:DescribeLogGroups", "Resource": "*" },
+    { "Sid": "Alarms", "Effect": "Allow", "Action": "cloudwatch:*",
+      "Resource": "arn:aws:cloudwatch:*:__ACCOUNT_ID__:alarm:TranquiBackend-*" },
+    { "Sid": "Secrets", "Effect": "Allow", "Action": "secretsmanager:*",
+      "Resource": "arn:aws:secretsmanager:*:__ACCOUNT_ID__:secret:tranqui/*" },
+    { "Sid": "HttpApis", "Effect": "Allow", "Action": ["apigateway:GET", "apigateway:POST", "apigateway:PUT", "apigateway:PATCH", "apigateway:DELETE", "apigateway:TagResource"],
+      "Resource": ["arn:aws:apigateway:*::/apis", "arn:aws:apigateway:*::/apis/*", "arn:aws:apigateway:*::/tags/*"] },
+    { "Sid": "RolesOfTheStack", "Effect": "Allow",
+      "Action": ["iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:TagRole", "iam:UntagRole", "iam:UpdateAssumeRolePolicy", "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:GetRolePolicy", "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:PassRole"],
+      "Resource": "arn:aws:iam::__ACCOUNT_ID__:role/TranquiBackend-*" },
+    { "Sid": "OnlyBasicExecutionAttachable", "Effect": "Deny", "Action": ["iam:AttachRolePolicy", "iam:DetachRolePolicy"],
+      "Resource": "arn:aws:iam::__ACCOUNT_ID__:role/TranquiBackend-*",
+      "Condition": { "ArnNotEquals": { "iam:PolicyARN": "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole" } } },
+    { "Sid": "PassRoleOnlyToLambda", "Effect": "Deny", "Action": "iam:PassRole", "Resource": "*",
+      "Condition": { "StringNotEquals": { "iam:PassedToService": "lambda.amazonaws.com" } } },
+    { "Sid": "CdkAssets", "Effect": "Allow", "Action": ["s3:GetObject", "s3:GetBucketLocation", "s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::cdk-*-assets-__ACCOUNT_ID__-*", "arn:aws:s3:::cdk-*-assets-__ACCOUNT_ID__-*/*"] },
+    { "Sid": "FrontendBucket", "Effect": "Allow", "Action": "s3:*",
+      "Resource": ["arn:aws:s3:::tranquifrontend-*", "arn:aws:s3:::tranquifrontend-*/*"] },
+    { "Sid": "FrontendCloudFront", "Effect": "Allow", "Action": "cloudfront:*", "Resource": "*" }
+  ]
+}
