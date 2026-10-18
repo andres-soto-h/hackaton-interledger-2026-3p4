@@ -39,6 +39,17 @@ def _speakable(text: str) -> str:
     return " ".join(plain.split())[:_MAX_CHARS]
 
 
+def _reason(error: urllib.error.HTTPError) -> str:
+    """`detail.status` y `detail.message` de la respuesta de error de ElevenLabs, recortados."""
+    try:
+        detail = json.loads(error.read()).get("detail")
+        if isinstance(detail, dict):
+            return f"{detail.get('status', '')}: {detail.get('message', '')}"[:200]
+        return str(detail)[:200]
+    except (ValueError, AttributeError, OSError):
+        return ""
+
+
 def synthesize(text: str, *, secret_arn: str, voice_id: str, model_id: str, timeout: float) -> dict[str, str] | None:
     """Devuelve `{"format": "mp3", "base64": ...}` o `None` si no se pudo (sin lanzar)."""
     try:
@@ -56,6 +67,10 @@ def synthesize(text: str, *, secret_arn: str, voice_id: str, model_id: str, time
         with urllib.request.urlopen(request, timeout=timeout) as response:
             audio = response.read()
         return {"format": "mp3", "base64": base64.b64encode(audio).decode("ascii")}
+    except urllib.error.HTTPError as error:
+        # Código y motivo que da ElevenLabs (sin el texto ni la llave).
+        logger.warning("ElevenLabs no disponible: HTTP %s %s", error.code, _reason(error))
+        return None
     except (urllib.error.URLError, TimeoutError, OSError, KeyError, ValueError, boto3.exceptions.Boto3Error) as error:
         # Sin el texto ni la llave: solo el tipo de fallo.
         logger.warning("ElevenLabs no disponible: %s", type(error).__name__)

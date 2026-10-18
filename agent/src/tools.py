@@ -5,6 +5,7 @@ token del usuario nunca pasa por el modelo. Los resultados reales alimentan `act
 """
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
@@ -13,6 +14,8 @@ from typing import Any
 from strands import tool
 
 from api_client import ApiClient, ApiError
+
+logger = logging.getLogger("agent.tools")
 
 MAX_TOOL_CALLS = 6
 _AMOUNT_RE = re.compile(r"^\d{1,12}(\.\d{1,2})?$")
@@ -149,6 +152,7 @@ def build_tools(ctx: TurnContext) -> list[Any]:
                 idempotent=True,
             )
         except ApiError as error:
+            logger.warning("create_payment rechazado: HTTP %s %s", error.status, error.code)
             return {"error": f"No se pudo preparar el pago ({error.code}). No se movió dinero."}
 
         ctx.add_action({"type": "confirm_payment", "paymentId": payment["paymentId"]})
