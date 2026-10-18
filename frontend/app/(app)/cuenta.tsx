@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/features/auth/api';
@@ -143,6 +144,9 @@ export default function Account() {
 
       <Button label="Cerrar sesión" variant="secondary" onPress={() => setConfirming('signOut')} />
       <Button label="Eliminar mi cuenta" variant="ghost" onPress={() => setConfirming('delete')} />
+      <AppText variant="label" color="textMuted" style={{ textAlign: 'center' }}>
+        Versión {Constants.expoConfig?.version ?? '—'}
+      </AppText>
     </Screen>
   );
 }
